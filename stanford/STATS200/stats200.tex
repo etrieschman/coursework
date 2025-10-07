@@ -1,0 +1,836 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{lipsum}
+\usepackage{layout}
+\usepackage{geometry}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{STATS200 class notes}
+\author{Erich Trieschman}
+\date{2021 Fall quarter}
+
+\newcommand{\userMarginInMm}{20}
+\geometry{
+%  legal,
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=20mm,
+ footskip=5mm}
+
+ \hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+    }
+
+%in line bullet
+\newcommand{\blabel}{$\bullet$}
+
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+% COMBINATORICS AND PROBABILITY REVIEW
+\section{Review: Combinatorics and probability}
+%Logs, derivatives, integration, taylor expansions
+\subsection{Calculus cheat sheet}
+\textbf{Logs:} $log_b(M * N) = log_bM + log_bN$ \blabel $log_b(\frac{M}{N}) = log_bM - log_bN$\blabel $log_b(M^k) = klog_bM$\blabel $e^ne^m = e^{n+m}$\\\\
+\textbf{Derivatives:} $(x^n)' = nx^{n-1}$\blabel $(e^x)' = e^x$ \blabel $(e^{u(x)})' = u'(x)e^x$ \blabel $(log_e(x))' = (lnx)' = \frac{1}{x}$\blabel $(f(g(x)))' = f'(g(x))g'(x)$\\\\
+\textbf{Integrals: } $\int_a^b f(x)dx = \int_{g(a)}^{g(b)}f(g(u))g'(u)du$ where $g(u) = x$\blabel $\int_a^b u(x)v'(x)dx = u(b)v(b) - u(a)v(a) - \int_a^b u'(x)v(x)dx$\\\\
+\textbf{Infinite series and sums:} $e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \dots = \sum_{n=0}^\infty \frac{x^n}{n!}$\blabel $(1 + \frac{a}{n})^n \longrightarrow e^a$\\
+$ln(1 + x) = 1 - x + \frac{x^2}{2} - \frac{x^3}{3} + \dots = \sum_{n=0}^\infty (-1)^n\frac{x^n}{n}$\blabel $\frac{1}{1-x} = 1 + x + x^2 + x^3 + \dots = \sum_{n=0}^\infty a^x$ for $\abs{x} < 1$
+
+% EVENTS AND SETS
+\subsection{Events and sets}
+Set operations follow commutative, associative, and distributive laws:
+\begin{itemize}
+    \item Commutative: $E \cup F = F \cup E$ and $E\cap F = F \cap E $ (also written $EF = FE$)
+    \item Associative: $(E\cup F)\cup G = E \cup (f\cup G)$ and $(E\cap F)\cap G = E\cap(F\cap G)$
+    \item Distributive: $(E\cup F)\cap G = (E\cap G) \cup (F \cap G) = E\cap G \cup F \cap G$ and $E\cap F\cup G = (E\cup G) \cap (F \cup G) = E\cup G \cap F \cup G$
+\end{itemize}
+\textbf{DeMorgan's Laws} relate the complement of a union to the intersection of complements:
+\begin{equation*}
+    (\cup_{i=1}^n E_i)^c = \cap_{i=1}^nE_i^c \bullet (\cap_{i=1}^n E_i)^c = \cup_{i=1}^nE_i^c
+\end{equation*}
+
+% PROBABILITY
+\subsection{Probability}
+A \textbf{probability space} is defined by a triple of objects $(S, \mathcal{E}, P)$:
+\begin{itemize}
+    \item $S:$ Sample space
+    \item $\mathcal{E}:$ Set of possible events within the sample space. Set of events are assumed to be $\theta$-field (below)
+    \item $P:$ Probability for each event
+\end{itemize}
+A \textbf{$\theta$-field} is a collection of subsets $\mathcal{E} \subset S$ that satisfy $0 \in \mathcal{E} \bullet E \in \mathcal{E} \Rightarrow E^C \in \mathcal{E} \bullet E_i \in \mathcal{E} \textrm{ for } 1, 2, \dots \Rightarrow \cup_{i=1}^\infty E_i \in \mathcal{E}$\\\\
+\textbf{Probability properties: }\\
+$P(A^C)=1 - P(A)$ \blabel $P(0)=0$ \blabel $A\subset B \longrightarrow P(A) \leq P(B)$ \blabel $P(A \cup B)=P(A)+P(B) - P(A \cap B)$\\\\
+The \textbf{law of total probability} relates marginal probabilities to conditional probabilities. For a partition, {$E_1, E_2, \dots$} of set, $S$, where a partition implies i) $E_i, E_j$ are pairwise disjoint and ii) $\cup_{i=1}^\infty E_i = S$, then
+\begin{equation*}
+     P(A) = \sum_{i=1}^\infty P(A\cap E_i) = \sum_{i=1}^\infty P(A \mid E_i) P(E_i)
+\end{equation*}
+The \textbf{continuity of probability measures} state
+\begin{align*}
+    (i) \;& E_1 \subset E_2 \subset \dots \textrm{   Let } E_\infty = \cup_i E_i \textrm{, then } P(E_n) \longrightarrow P(E_\infty) \textrm{ as } n \longrightarrow \infty\\
+    (ii) \;& E_1 \supset E_2 \supset \dots \textrm{   Let } E_\infty = \cap_i E_i \textrm{, then } P(E_n) \longrightarrow P(E_\infty) \textrm{ as } n \longrightarrow \infty\\\\
+\end{align*}
+
+\subsubsection{Conditional probability}
+The conditional probability is the probability of one event occurring, given the other event occurring. A reframing of conditional probability (see formula below) is the probability of both events occurring, divided by the marginal probability of one of the events occurring. 
+\begin{align*}
+    p_{X|Y}(x|y) = \frac{p_{x,y}(x,y)}{p_y(y)}
+\end{align*}
+\textbf{Bayes Theorem} leverages conditional probabilities of measured events to glean conditional probabilities of unmeasured events:
+\begin{equation*}
+    P(E_i \mid B) = \frac{P(B \mid E_i)P(E_i)}{\sum_{j=1}^\infty P(B \mid E_j)P(E_j)} = \frac{P(B \mid E_i)P(E_i)}{P(B)}
+\end{equation*}
+Where $E_1, E_2, \dots$ form a partition of the sample space.
+
+\subsubsection{Independence}
+Events $A$ and $B$ are independent if $P(A\cap B) = P(A)P(B)$
+
+It is possible for events to be pairwise independent, but not mutually independent. For example, toss a pair of dice and let $D_1$ be the number for die 1 and $D_2$ be the number for die 2. Define $E_i = \{D_i \leq 2\}$. And define $E_3 = \{ 3 \leq \max(D_1, D_2) \leq 4 \}$. These events are pairwise independent, but $P(E_1\cap E_2 \cap E_3) = 0$, so they are not mutually independent. 
+
+% RANDOM VARIABLES
+\section{Random variables and expectation}
+\textbf{Random variables} are functions connecting a sample space to real numbers: $\{ \omega \in S : X(\omega) \leq t \} \in \mathcal{E}$. 
+For example, if coin tosses produce a sample space of \{Heads, Tails\}, a random variable can be the number of heads. 
+
+%EXPECTED VARIABLES
+\subsection{Expected value}
+\begin{equation*}
+    E(X) = \sum_x xP(X=x)
+\end{equation*}
+Which can also be written as
+\begin{align*}
+    E(X) &= \sum_{x \in S} X(s)p(s) \textrm{, where $p(s)$ is the probability that element $s \in S$ occurs:}\\
+    \textrm{Proof:}&\\
+    E(X) &= \sum_i x_iP(X=x_i) \textrm{, for } E_i = \{X = x_i\} = \{s \in S : X(s) = x_i\}\\
+    &= \sum_i x_i \sum_{s\in E_i} p(s) = \sum_i \sum_{s\in E_i} x_i p(s) = \sum_i \sum_{s\in E_i} X(s) p(s) = \sum_{s\in S} x_i p(s)
+\end{align*}
+This equation structure helps proof several properties of the expected value:\\
+\begin{itemize}
+    \item $E(g(X)) = \sum_i g(x_i)p_X(x_i) \textrm{, assuming } g(x_i) = y_i$ 
+    \begin{align*}
+        \sum_i g(x_i)p_X(x_i) &= \sum_j \sum_{i:g(x_i)=y_j} g(x_i) p_X(x_i) = \sum_j \sum_{i:g(x_i)=y_j} y_j p_X(x_i) = \sum_j y_j P(g(X) = x_i) = E(g(X))
+    \end{align*}
+    \item $E(aX + b) = aE(X) + b$
+    \begin{align*}
+        E(aX + b) = \sum_{s\in S} (aX(s) + b) p(s) = a\sum_{s\in S}X(s)p(s) + \sum_{s\in S}bp(s) = aE(X) + b
+    \end{align*}
+    \item $E(X + Y) = E(X) + E(Y)$
+    \begin{align*}
+        E(X + Y) = \sum_{s \in S} (X(s) + Y(s))p(s) = \sum_{s \in S} X(s)p(s) + \sum_{s \in S} Y(s)p(s) = E(X) + E(Y)
+    \end{align*}
+\end{itemize}
+
+
+\subsection{Variance}
+\begin{align*}
+    Var(X) = E((X - E(X)))^2) = \sigma^2 \; \bullet \; SD = \sqrt{Var(X)} = \sqrt{\sigma^2} = \sigma
+\end{align*}
+Several properties of variance follow from linearity of expectation:
+\begin{align*}
+    (i) \; & Var(X) = E(X^2) - \mu^2\\
+    & Var(X) = E((X - \mu)^2) = E(X^2 - 2X\mu + \mu^2) = E(X^2 - 2\mu X + \mu^2) = E(X^2) - 2\mu^2 + \mu^2 = E(X^2) - \mu^2\\ \\
+    (ii) \; & Var(aX+b) = a^2Var(X) \\
+    & Var(aX + b) = E((aX + b)^2) - E(aX + b)^2 = E(a^2X^2 + 2abX + b^2) - (aE(X)+b)^2\\
+    & Var(aX + b) =a^2E(X^2) + 2abE(X) + b^2 - a^2E(X)^2 - 2abE(X) - b^2 = a^2E(X^2) - a^2E(X)^2 = a^2(E(X^2) - E(X)^2)\\ \\
+    (iii) \; & Var(X + Y) = Var(X) + Var(Y) \textrm{ for $X,Y$ independent}\\
+    & Var(X+Y) = E((X + Y)^2) - E(X + Y)^2 = E(X^2) + 2E(XY) + E(Y^2) - E(X^2) - 2E(X)E(Y) - E(Y)^2\\
+    & Var(X+Y) = E(X^2) - E(X)^2 + E(Y^2) - E(Y)^2 \textrm{, since } E(XY) = 0 \textrm{ (by independence) and } E(X)=E(Y)=0 \textrm{ (WLOG)}\\
+    &Var(X+Y) = Var(X) + Var(Y)
+\end{align*}
+
+\subsection{Covariance}
+\begin{equation*}
+    Cov(X, Y) = E((X - E(X)(Y - E(Y)) = E(XY) - E(X)E(Y)
+\end{equation*}
+Several properties of covariance follow from linearity of expectation
+\begin{align*}
+    (i) \; & Cov(X, X) = Var(X):\\
+    & Cov(X, X) = E[(X - E(X)(X - E(X))] = E[(X - E(X))^2] = Var(X)\\ \\
+    (ii) \; & Cov(X, Y) = E(XY) - E(X)E(Y):\\
+    & Cov(X, Y) = E[(X - E(X)(Y - E(Y))] = E(XY - E(Y)X - E(X)Y + E(X)E(Y)) \\ 
+    & Cov(X, Y) = E(XY) - E(X)E(Y) - E(X)E(Y) + E(X)E(Y) = E(XY) - E(X)E(Y)\\ \\
+    (iii) \; & \textrm{if $X, Y$ independent, then} Cov(X, Y = 0)\\ \\
+    (iv) \; & Cov(aX, bY) = abCov(X, Y):\\
+    & Cov(aX, bY)= E(abXY) - E(aX)E(bY) = ab(E(XY) - E(X)E(Y)) = abCov(X, Y) \\ \\
+    (v)\; & Cov(X, Y+Z) = Cov(X, Y) + Cov(X, Z):\\
+    & Cov(X, Y+Z) = E(X(Y+Z)) - E(X)E(Y+Z) \\
+    & Cov(X, Y+Z) = E(XY) + E(XZ) - E(X)E(Y) - E(X)E(Z) = Cov(X, Y) + Cov(X, Z)\\ \\
+    (vi)\; & Cov(U, V) = \sum_i \sum_j b_id_jCov(X_i, Y_j) \textrm{, with } U = a + \sum_i b_iX_i \textrm{ and } V = c + \sum_j d_j Y_j:\\
+    (vii)\; & Var(X + Y) = Var(X) + Var(Y) + 2Cov(X, Y):\\
+    & Var (X + Y) = Cov(X+Y, X+Y) = Cov(U, V) \textrm{, for } U = V = X+Y \\
+    & Var (X + Y) = Cov(U, V) = Cov(X, X) + Cov(X, Y) + Cov(Y, Y) + Cov(Y, X) \textrm{, using $vi$} \\
+    & Var (X + Y) = Var(X) + Var(Y) + 2Cov(X, Y) 
+\end{align*}
+
+\subsection{Correlation}
+\begin{equation*}
+    \rho = \frac{Cov(X, Y)}{\sqrt{Var(X)Var(Y)}}
+\end{equation*}
+
+\subsection{Key theorems}
+\subsubsection{Iterated expectation}
+\textbf{Law of iterated expectation: } $E(E(Y\mid X)) = E(Y)$\\
+\textbf{Proof: }
+\begin{align*}
+    E(Y\mid X) &= \sum_y y\frac{f_{X, Y}(X, y)}{f_X(X)}\\
+    E(E(Y\mid X)) &= \sum_x \sum_y \left ( y\frac{f_{X, Y}(x, y)}{f_X(x)} \right ) f_X(x) = \sum_x \sum_y y f_{X, Y}(x, y) = \sum_y y f_{Y}(y) = E(Y)
+\end{align*}
+
+\subsubsection{Variance decomposition}
+\textbf{Variance decomposition formula: } $Var(Y) = E(Var(Y\mid X)) + Var(E(Y \mid X))$\\
+
+\subsubsection{Cauchy-Schwartz inequality}
+\textbf{Cauchy-Schwartz inequality: }$E(UV)^2 \leq E(U^2)E(V^2) \textrm{, with equality if } P(cU=U) = 1 \textrm{ for some constant, } c$\\
+\textbf{Proof:}
+\begin{align*}
+    \textrm{let } h(t) &= E((tU - V)^2) \geq 0, \; h(t) = t^2E(U^2) - 2tE(UV) + E(V^2) \textrm{, a quadradic equation}\\
+    h(t) \geq 0 &\Rightarrow \textrm{discriminant} \leq 0 \Longleftrightarrow 4E(UV)^2 - 4E(U^2)E(V^2) \leq 0 \Longleftrightarrow E(UV)^2 \leq E(U^2)E(V^2)\\
+\end{align*}
+
+\subsubsection{Transformations of random variables}
+For $X$ with density $f_X$ and $Y = g(X)$
+\begin{align*}
+    F_Y(y) &= P(g(X)\leq y) = P(X \leq g^{-1}(y)) = F_X(g^{-1}(y))\\
+    f_Y(y) &= \frac{d}{dy}F_X(g^{-1}(y)) = f_X(g^{-1}(y))\abs{\frac{d}{dy}g^{-1}(y)}
+\end{align*}
+\textbf{Note:} When computing $F_X(g^{-1}(y))$ be wary of how sign changes may affect the inequality.
+
+\subsubsection{Jensen inequality}
+\textbf{Jensen inequality: } $E(g(x)) \geq g(E(x))$ for $g(x)$ convex\\
+\textbf{Proof: } $\textrm{Let } E(X) = \mu \textrm{, and } L(X) \textrm{ a line s.t. } L(\mu) = g(E(x)):$
+\begin{align*}
+    g(X) \geq L(X) \textrm{ for all } X \Longleftrightarrow E(g(X)) \geq E(L(X)) = L(E(X)) = g(E(X))
+\end{align*}
+
+\subsubsection{Markov inequality}
+\textbf{Markov inequality: } For $X\geq 0 \;, \;P(X \geq t) \leq \frac{E(X)}{t} \; \; \forall t>0$\\
+\textbf{Proof: }
+\begin{align*}
+    \textrm{Let } y &= \begin{cases}
+        1 & X \geq t\\
+        0 & \textrm{otherwise}
+    \end{cases}, \textrm{  Then } tY \leq X \textrm{ since } \begin{cases}
+        X \geq t & t*1 \leq X \\
+        X < t & t*0 < X
+    \end{cases}\\
+    tY &\leq X \Longrightarrow E(tY) \leq E(X) \Longrightarrow tP(X \geq t) \leq E(X)) \Longrightarrow P(X \geq t) \leq \frac{E(X)}{t}
+\end{align*}
+
+\subsubsection{Chebyshev inequality}
+\textbf{Chebyshev inequality: } $P(\abs{X - E(X)} \geq t) \leq \frac{Var(X)}{t^2} \; \; \forall t > 0$\\
+\textbf{Proof: }
+\begin{align*}
+    P(\abs{X - E(X)} \geq t) = P((X - E(X))^2 \geq t^2) &\leq \frac{E((X - E(X))^2)}{t^2} \textrm{, by Markov inequality}\\
+    P((X - E(X))^2 \geq t^2) &\leq \frac{Var(X)}{t^2}
+\end{align*}
+
+\subsection{Moment generating function}
+The moment generating function of a random variable X is defined as 
+\begin{equation*}
+	M_X(t) = \mathbb{E}[e^{tX}] = \sum_{n=0}^\infty\frac{\mathbb{E}[X^n]}{n!}t^n \textrm{ $\leftarrow$ power series}
+\end{equation*}
+Notice its called a moment generating function because each derivative of this function can generate a new moment of $X$ at $t=0$:
+\begin{equation*}
+	M_X^{(n)}(0) = \mathbb{E}[X^n]
+\end{equation*}
+\subsubsection{Common MGF derivations}
+\begin{itemize}
+    \item $Y = a+bX \Longrightarrow M_Y = e^{at}M_X(bt)$
+    \item $Z = X+Y, X \perp Y \Longrightarrow M_Z = M_YM_X = E(e^tX)E(e^tY)$
+\end{itemize}
+
+
+
+
+% DISTRIBUTION FUNCTIONS
+\section{Common distribution functions}
+\subsection{Discrete distribution functions}
+\subsubsection{Bernoulli}
+\textbf{Probability mass function ($Bernouli(p)$):} Random variable $X$ takes the value 1 with probability $p$ and the value 0 with probability $1-p$
+\begin{align*}
+    p(x) = p^x(1-p)^{1-x} \;,\; x \in \{0, 1\}
+\end{align*}
+\textbf{Expected value:} $p$\\
+\textbf{Variance:} $p(1-p)$
+
+\subsubsection{Binomial distribution}
+\textbf{Probability mass function ($Bin(n,p)$):} For random variable $X$, the number of successes in $n$ trials, the probability of observing $j$ successes where each success has probability $p$ is
+\begin{equation*}
+    P(X = j) = {n \choose j} p^j (1 - p)^{n-j}
+\end{equation*}
+\textbf{Expected value:} $np$\\
+\textbf{Variance:} $np(1-p)$\\
+\textbf{MLE:} $\hat{p} = X/n$
+
+\subsubsection{Geometric distribution}
+\textbf{Probability mass function ($Geom(p)$):} For random variable $X$, the number of trials until the first success (included) with probability $p$ is
+\begin{equation*}
+    P(X=j) = (1-p)^{j-1}p
+\end{equation*}
+\textbf{Expected value:} $\frac{1}{p}$\\
+\textbf{Variance:} $\frac{1-p}{p}$
+
+\subsubsection{Negative binomial}
+\textbf{Probability mass function ($NB(r, p)$):} For random variable $X$, the number of successes, $k$ before a specified number of failures, $r$, with probability of success $p$ is
+\begin{equation*}
+	P(X = k) = {k + r - 1 \choose k} (1-p)^rp^k
+\end{equation*}
+\textbf{Expected value:} $\frac{pr}{1-p}$\\
+\textbf{Variance:} $\frac{pr}{(1 - p)^2}$
+
+\subsubsection{Poisson distribution}
+\textbf{Probability mass function ($Pois(\lambda)$):} For random variable, $X$, the number of events, $k$, occurring in a fixed interval of time or space if these events occur with a known constant mean rate, $\lambda$
+\begin{equation*}
+	P(X = k) = \frac{\lambda^ke^{-\lambda}}{k!}
+\end{equation*}
+\textbf{Expected value:} $\lambda$\\
+\textbf{Variance:} $\lambda$\\
+\textbf{MLE:} $\hat{\lambda} = \bar{X}$
+\begin{itemize}
+    \item $X_i, \dots, X_n \overset{i.i.d}{\sim} Poisson(\lambda_i) \Longrightarrow \sum_{i=1}^nX_i \sim Poisson\left(\sum_{i=1}^n \lambda_i \right)$
+\end{itemize}
+
+
+\subsection{Continuous distribution functions}
+\subsubsection{Uniform distribution}
+\textbf{$Unif(a, b)$:} The distribution describes an experiment where there is an arbitrary outcome that lies between certain bounds.[1] The bounds are defined by the parameters, a and b, which are the minimum and maximum values
+\begin{align*}
+    pdf: \; f(x) = \begin{cases}
+        \frac{1}{b-a} & \textrm{ for } x \in [a,b]\\
+        0 & \textrm{ otherwise}
+    \end{cases} \;\bullet\;
+    cdf: \; F(x) = \begin{cases}
+        0 & \textrm{ for } x < a\\
+        \frac{x-a}{b-a} & \textrm{ for } x \in [a,b]\\
+        1 & \textrm{ for } x > b
+    \end{cases}; 
+\end{align*}
+\textbf{Expected value:} $\frac{1}{2}(a + b)$\\
+\textbf{Variance:} $\frac{1}{12}(b - a)^2$\\
+\textbf{MLE:} $\hat{\theta} = X_{(n)} = max\{X_1, \dots, X_n\}$
+
+\subsubsection{Normal distribution}
+\textbf{$N(\mu, \sigma)$}
+\begin{align*}
+    pdf: \; f(x) = \frac{1}{\sigma \sqrt{2 \pi}} \exp \left (-\frac{(x - \mu)^2}{2 \sigma ^ 2}\right ) \;\bullet\;
+    cdf: \; F(x) = \frac{1}{\sqrt{2 \pi}} \int_{- \infty}^x e^{-t^2 / 2} dt
+\end{align*}
+\textbf{Expected value:} $\mu$\\
+\textbf{Variance:} $\sigma^2$\\
+\textbf{MLE:} $\hat{\mu} = \hat{X} \; \bullet \; \hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n(X_i - \bar{X})^2$
+\begin{itemize}
+    \item $X_i \sim N(0,1) \Longrightarrow \sum_{i=1}^nX_i \sim N(0,n) \Longrightarrow \frac{1}{n}\sum_{i=1}^nX_i \sim N(0,n/n^2) = N(0, 1/n)$
+    \item $\frac{(\bar{Y}_m - \bar{X}_n) - (\mu_Y - \mu_X)}{\sqrt{\sigma_X^2/n + \sigma_Y^2/m}} \sim Z = N(0,1)$
+\end{itemize}
+
+\subsubsection{Exponential distribution}
+\textbf{$Exp(\lambda)$:} the probability distribution of the time between events in a Poisson point process, i.e., a process in which events occur continuously and independently at a constant average rate. It is a particular case of the gamma distribution.
+\begin{align*}
+    pdf: \; f(x) = \lambda e^{-\lambda x} \;\bullet\; cdf: \; F(x) = 1 - e^{-\lambda x}
+\end{align*}
+\textbf{Expected value:} $\frac{1}{\lambda}$\\
+\textbf{Variance:} $\frac{1}{\lambda^2}$\\
+\textbf{MLE:} $\hat{\lambda} = 1 / \bar{X}$
+
+\subsubsection{Gamma distribution}
+\textbf{$Gamma(\alpha, \lambda)$:} a two-parameter family of continuous probability distributions.
+\begin{align*}
+    pdf: & \; f(x) = \frac{\lambda^{\alpha}}{\Gamma(\alpha)}x^{\alpha-1} e^{-\lambda x} \; \textrm{, where } \Gamma(\alpha) = (\alpha - 1)! \textrm{ for any positive integer, } \alpha\\
+    cdf: & \; F(x) =  \frac{1}{\Gamma(\alpha)}\gamma(\alpha, \lambda x) \textrm{, where } \gamma(\alpha, x) = \int_0^x t^{\alpha - 1}e^{-t}dt
+\end{align*}
+\textbf{Expected value:} $\frac{\alpha}{\lambda}$\\
+\textbf{Variance:} $\frac{\alpha}{\lambda^2}$
+
+\subsubsection{Cauchy distribution}
+\textbf{$Cauchy(t, s)$:} The Cauchy distribution is often used in statistics as the canonical example of a "pathological" distribution since both its expected value and its variance are undefined
+\begin{align*}
+    pdf: & \; f(x) = \frac{1}{s \pi (1 + (x - t)/s)^2)} \textrm{, where } s \textrm{ is the scale parameter and } t \textrm{ is the location parameter}\\
+    cdf: & \; \frac{1}{\pi} \arctan \left ( \frac{x - t}{s} \right ) + \frac{1}{2}
+\end{align*}
+\textbf{Expected value:} $DNE$\\
+\textbf{Variance:} $DNE$
+
+\subsubsection{Beta distribution}
+\textbf{$Beta(\alpha, \beta)$:} a family of continuous probability distributions defined on the interval [0, 1] parameterized by two positive shape parameters that appear as exponents of the random variable and control the shape of the distribution.
+\begin{align*}
+    pdf: & \; f(x) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha) \Gamma(\beta)} x^{\alpha - 1} (1-x)^{\beta - 1} \textrm{, where } x \in [0, 1] \textrm{, and } \Gamma(k) = (k - 1)! \textrm{ for any positive integer } k\\
+\end{align*}
+\textbf{Expected value:} $\frac{\alpha}{\alpha + \beta}$\\
+\textbf{Variance:} $\frac{\alpha \beta}{(\alpha + \beta)^2(\alpha + \beta + 1)}$
+
+% MARGINAL, JOINT, AND CONDITIONAL DISTRIBUTIONS
+\section{Properties of distributions}
+Distributions provide a relationship between a random variable and the probability of observing that random variable.
+
+% JOINT DISTRIBUTIONS
+\subsection{Joint distributions}
+\textbf{General case:}
+\begin{align*}
+    \textrm{cdf: } &F_{X_1,\dots,X_n}(x_1, \dots, x_n) = P(X_i \leq x_1, \dots, X_n \leq x_n) \Longleftrightarrow P((X_1, \dots, X_n)\in E) = \int \dots \int_E f_{X_1,\dots,X_n}dx_1\dots dx_n\\
+    \textrm{pmf: } &f_{X_1,\dots,X_n}(x_1, \dots, x_n) = P(X_1=x_1, \dots, X_n = x_n)
+\end{align*}
+\textbf{When $X_i$ independent:}
+\begin{align*}
+    \textrm{cdf: } & P(X_1\leq x_1, \dots, X_n \leq x_n) = P(X_1\leq x_1)\dots P(X_n\leq x_n) = \prod_{i=1}^n P(X_i \leq x_i)\\
+    \textrm{pmf: } & P(X_1= x_1, \dots, X_n = x_n) = P(X_1=x_1)\dots P(X_n=x_n) = \prod_{i=1}^nP(X_i = x_i)\\
+\end{align*}
+
+\subsubsection{Distribution of $X+Y$}
+The distribution of a sum of random variables is called a \textbf{convolution}. For $X,Y$ independent
+\begin{align*}
+    F_{X+Y}(t) &= P(X+Y\leq t) = P(X \leq t-y)\\
+    &= \int_{-\infty}^\infty P(X \leq t-y \mid Y=y) f_x(y)dy \textrm{, to get marginal distribution}\\
+    &= \int_{-\infty}^\infty F_x(t-y) f_Y(y)dy \textrm{, since $X,Y$ independent}\\
+    f_{X+Y}(t) &= \int_{-\infty}^\infty f_X(t-y) f_Y(y)dy\\
+    p_{X + Y}(t) &= P(X+Y = t) = \sum_{x=-\infty}^{\infty} p_X(t-y) p_Y(y)
+\end{align*}
+
+\subsubsection{Expectation of joint distributions}
+For $X,Y$ joint distribution, $f_{X,Y}(x,y)$, or probability mass function, $p(x,y)$
+\begin{align*}
+    \textrm{pmf: } E[g(X,Y)] &= \sum_s g(X(s), Y(s))p(s) = \sum_x\sum_y g(x,y) \sum_{s:X(s)=x,Y(s)=y}p(s)= \sum_x\sum_y g(x,y)p(x,y)\\
+    \textrm{pdf: } E[g(X,Y)] &= \int_{y= -\infty}^{\infty} \int_{x= -\infty}^{\infty} g(x,y)f(x,y)dxdy
+\end{align*}
+
+% MARGINAL DISTRIBUTIONS
+\subsection{Marginal distributions}
+Marginal density functions or marginal probability mass functions are obtained by integrating or summing out the other variables
+\begin{align*}
+    pmf:  p_Y(y) = \sum_x y P(Y = y \mid x)\; \bullet \; pdf: F_Y(y) = \int_a^b f(x,y)dx \textrm{, where } x \in [a,b]
+\end{align*}
+
+% CONDITIONAL DISTRIBUTIONS
+\subsection{Conditional distributions}
+\textbf{Law of total probability}:
+\begin{align*}
+    P(E) = \sum_{i=-\infty}^\infty P(E \mid X = x)P(X) \textrm{ and } &P(E) = \int_{-\infty}^\infty P(E \mid X=x)f(x)dx\\
+    \textrm{Recall: } p_{X|Y}(x|y) = \frac{p_{x,y}(x,y)}{p_y(y)} \textrm{ and } &f_{X\mid Y}(x \mid y) = \frac{f_{X,Y}(x, y)}{f_Y(y)}
+\end{align*}
+
+
+
+% CONVERGENCE AND LIMIT THEOREMS
+\section{Convergence and limit theorems}
+\subsection{Convergence in probability}
+A sequence of random variables, $X_n$, converges in probability, $X_n \overset{p}{\longrightarrow} X$ when
+$P(\abs{X_n - X} > \epsilon) \longrightarrow 0 \textrm{ as } n \longrightarrow \infty$\\\\
+\textbf{Consistent estimator:} $T_n = T_n(X_1, \dots, X_n)$ converges in probability to $g(\theta)$, a function of the model parameter\\\\
+\textbf{Additional properties} of convergence in probability
+\begin{itemize}
+    \item if $X_n \overset{p}{\longrightarrow} X$ and $a_n \overset{p}{\longrightarrow} a$ then $a_nX_n \overset{p}{\longrightarrow} aX$
+    \item if $X_n \overset{p}{\longrightarrow} X$ and $A_n \overset{p}{\longrightarrow} A$ then $A_nX_n \overset{p}{\longrightarrow} AX$
+    \item if $X_n \overset{p}{\longrightarrow} X$, $A_n \overset{p}{\longrightarrow} A$, and $B_n \overset{p}{\longrightarrow} B$ then $A_nX_n + B_n \overset{p}{\longrightarrow} AX + B$
+    \item if $X_n \overset{p}{\longrightarrow} X$ and $g$ a continuous function then $g(X_n) \overset{p}{\longrightarrow} g(X)$ \textbf{(continuous mapping theorem)}
+\end{itemize}
+
+\subsection{Convergence in $L_p$}
+See \url{https://en.wikipedia.org/wiki/Lp_space} for more information (not much covered in class).\\
+Convergence in $L_p$ is stronger than convergence in probability. 
+\textbf{Counter example} to convergence in probability $\Longrightarrow$ convergence in $L_p$:
+\begin{align*}
+    \textrm{Let } X_n &= \begin{cases}
+        n & \frac{1}{n}\\
+        0 & 1 - \frac{1}{n}
+    \end{cases}\\
+    X_n &\overset{p}{\longrightarrow} 0: \; P(\abs{X_n - 0} \geq \epsilon) = P(X_n = n) = 1/n \longrightarrow 0 \textrm{ as } n \longrightarrow 0\\
+    \textrm{but } E(X_n) &= n\frac{1}{n} + 0(1 - \frac{1}{n}) = 1 \Longrightarrow \textrm{ no convergence in } L_p
+\end{align*}
+
+\subsection{Convergence in distribution}
+A sequence of random vectors, $X_n$, converges in distribution to a random vector, $X_n \overset{d}{\longrightarrow} X$ when
+\begin{equation*}
+    \lim_{n\longrightarrow \infty} F_{X_n}(x) = F_X(x) \textrm{ at all continuity points in } F_X
+\end{equation*}
+
+\begin{itemize}
+    \item Convergence in distribution \textbf{does not} imply convergence in probability unless convergence in distribution is to a single point
+    \item if $X_n \overset{d}{\longrightarrow} X$ and $g$ a continuous function then $g(X_n) \overset{d}{\longrightarrow} g(X)$ \textbf{(continuous mapping theorem)}
+\end{itemize}
+
+\subsubsection{Convergence in probability $\Longrightarrow$ convergence in distribution}
+Let $X$ have cdf, $F$, with $t$ a continuity point of F
+\begin{align*}
+    P(X_n \leq a) \leq& P(X \leq a + \epsilon) + P( \abs{X_n - X} > \epsilon) \textrm{ by lemma}\\
+    P(X \leq a - \epsilon) - P(\abs{X_n - X} > \epsilon) \leq& P(X \leq a) \leq P(X \leq a + \epsilon) + P(\abs{X_n - X} > \epsilon)\\
+    F_X(a - \epsilon) \leq& \lim_{n\rightarrow \infty} P(X_n \leq a) \leq F_X(a + \epsilon) \textrm{, where } F_X(a) = P(X \leq a)\\
+    &\Longrightarrow \lim_{n \rightarrow \infty} P(X \leq a) = P(X \leq a) \Longrightarrow \{X_n \} \overset{d}{\longrightarrow} X
+\end{align*}
+
+\subsubsection{Slutsky's theorem}
+$A_nX_n + B_n \overset{d}{\rightarrow} aX + b$ if $\{X_n\}$ sequence with $X_n \overset{d}{\rightarrow} X$,  $\{A_n\}$ sequence with $A_n \overset{d}{\rightarrow} A$,   $\{B_n\}$ sequence with $B_n \overset{d}{\rightarrow} b$
+
+
+\subsubsection{Student's t distribution (example use case of Slutsky)} 
+\begin{align*}
+    \frac{\sqrt{n}(\bar{X}_n - \mu)}{\hat{\sigma}} &= \frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} \frac{\sigma}{\hat{\sigma}}
+    \textrm{, and we know } \frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} \overset{d}{\longrightarrow} N(0, 1)\textrm{ and } \frac{\sigma}{\hat{\sigma}} \overset{p}{\longrightarrow} 1 \textrm{ since } \hat{\sigma} \overset{p}{\longrightarrow} \sigma\\
+    &\textrm{So, by Slutsky's theorem, } \frac{\sqrt{n}(\bar{X}_n - \mu)}{\hat{\sigma}} \overset{d}{\longrightarrow} N(0, 1) * 1
+\end{align*}
+\textbf{This RHS term is referred to as the t-statistic}, which follows a Student's t distribution with $n-1$ degrees of freedom. In practice, if the sample is reasonably sized, it won't make a difference using the Normal distribution instead of the Student's t distribution. 
+
+\subsection{Law of large numbers}
+For $X_1, X_2, \dots, X_n$ i.i.d. with $E(X_i) = \mu$,  $Var(X_i) = \sigma^2$, $\overline{X}_n = \frac{1}{n}\sum_{i = 1}^n X_i$, then for any $\epsilon > 0$
+\begin{equation*}
+	P(\abs{\overline{X}_n - \mu} > \epsilon) \longrightarrow 0 \textrm{ as } n \rightarrow \infty
+\end{equation*}
+\textbf{Proof:}
+\begin{align*}
+	\mathbb{E}(\overline{X}_n) &= \frac{1}{n}\sum_{I = 1}^n \mathbb{E}(X_i) = \mu\\
+    Var(\overline{X}_n) &= \frac{1}{n^2}\sum_{I = 1}^nVar(X_i) = \frac{\sigma^2}{n} \textrm{, since $X_i$ independent}\\
+    P(\abs{\overline{X}_n - \mu} > \epsilon) &\leq \frac{Var(\overline{X}_n)}{\epsilon^2} = \frac{\sigma^2}{n\epsilon^2} \rightarrow 0 \textrm{ as } n \rightarrow \infty \textrm{, by Chebyshev inequality}
+\end{align*}
+
+\subsection{Central limit theorem}
+Most useful form of CLT, which can be used for approximate methods:
+\begin{align*}
+	\sqrt{n}\frac{(\overline{X}_n - \mu)}{\sigma} \longrightarrow N(0, 1) \Longleftrightarrow \sqrt{n}(\overline{X}_n - \mu) \longrightarrow N(0, \sigma^2)
+\end{align*}
+\textbf{Formal definition:} For $X_1, X_2, \dots, X_n$ i.i.d. with $E(X_i) = 0$ (WLOG),  $Var(X_i) = \sigma^2$, c.d.f, $F$, and MGF, $M$, (defined in a neighborhood of zero). Then
+\begin{align*}
+	\lim_{n \rightarrow \infty}P(\frac{S_n}{\sigma \sqrt{n}} \leq x) = \Phi(x) \textrm{, for } S_n = \sum_{i=1}^nX_i
+\end{align*}
+\textbf{Proof:} Let $Z_n  = \frac{S_n}{\sigma \sqrt{n}}$. We show the MGF of $Z_n$ tends to the MGF of the standard normal distribution. Since $S_n$ is a sum of independent random variables,
+\begin{align*}
+	M_{S_n}(t) &= [M(t)]^n \textrm{ and } M_{Z_n}(t) = [M(\frac{t}{\sigma \sqrt{n}})]^n\\
+	\textrm{Reminder: } & \textrm{Taylor series expansion of } M(s) = M(0)+sM'(0)+ \frac{1}{2}sM''(0) + \epsilon_s \\
+	M(\frac{t}{\sigma\sqrt{n}}) &= 1 + \frac{1}{2}\sigma^2(\frac{t}{\sigma \sqrt{n}})^2 + \epsilon_n \textrm{ with } E(X) = M'(0) = 0, Var(X) = M''(0) = \sigma^2\\
+	M_{Z_n}(t) &= (1 + \frac{t^2}{2n} + \epsilon_n)^n \longrightarrow e^{\frac{t^2}{2}} \textrm{ as } n \longrightarrow \infty \textrm{, by the infinite series convergence to $e^a$}
+\end{align*}
+Since $e^{\frac{t^2}{2}}$ is the MGF of the standard normal distribution, we have proven the central limit theorem.
+
+\subsection{Delta method}
+If $g$ is a differentiable function at $\mu$, $\sqrt{n}(g(\bar{X}_n) - g(\mu)) \overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma^2)$
+
+\textbf{Proof:} For general $g$ and assuming $E(\bar{X}_n) = \mu$
+\begin{align*}
+    g(\bar{X}_n) \approx& \; g(\mu) + g'(\mu)(\bar{X}_n - \mu) + \frac{1}{2}g''(\mu)(\bar{X}_n - \mu)^2 + \epsilon \textrm{ (Taylor approximation of $g(\mu)$)}\\
+    g(\bar{X}_n) - g(\mu) \approx& \; g'(\mu)(\bar{X}_n - \mu) + \epsilon \Longleftrightarrow \sqrt{n}(g(\bar{X}_n) - g(\mu)) \approx \; g'(\mu)\sqrt{n}(\bar{X}_n - \mu) + \epsilon \textrm{ and we know }\\
+    & \sqrt{n}(\bar{X}_n - \mu) \overset{d}{\longrightarrow} N(0, \sigma^2) \Longleftrightarrow g'(\mu)\sqrt{n}(\bar{X}_n - \mu) \overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma(2))\\
+    \textrm{So } \sqrt{n}(g(\bar{X}_n) - g(\mu)) &\overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma(2))
+\end{align*}
+\textbf{Note:} if we find that $g'(\mu) = 0$, then repeat this process with the second derivative, $g''(\mu)$.
+
+
+\section{Estimation}
+Here we use functions of the data ("estimators"), $T(X_1, \dots, X_n)$ to estimate population parameters, $\theta$ 
+
+\subsection{Mean Squared Error}
+The \textbf{Mean Squared Error (MSE)} can be used to evaluate our estimators.
+\begin{align*}
+    MSE(T, \theta) &= E_\theta[(T - g(\theta))^2] = E_\theta(T^2) - 2g(\theta)E_\theta(T) + g(\theta)^2\\
+    &= Var_\theta(T) + E_\theta(T)^2 + 2g(\theta)E_\theta(T) + g(\theta)^2 = Var_\theta(T) + (E_\theta(T) - g(\theta))^2\\
+    &= Var_\theta(T) + Bias^2_\theta(T) \textrm{, where } Bias_\theta(T)= E_\theta(T) - g(\theta)
+\end{align*}
+\textbf{Corollary:} an unbiased estimator, $T$, is one such that $E_\theta(T) = g(\theta)$
+
+\subsection{Method of Moments estimator}
+
+To generate a method of moments estimator
+\begin{itemize}
+    \item Calculate a moment with MGF of the assumed distribution. Any moment, $k$, can be used, but lower moments will typically lead to an estimator distribution with lower variance
+    \begin{equation*}
+        E(X^k) = g(\theta)
+    \end{equation*}
+    \item Invert this expression to create an expression for the parameter(s) in terms of the moment
+    \begin{equation*}
+        g^{-1}(E(X^k)) = \theta \Longrightarrow f(E(X^k)) = \theta \textrm{, where } f(x) = g^{-1}(x)
+    \end{equation*}
+    \item Insert the sample moment into this expression, thus obtaining estimates of the parameters in terms of data
+    \begin{equation*}
+        \hat{\theta} = f(\frac{1}{n}\sum X_i^k) \; \;\textrm{, by LNN } \frac{1}{n}\sum X_i^k \overset{p}{\longrightarrow} E(X^k)
+    \end{equation*}
+    \item Use the delta method to determine what the method of moments estimator converges to in distribution
+    \begin{equation*}
+        \sqrt{n}(f(\frac{1}{n}\sum X_i^k) - \theta) \overset{d}{\longrightarrow}  N(0, f'(E(X_i^k))^2Var(X_i^k)^2)
+    \end{equation*}
+\end{itemize}
+Methods of moment estimators are not uniquely determined, nor must they exist. The motivation for subsequent estimators is to help us pick the estimator with the smallest possible variance.
+
+\subsection{Maximum likelihood estimator}
+The \textbf{maximum likelihood estimator} constructs an estimator, $\hat{\theta}_{MLE}$, that maximizes the likelihood function with respect to $\theta$. \\ \\
+The \textbf{likelihood function}, $L(\theta)$ is the joint density or probability mass function, $f(X, \theta)$, evaluated at the data, $\{X_i, \dots, X_n\}$. Assuming the data is $i.i.d.$:
+\begin{equation*}
+    L(\theta) = \prod_{i=1}^nf(X_i, \theta)
+\end{equation*}
+\textbf{General approach to constructing MLE:}
+\begin{itemize}
+    \item Construct the likelihood function: $L(\theta) = \prod_{i=1}^nf(X_i, \theta)$
+    \begin{align*}
+        \textrm{Example normal: } &L(\theta) = \prod_{i=1}^n \frac{1}{\sigma \sqrt{2 \pi}} \exp \left (-\frac{(X_i - \mu)^2}{2 \sigma ^ 2}\right ) = \frac{1}{(\sigma \sqrt{2 \pi})^n} \exp \left( -\frac{1}{2 \sigma ^ 2} \sum_{i=1}^n (X_i - \mu)^2 \right)\\
+        \textrm{Example restricted multinomial: } &L(\theta) \propto f_1(\theta)^{X_1}\dots f_k(\theta)^{X_k}
+    \end{align*}
+    \item Take the log of the likelihood: $log(L(\theta)) = l(\theta) = \sum_{i=1}^nlog(f(X_i, \theta))$
+    \item Take the derivative of the log-likelihood function with respect to $\theta$: $\frac{d}{d\theta}l(\theta) = \sum_{i=1}^n\frac{d}{d\theta}log(f(X_i, \theta))$
+    \item Find critical points of this function ($0 = \sum_{i=1}^n\frac{d}{d\theta}log(f(X_i, \hat{\theta}))$) and determine that one is a maximum ($0 = \sum_{i=1}^n\frac{d^2}{d\theta^2}log(f(X_i, \hat{\theta})) \textrm{, checking if } \hat{\theta} < 0$)
+\end{itemize}
+\textbf{Approach to constructing MLE when indicators, $\mathbb{I}\{U\}$, are present:}
+\begin{itemize}
+    \item Logs of indicators and derivatives of indicators are very difficult to work with
+    \item Simplify likelihood function (splitting indicators when possible)
+    \item Make an argument for why the function is increasing or decreasing
+    \item Determine the value at the bounds of the function
+\end{itemize}
+
+\subsection{Fisher Information}
+The \textbf{information} that data, $X$, contains about parameter, $\theta$ is defined by
+\begin{equation*}
+    I(\theta) = E_\theta \left [ \left (\frac{d}{d\theta}log(f(X, \theta)) \right )^2 \right ]
+\end{equation*}
+Fisher Information assumes \textbf{differentability} and \textbf{existence of the second moment}. $\frac{d}{d\theta}log(f(X, \theta))$ is called the \textbf{score} function
+
+\subsubsection{Properties of Fischer Information}
+1. $E_\theta \left [ \left (\frac{d}{d\theta}log(f(X, \theta)) \right ) \right ] = 0:$
+\begin{align*}
+    &  E_\theta \left [\left (\frac{d}{d\theta}log(f(X, \theta)) \right ) \right ] = 
+    \int \frac{d}{d\theta}log(f(x, \theta))f(x, \theta)dx = \int \frac{f'(x, \theta)}{f(x, \theta)} f(x, \theta)dx =
+    \int f'(x, \theta) dx = \frac{d}{d\theta} \int f(x, \theta)dx =  \frac{d}{d\theta}*1 = 0
+\end{align*}
+2. $I(\theta) = Var \left ( \frac{d}{d\theta}log(f(X, \theta)) \right ):$
+\begin{align*}
+    & Var \left ( \frac{d}{d\theta}log(f(X, \theta)) \right ) = E_\theta \left [ \left (\frac{d}{d\theta}log(f(X, \theta)) \right )^2 \right ] - E_\theta \left [ \left (\frac{d}{d\theta}log(f(X, \theta)) \right ) \right ]^2 = I(\theta) - 0^2 = I(\theta)
+\end{align*}
+3. $I(\theta) = - E_\theta \left [\frac{d^2}{d\theta^2}log(f(X, \theta)) \right ]:$
+\begin{align*}
+    & \frac{d}{d\theta}log(f(x, \theta)) = \frac{f'(x, \theta)}{f(x, \theta)} \Longrightarrow \frac{d^2}{d\theta^2}log(f(x, \theta)) = \frac{f(x, \theta)f''(x, \theta) - f'(x, \theta)^2}{f(x, \theta)^2}\\
+    & E\left [ \frac{d^2}{d\theta^2}log(f(x, \theta)) \right] = \int \frac{f(x, \theta)f''(x, \theta) - f'(x, \theta)^2}{f(x, \theta)^2}f(x, \theta)dx = \int f''(x, \theta) - I(\theta) = -I(\theta) \textrm{, since } \int \frac{d^2}{d\theta^2} f(x, \theta) = \frac{d^2}{d\theta^2} * 1 = 0
+\end{align*}
+4. $I_{X, Y}(\theta) = I_X(\theta) + I_Y(\theta) \textrm{ for $X, Y$ independent}:$ (Information increases with larger sample!)
+\begin{align*}
+    \textrm{\textbf{Corrolary:} } I_n(\theta) = nI_1(\theta) \textrm{ for } X_1, \dots, X_n \; i.i.d \textrm{ with } I_{1}(\theta) \textrm{ the Information based on one data}
+\end{align*}
+5. \textbf{Cramer-Rau-Fisher Inequality:} $Var(T(X)) \geq \frac{g'(\theta)^2}{I(\theta)} \textrm{ for } E(T(X)) = g(\theta):$
+\begin{align*}
+    & Cov[T(X), \frac{d}{d\theta}log(f(X, \theta))] = E[T(X)\frac{d}{d\theta}log(f(X, \theta))] \textrm{, using property 1}\\
+    & Cov[T(X), \frac{d}{d\theta}log(f(X, \theta))] = \int T(x)f'(x, \theta)dx = \frac{d}{d\theta} \int T(x)  f(x, \theta)dx = \frac{d}{d\theta}E(T(X)) = \frac{d}{d\theta}g(\theta) = g'(\theta)\\
+    &g'(\theta)^2 \leq Var(T(X))Var \left (\frac{d}{d\theta}log(f(X, \theta)) \right) = Var(T(X))I(\theta) \textrm{ by correlation inequality: } \rho^2 \leq 1\\
+    &Var(T(X)) \geq \frac{g'(\theta)^2}{I(\theta)}
+\end{align*}
+\subsubsection{The "Big" theorem: Asymptotic distribution using Fischer Information}
+Under regularity assumptions, the maximum likelihood estimator (or any other reasonable estimator), $\hat{\theta}$ of $\theta$ satisfies
+\begin{equation*}
+    \sqrt{n}(\hat{\theta} - \theta) \overset{d}{\longrightarrow} N\left(0, \frac{1}{I(\theta)}\right)
+\end{equation*}
+\textbf{Sketch of proof:}
+\begin{align*}
+    L(\theta) &= \prod_{i=1}^nf(X_i, \theta) \Longleftrightarrow l(\theta) = log(L(\theta)) = \sum_{i=1}^nlog(f(X_i, \theta))\\
+    \textrm{MLE solves } l'(\hat{\theta}) = &0 \textrm{, with } l'(\theta) \approx \; l'(\theta_0) + (\hat{\theta} - \theta_0)l''(\theta_0) \textrm{ (full proof requires showing the error in this approx. is small)}\\
+    &0 = l'(\theta_0) + (\hat{\theta} - \theta_0)l''(\theta_0) \Longrightarrow \hat{\theta} - \theta_0 = \frac{l'(\theta_0)}{l''(\theta_0)} \Longleftrightarrow \sqrt{n}(\hat{\theta} - \theta_0) = \sqrt{n}\frac{l'(\theta_0)}{l''(\theta_0)} = \frac{l'(\theta_0)}{\sqrt{n}} \div \frac{l''(\theta_0)}{n}\\
+    & \frac{l''(\theta_0)}{n} = \frac{\sum \frac{d^2}{d\theta^2}log(f(X, \theta))}{n} \overset{p}{\longrightarrow}  - E_\theta \left [\frac{d^2}{d\theta^2}log(f(X, \theta)) \right ] = I(\theta)\\
+    & \frac{l'(\theta_0)}{\sqrt{n}} = \frac{\sum \frac{d}{d\theta}log(f(X, \theta))}{\sqrt{n}} \overset{d}{\longrightarrow} N(0, I(\theta))\\
+    & \frac{l'(\theta_0)}{\sqrt{n}} \div \frac{l''(\theta_0)}{n} \overset{d}{\longrightarrow} N\left(0, \frac{I(\theta)}{I(\theta)^2}\right) = N\left(0, \frac{1}{I(\theta)}\right) \textrm{, by Slutsky's theorem}
+\end{align*}
+\textbf{Corollary:} $Var(\hat{\theta}_{MLE}) = 1 / I(\theta)$
+
+
+\subsection{Bayes estimator}
+\begin{itemize}
+    \item \textbf{Prior distribution:} $\pi(\theta)$ the distribution of random variable $\Theta$ from which model parameter $\theta$ is drawn.
+    \item \textbf{Conditional distribution:} $f(\{X_1, \dots, X_n\}\mid \theta)$ is the conditional distribution of the data given $\Theta = \theta$
+    \item \textbf{Posterior distribution:} $\pi(\theta \mid \{X_1, \dots, X_n\})$ is the density of the random variable $\Theta$ given the observed data
+\end{itemize}
+\begin{equation*}
+    \pi(\theta \mid \{X_1, \dots, X_n\}) = \frac{f(\{X_1, \dots, X_n\} \mid \theta)\pi(\theta)}{m(\{X_1, \dots, X_n\})} \textrm{, for } m(\{X_1, \dots, X_n\}) = \int_{-\infty}^\infty f(\{X_1, \dots, X_n\} \mid \theta)\pi(\theta)dx
+\end{equation*}
+The \textbf{Bayes Estimator} is calculated as $E[\pi(\theta \mid \{X_1, \dots, X_n\})]$.\\
+For recognizeable functions, we can back into the posterior distribution. If the prior and conditional distribution are not recognizeable, then we use numerical methods, like MCMC to approximate the posterior distribution
+\subsubsection{Example Bayes estimator method}
+\begin{align*}
+    X \sim& Poisson(\theta), \theta \in [0,1] \;\;\;\;\;\; \pi(\theta) = exp(\theta)/(e-1)\\
+    \pi(\theta \mid X) \propto& \frac{exp(-\theta)\theta^X}{X!}*\frac{exp(\theta)}{e-1}\mathbb{I}[\theta \in [0,1]] \propto \theta^X\mathbb{I}[\theta \in [0,1]] \textrm{($\leftarrow$ with more data, these functions are joint distributions)}\\
+    \pi(\theta \mid X) =& (X+1)\theta^X \textrm{, observing } Beta(x+1, 1) = \frac{\Gamma(x + 2)}{\Gamma(X+1)\Gamma(1)}\theta^x = (x+1)\theta^x, \theta \in [0,1]\\
+    E[\pi(\theta \mid X)] =& \int_0^1 \theta (X+1)\theta^Xd\theta = \frac{X + 1}{X + 2}
+\end{align*}
+\subsubsection{Bayes estimator properties}
+\textbf{All admissable estimators are Bayes Estimators}. An estimator, $T'(\theta)$, is inadmissable if $\exists T$ such that
+\begin{align*}
+    E_\theta[(T - \theta)^2] \leq E_\theta[(T' - \theta)^2] \;\forall\; \theta \textrm{  and  }
+    E_\theta[(T - \theta)^2] < E_\theta[(T' - \theta)^2] \textrm{ for some } \theta
+\end{align*}
+\textbf{Absence any data,} the Bayes Estimator is the expectation of the prior, $E(\pi(\theta))$
+
+\subsection{Sufficiency}
+A test statistic, $T = T(X_1, \dots, X_n)$ is \textbf{sufficient} for $\theta$ if $f(X_1, \dots, X_n \mid T = t)$ does not depend on $\theta$\\\\
+The claim with a sufficient statistic is that there is no loss in throwing away the data as long as you keep the sufficient statistic
+\subsubsection{Fischer's Factorization Theorem}
+The \textbf{Fischer's Factorization Theorem} states that 
+\begin{equation*}
+    T(X_1, \dots, X_n) \textrm{ is sufficient for } \theta \Longleftrightarrow \textrm{ joint density } f(X_1, \dots, X_n, \theta) = g(T(X_1, \dots, X_n), \theta)h(X_1, \dots, X_n)
+\end{equation*}
+\textbf{Proof:}
+TODO
+\subsubsection{Rao-Blackwell Theorem}
+The \textbf{Rao-Blackwell Theorem} states\\
+For $\hat{\theta}$ an estimator of $\theta$ with $E(\theta) < \infty$ and $T$ sufficient with $\theta^* = E(\theta \mid T)$ then
+\begin{equation*}
+    E[(\theta^* - \theta)^2] \leq E[(\hat{\theta} - \theta)^2]
+\end{equation*}
+\textbf{Proof:}
+TODO
+
+\section{Hypothesis testing}
+\begin{itemize}
+    \item We assume data, $\{X_1, \dots, X_n\}$ is generated by a distribution with parameter $\theta \in \Omega$ (could be a vector)
+    \item The null hypothesis, $H_0$ and alternative hypothesis, $H_1$, are hypotheses for the true value of $\theta$
+    \begin{itemize}
+        \item A simple hypothesis is for a single value of $\theta$, $H_i: \theta = \theta_i$
+        \item A composite hypothesis is for a range of $\theta$, $H_i: \theta > 1$ or $H_i: \theta \neq \theta_0$ 
+    \end{itemize}
+    \item The goal in testing is to construct a rule to decide whether to reject $H_0$
+    \begin{itemize}
+        \item Want: $P_{H_0}(\textrm{falsely rejecting } H_0) =  P_{H_0}(\textrm{Type I error})\leq \alpha$
+        \item Want: maximal $P_{H_1}(\textrm{corectly rejecting } H_0) = 1 - P_{H_1}(\textrm{falsely accepting } H_0)= 1 - P_{H_1}(\textrm{Type II error})$
+        \item The rejection region, $R$, can be chosen to maximize correct rejections, subject to a Type I error constraint
+    \end{itemize}
+\end{itemize}
+
+\subsection{Likelihood ratio}
+For \textrm{simple hypotheses}, the \textbf{Likelihood Ratio} is the ratio of the likelihoods under the alternative and null hypotheses. This ratio helps us boost correct rejections while limiting false rejections.
+\begin{align*}
+    LR = \frac{f_{h_1}(\{X_1, \dots, X_n\})}{f_{h_0}(\{X_1, \dots, X_n\})}
+\end{align*}
+We can define our rejection region, $R$ using this the likelihood ratio. Specifically
+\begin{align*}
+    R = \left\{ X: \frac{f_{h_1}(X)}{f_{h_0}(X)}\geq c \right\} 
+\end{align*}
+And constrain Type I error to level $\alpha$ by solving for $c$
+\begin{align*}
+    P_{H_0}(\textrm{Type I error}) = P_{H_0}(R) = P_{H_0}\left(\frac{f_{h_1}(X)}{f_{h_0}(X)}\geq c\right) =\alpha
+\end{align*}
+Our power then becomes $P_{H_1}(R)$
+
+\subsection{Neyman-Pearson lemma}
+For \textit{simple hypotheses}, $H_0, H_1$, the \textbf{Neyman-Pearson lemma} states that the \textbf{Likelihood Ratio} level-$\alpha$ test, which rejects $H_0$ when $LR \geq c$, maximizes power, $P_{H_1}(LR \geq c)$. Any other level-$\alpha$ test, $R'$, has $P_{H_1}(R') \leq P_{H_1}(LR \geq c)$
+\textbf{Proof:}
+\begin{align*}
+    \textrm{Let } &\phi(x) = \{1 \textrm{ if } x\in R; 0 \textrm{ otherwise}\}\;, \;\phi'(x) = \{1 \textrm{ if } x\in R'; 0 \textrm{ otherwise}\}\\
+    \textrm{Let } &S^+ = \{x: \phi(x) = 1, \phi'(x) = 0\} \;, \;S^- = \{x: \phi(x) = 0, \phi'(x) = 1\}\\
+    &\int_{-\infty}^\infty(\phi(x) - \phi'(x))(f_1(x) - cf_0(x))dx = 
+    \int_{S^+\cup S^-} (\phi(x) - \phi'(x))(f_1(x) - cf_0(x))dx \textrm{, since 0 when } \phi(x) = \phi'(x)\\
+    &\int_{S^+\cup S^-} (\phi(x) - \phi'(x))(f_1(x) - cf_0(x))dx \geq 0 \textrm{, since two differences are always opposing}\\
+    &\int_{S^+\cup S^-} (\phi(x) - \phi'(x))f_1(x)dx \geq \int_{S^+\cup S^-} (\phi(x) - \phi'(x))cf_0(x)dx \geq 0 \textrm{, since } RHS=c[\alpha - \alpha']\geq 0\\
+    &\int_{S^+\cup S^-} \phi(x)f_1(x)dx \geq \int_{S^+\cup S^-} \phi'(x)f_1(x)dx \Longleftrightarrow P_{H_1}(R) \geq P_{h_1}(R')
+\end{align*}
+
+
+\subsection{Uniformly Most powerful test (UMP)}
+The \textbf{Most Powerful} test is the test which maximizes power under simple hypotheses, $H_0, H_1$. The Neyman-Pearson Lemma tells us that the MP level-$\alpha$ test is the likelihood ratio test.\\\\
+The \textbf{Universally Most Powerrful} test is the test that which maximizes power under composite hypotheses, $H_1$. That is, for $H_1: \theta > a$ composite, the test is MP level-$\alpha$ for all simple $\tilde{H}_1 \in H_1$.\\\\
+The general process for showing UMP is
+\begin{itemize}
+    \item Consider simple hypotheses, $H_0$ vs. $\tilde{H}_1$
+    \item Apply the Neyman-Pearson Lemma to find MP test for $H_0$ vs. $\tilde{H}_1$
+    \item Show that the test doesn't depend on the choice $\theta_i \in H_1$
+\end{itemize}
+
+\subsubsection{Example LR and UMP test}
+\begin{align*}
+    X_i,\dots,X_n &\overset{i.i.d}{\sim} Poisson(\lambda), H_0: \lambda = 1, H_1: \lambda > 1\\
+    LR(X) &= \frac{\prod_{i=1}^nexp(-\lambda_1)*\frac{\lambda_1^{X_i}}{X_i!}}{\prod_{i=1}^nexp(-1)*\frac{1^{X_i}}{X_i!}} = \frac{exp(-n\lambda_1)\lambda_1^{\sum X_i}}{exp(-n)} = exp(n(1-\lambda_1))\lambda_1^{\sum X_i} \textrm{, choosing some } \lambda_1 \in H_1\\
+    LR(X) \geq c &\Longleftrightarrow exp(n(1-\lambda_1))\lambda_1^{\sum X_i} \geq c \Longleftrightarrow \lambda_1^{\sum X_i} \geq c' \Longleftrightarrow \sum_{i=1}^n X_i \geq c'''=c\\
+    \textrm{Under $H_0$, } &\sum_{i=1}^n X_i \sim Poisson(n) \textrm{ and level-$\alpha$ test rejects when } \sum_{i=1}^n X_i \geq C_{n, 1-\alpha} \textrm{ (upper $(1-\alpha)$ quantile of Poisson(n))}
+\end{align*}
+
+\subsection{P-values}
+\textbf{P-values} answer "what is the smallest $\alpha$ that we would still reject $H_0$". 
+For $T(X)$, a test statistic, and t, the statistic calculated from the data. Assume $T(X) \sim f_0(x)$, then $P_{H_0}[T(X) \geq t] = 1 - F_0(t) \Longleftrightarrow \textrm{pval}= 1 - F_0(T(X))$\\\\
+In the case $T(X) = \sqrt{n}\frac{\bar{X}_n}{\sigma} \sim N(0, \sigma)$ under $H_0$, then we have $P_{H_0}[\sqrt{n}\frac{\bar{X}_n}{\sigma} \geq t] = 1 - \Phi(t) \Longleftrightarrow \textrm{pval} = 1 - \Phi\left(\sqrt{n}\frac{\bar{X}_n}{\sigma}\right)$\\\\
+The \textbf{distribution} of a pvalue can be described with 
+\begin{align*}
+    \textrm{pval}= 1 - F_0(T(X)) \Longleftrightarrow P(1 - F_0(T(X)) \leq t) \Longleftrightarrow P(T(X) \geq F_0^{-1}(1-t)) \textrm{, watching signs of inequality}
+\end{align*}
+
+\subsection{Generalized Likelihood Ratio test}
+The \textbf{Generalized Likelihood Ratio test} provides us a way to compare composite hypotheses.
+\begin{align*}
+    R_n = \frac{\max_{\theta \in \Omega_0\cup \Omega_1} L_n(\theta)}{\max_{\theta \in \Omega_0} L_n(\theta)} = \frac{\hat{\theta}_{MLE}}{\max_{\theta \in \Omega_0} L_n(\theta)}
+\end{align*}
+Twice the log of the Generalized Likelihood Ratio follows a $\chi^2_d$ distribution with $d = k - k_0$ degrees of freedom
+\begin{align*}
+    2\log(R_n) \sim \chi^2_d \textrm{, with } d = k - k_0
+\end{align*}
+\subsubsection{GLR example I}
+\begin{align*}
+    X_1, \dots, X_n &\overset{i.i.d}{\sim} N(\theta, \sigma^2), \; H_0:\theta=0, \; H_1:\theta \neq 0\\
+    R_n &= \frac{L_n(\bar{X}_n)}{L_n(0)} = \exp\left(\frac{n\bar{X}_n^2}{2\sigma^2}\right)\\
+    2\log(R_n) &= \frac{n\bar{X}_n^2}{2\sigma^2} = Z^2 \sim \chi_1^2 \textrm{, where } Z \sim N(0,1)
+\end{align*}
+
+\subsubsection{GLR example II}
+The \textbf{Poisson Dispersion Test}
+\begin{align*}
+    X_1, \dots, X_n &\overset{i.i.d}{\sim} Poisson(\lambda_i), \; H_0:\lambda_1=\dots=\lambda_n, \; H_1: \textrm{ not $\lambda_i$ all equal}\\
+    R_n &= \frac{L_n(\hat{\lambda}_{MLE_1}, \dots, \hat{\lambda}_{MLE_n})}{L_n(\bar{X}_n)} = \prod_{i=1}^n\left(\frac{X_i}{\bar{X}_n} \right)^{X_i}\\
+    2\log(R_n) &= 2\sum_{i=1}^n X_i\log \left(\frac{X_i}{\bar{X}_n} \right) \sim \chi_{n-1}^2\\
+    2\log(R_n) &\approx \sum_{i=1}^n \frac{(X_i - \bar{X}_n)^2}{\bar{X}_n} \textrm{, using Taylor approximations}
+\end{align*}
+
+
+\subsubsection{Testing multinomial distributions}
+We can constructing the generalized likelihood ratio in the multinomial models as well
+\begin{align*}
+    X_1, \dots, X_n &\sim multi(n, p_1, \dots, p_n), \; H_0: p_j = p_j(\theta)
+    \\
+    \textrm{Unrestrained MLE: } \hat{p}_j &= \frac{X_j}{n} \textrm{, MLE under $H_0$: } \hat{\theta}_{MLE}\\
+    R_n &= \frac{\frac{n!}{X_1!\dots X_n!}\hat{p_1}^{X_1}\dots\hat{p}_n^{X_n}}{\frac{n!}{X_1!\dots X_n!}p_1(\hat{\theta})^{X_1} \dots p_n(\hat{\theta})^{X_n}} = \prod_{j=1}^n \left(\frac{\hat{p}_j}{p_j(\hat{\theta})} \right)^{X_j}\\
+    2\log(R_n) &= 2 \sum_{j=1}^n X_j\log\left(\frac{\hat{p}_j}{p_j(\hat{\theta})} \right) = 2 \sum_{j=1}^n X_j\log\left(\frac{X_j}{np_j(\hat{\theta})}\right)\\
+    2\log(R_n) &= 2\sum_{j=1}^nO_j\log\left(\frac{O_j}{E_j}\right) \textrm{, for } O_j=X_j \textrm{ and } E_j = np_j(\hat{\theta})
+\end{align*}
+We can approximate this equality in Generalized Likelihood Ratios using the Taylor approximation to get the \textbf{Chi Squared Statistic}
+\begin{align*}
+    2\log(R_n) = 2\sum_{j=1}^nO_j\log\left(\frac{O_j}{E_j}\right) \approx \sum_{j=1}^n \frac{(O_j-E_j)^2}{E_j} \sim \chi^2_d \textrm{, with } d = k - k_0
+\end{align*}
+In general, we can determine the degrees of freedom under $H_0$, $k_0$, as $(r-1) + (c-1)$ and under $H_1$, $k$, as $r*c-1$
+The \textbf{Chi-square Test of Homogeneity} tests $H_0: \pi_{i1} = \dots = \pi_{iJ}$ with statistic
+\begin{equation*}
+    X^2 = \sum_{i=1}^I \sum_{j=1}^J \frac{(O_{ij} - E_{ij})^2}{E_{ij}} \sim \chi^2_{(I-1)(J-1)}
+\end{equation*}
+
+\section{Helpful applied methods}
+\subsection{Derivation of Linear regression}
+TODO
+\subsection{Confidence intervals}
+\begin{align*}
+    \sqrt{n}\frac{\bar{X}_n - \mu}{\sigma} &\overset{d}{\longrightarrow} Z \sim N(0,1) \textrm{, by CLT for calculated } \bar{X}_n\\
+    \sqrt{n}\frac{\bar{X}_n - \mu}{\hat{\sigma}} &\overset{d}{\longrightarrow} Z \sim N(0,1) \textrm{, by Slutsky's theorem}\\
+    P(Z \leq \Phi(1-\alpha)) = P(Z \leq Z_{1-\alpha}) = 1-\alpha &\Longleftrightarrow P(Z_{\alpha \div 2} \leq Z \leq Z_{1-\alpha \div 2}) = 1-\alpha\\
+    P(Z_{\alpha \div 2} \leq \sqrt{n}\frac{\bar{X}_n - \mu}{\hat{\sigma}} \leq Z_{1-\alpha \div 2}) &= P(\frac{\hat{\sigma}}{\sqrt{n}}Z_{\alpha \div 2} \leq \bar{X}_n - \mu \leq \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha \div 2})\\
+    &= P(\bar{X}_n - \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha \div 2} \leq \mu \leq \bar{X}_n + \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha \div 2}) \overset{d}{\longrightarrow} 1-\alpha\\
+    \mu &\in \left[\bar{X}_n \pm \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha \div 2}\right] \textrm{ with } p \overset{d}{\longrightarrow} 1-\alpha
+\end{align*}
+
+\subsection{Asymptotic distribution of sample variance}
+\begin{align*}
+    S_n^2 =& \frac{1}{n-1}\sum_{i=1}^n(X_i - \bar{X}_n)^2 = \frac{n}{n-1}\left[\frac{1}{n}\sum_{i=1}^n(X_i - \mu)^2 - (\bar{X}_n-\mu)^2\right]\\
+    \sqrt{n}(S_n^2 - \sigma^2) =& \frac{n}{n-1}\left[\sqrt{n}\left(\frac{1}{n}\sum_{i=1}^n(X_i - \mu)^2\right) + \sqrt{n}(\bar{X}_n-\mu)^2\right] - \sqrt{n}\sigma^2 \\
+    =& \frac{n}{n-1}\left[\sqrt{n}\left(\frac{1}{n}\sum_{i=1}^n(X_i - \mu)^2 - \sigma^2\right) + \sqrt{n}\sigma^2 +  \sqrt{n}(\bar{X}_n-\mu)^2\right] \\
+    =& \frac{n}{n-1} * \sqrt{n}\left(\frac{1}{n}\sum_{i=1}^n(X_i - \mu)^2 - \sigma^2\right) + \frac{\sqrt{n}}{n-1}\sigma^2 +  \frac{n\sqrt{n}}{n-1}\sqrt{n}(\bar{X}_n-\mu)^2\\
+    \frac{n}{n-1} &\overset{p}{\longrightarrow} 1 \bullet \frac{\sqrt{n}\sigma^2}{n-1} \overset{p}{\longrightarrow} 0 \bullet \sqrt{n}(\bar{X}_n - \mu)^2 \overset{p}{\longrightarrow} 0 \textrm{, since by Slutsky } (\bar{X}_n - \mu) \overset{p}{\longrightarrow} 0 \;\&\; \sqrt{n}(\bar{X}_n - \mu) \overset{d}{\longrightarrow} N(0,1)\\
+    \therefore \sqrt{n}(S_n^2 - \sigma^2) &\overset{d}{\longrightarrow} \sqrt{n}\left(\frac{1}{n}\sum_{i=1}^n(X_i - \mu)^2 - \sigma^2\right) \overset{d}{\longrightarrow} N(0, Var[(X_i - \mu)^2]) \textrm{, since } E\left[\frac{1}{n}\sum_{i=1}^n(X_i - \mu)^2\right] = \sigma^2
+\end{align*}
+
+\subsection{Comparing two samples}
+TODO
+\subsection{Fischer's Exact test}
+TODO
+
+TODO -- You're on HW 7
+
+
+
+
+
+\end{document}

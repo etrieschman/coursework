@@ -1,0 +1,482 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{CME364A: Convex Optimization}
+\author{Erich Trieschman}
+% \date{2022/3 Winter quarter class notes}
+
+
+\newcommand{\userMarginInMm}{8}
+\geometry{
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=5mm}
+
+\newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+\newcommand*\bspace{$\; \bullet \;$}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+\begin{document}
+\maketitle
+
+% \tableofcontents
+
+% Optimization overview
+\section{Optimization overview}
+Optimization problems have the form
+\begin{align*}
+  \textrm{minimize   } & f_0(x)\\
+  \textrm{subject to   } & f_i(x) \leq b_i 
+\end{align*}
+The objective function is $f_0$ and the constraints are $f_i$
+Functions can be optimized locally or globally. The true distinction within optimization problems isn't between linear and nonlinear programming, but rather convex and nonconvex programming. This field studies methods for using known convex optimization solutions in as broad a way as possible to reach solutions (or bounds of solutions) for convex and nonconvex optimization problems alike. 
+
+\subsection{Least squares}
+Least squares is its own type of optimization problem without constraints:
+\begin{align*}
+   \textrm{minimize   } & f_0(x) = \norm{Ax - b}{2}^2 = \sum_{i=1}^k(a_i^Tx - b_i)^2
+\end{align*}
+\begin{itemize}
+  \item There exists an anlytical solution to this problem: $x = (A^TA)^{-1}A^Tb$
+  \item There are more flexible techniques, including
+  \begin{itemize}
+    \item Weighted least-squares: $f_0(x) = \sum_{i=1}^kw_i(a_i^Tx - b_i)^2$ for weights, $w_i$
+    \item Regularized least-squares: $f_0(x) = \sum_{i=1}^k(a_i^Tx - b_i)^2 + \rho \sum_{i=1}^nx_i^2$
+  \end{itemize}
+\end{itemize}
+
+\subsection{Linear programming}
+Linear programs have the form
+\begin{align*}
+  \textrm{minimize   } & c^Tx\\
+  \textrm{subject to   } & a_i^Tx \leq b_i 
+\end{align*}
+There is no analytical solution to linear programs, but variety of effective algorithms to do so.
+
+\subsection{Convex optimization}
+An optimization problem where the objective and constraint functions are convex
+\begin{align*}
+  f_i(\alpha x + (1-\alpha) y) \leq \alpha f_i(x) + (1 - \alpha) f_i(y) \textrm{, for all } x,y \in \mathbb{R}^n, \; \alpha \in \mathbb{R}, \; 0 \leq \alpha \leq 1
+\end{align*}
+
+% Convex sets
+\section{Convex sets}
+\subsection{Definitions}
+\subsubsection{Affine sets}
+\textbf{Affine set:} $\{x \mid Ax = b\}$, where we see for $x_1, x_2 \in C \subset \mathbb{R}^n$, $\theta x_1 + (1-\theta)x_2 \in C$\\
+\textbf{Affine combination:} for points, $x_1, \dots, x_k \in C$, $\theta_1x_1 + \dots + \theta_kx_k$, where $\sum \theta_i = 1$, is an affine combination. An affine set contains every affine combination of its points
+
+\subsubsection{Convex sets}
+\textbf{Convex set:} a set, $C$ is convex if for $x_1, x_2 \in C \subset \mathbb{R}^n$, $\theta x_1 + (1-\theta)x_2 \in C$\\
+\textbf{Convex combination:} for points, $x_1, \dots, x_k \in C$, $\theta_1x_1 + \dots + \theta_kx_k$, where $\sum \theta_i = 1$, is a convex combination. $C$ convex $\Leftrightarrow$ every convex combination $\in C$\\
+\textbf{Convex hull:} The set of all convex combinations of points in $C$: $convC=\{\theta_1x_1+\dots+\theta_kx_k \mid x_i \in C, \theta_i \geq 0, i=1,\dots,k, \sum \theta_i = 1 \}$
+
+\subsubsection{Cones}
+\textbf{Cone:} a set $C$ is a cone if $\forall x_1, x_2 \in C$ and $\forall \theta_1, \theta_2 \geq 0$, we have $\theta_1 x_1 + \theta_2 x_2 \in C$ (linear combination with non-negative coefficients). Note that thetas don't need to add to one\\
+\textbf{Convex cone:} a set is a convex cone if it is i) convex and ii) a cone. i.e., $\forall x,y \in C$ and $\forall \theta_1, \theta_2 \geq 0$, we have $\theta_1x + \theta_2y \in C$
+\textbf{Connic combination:} for points, $x_1, \dots, x_k \in C$, $\theta_1, \dots, \theta_k \geq 0$, $\theta_1x_1, \dots + \theta_kx_k$ is a connic combination. $C$ convex $\Leftrightarrow$ every convex combination $\in C$\\
+\textbf{Connic hull:} The set of all connic combinations of points in $C$: $\{\theta_1x_1+\dots+\theta_kx_k \mid x_i \in C, \theta_i \geq 0, i=1,\dots,k\}$
+
+\subsection{Key set examples}
+Simple examples below; more complex examples covered in subsections
+\begin{itemize}
+  \item The empty set $\null$, any single point (i.e., singleton) $\{x_0\}$, and the whole space $\mathbb{R}^n$ are affine (hence, convex) subsets of $\mathbb{R}^n$
+  \item Any line is affine. If it passes through zero, it is a subspace, hence also a convex cone
+  \item A line segment is convex, but not affine (unless it reduces to a point). Constructed by setting $\theta \in [0, 1]$ so that $x \in [x_1, x_2]$
+  \item A ray, which has the form $\{x_0+\theta v\mid \theta \geq 0\}$ ,where $v \neq 0$,is convex, but not affine. It is a convex cone if its base $x_0 = 0$
+  \item Any subspace is affine, and a convex cone (hence convex)
+\end{itemize}
+
+\subsubsection{Hyperplanes and halfspaces}
+\textbf{Hyperplane:} $\{x \mid a^Tx = b\}$\\
+Analytically, this is an affine set. Geometrically, this is the set of points with a constant inner product. It can also be written in the form below, for $x_0$ a point in the solution space. This indicates that a hyperplane is composed of an offset, $x_0$, and a vector orthogonal to $a$.
+\begin{align*}
+  \{x \mid a^Tx = b\} \Longleftrightarrow \{x \mid a^T(x - x_0) = 0\} \Longleftrightarrow x_0 + a^\perp
+\end{align*} 
+\textbf{Halfspace:} A hyperplane divides $\mathbb{R}^n$ into two halfspaces.\\
+The halfspace extending in the $-a$ direction is $\{x \mid a^Tx \leq b\}$. A vector making an obtuse angle with $a$ is in this halfspace.\\
+The halfspace extending in the $a$ direction is $\{x \mid a^Tx \geq b\}$. A vector making an acute angle with $a$ is in this halfspace.\\
+Halfspaces are convex, but not affine
+
+\subsubsection{Euclidean balls and ellipsoids}
+Euclinean balls are convex sets. They have the form
+\begin{align*}
+  B(x_c, r) = \{x \mid \norm{x - x_c}{2} \leq r\} \Longleftrightarrow \{x \mid (x - x_c)^T(x - x_c) \leq r^2\} \Longleftrightarrow \{x + ru \mid \norm{u}{2} \leq 1\}
+\end{align*}
+Ellipsoids are convex sets of the form
+\begin{align*}
+  \mathbb{E} = \{x \mid (x - x_c)^TP^{-1}(x - x_c) \leq r^2\} \Longleftrightarrow \{x + Au \mid \norm{u}{2} \leq 1\}
+\end{align*}
+Where $P$ is SPD and determines how far the ellipsoid extends in each direction. An ellipsoid is a ball when $P = aI$. $A$ can be thought of (WLOG) as $P^{1/2}$
+
+\subsubsection{Norm balls and cones}
+Norm balls and cones are convex\\
+\textbf{Norm ball:} $\{ x \mid \norm{x - x_c}{p} \leq r \} \in \mathbb{R}^n$\\
+\textbf{Norm cone:} $\{ (x,t) \mid \norm{x}{p} \leq t \} \in \mathbb{R}^{n+1}$\\
+Norm cones are a helpful way to reformulate problems. The graph of a function is sort of like a norm cone. 
+
+\subsubsection{Polyhedra}
+\textbf{Polyhedra} are convex sets. A polyhedron is the intersection of a finite number of halfspaces and hyperplanes. Affine sets, rays, line segments, and halfspaces are all polyhedra.
+\begin{align*}
+  \mathcal{P} = \{ x \mid a_j^Tx \leq b_j, \; c_i^Tx = d_i \}, \textrm{ for } i\in\{1, \dots, n\}, j\in\{1, \dots, m\}
+\end{align*}
+\textbf{Simplexes} are a special type of polyhedra with $k$ independent vectors defining the set:
+\begin{align*}
+  \mathcal{C} = \{\theta_0v_0 + \dots + \theta_kv_k \mid \theta \succeq0, 1^T\theta = 1\}
+\end{align*}
+
+
+\subsubsection{Positive semidefinite cone}
+The set of symmetric semidefinite matrices $S^n_+$ is a convex cone. i.e., if $\theta_1, \theta_2 \geq 0$ and $A,B\in S^n_+$, then $\theta_1A + \theta_2B \in S^n_+$. This can easily be seen by the rules of positive semidefiniteness:
+\begin{align*}
+  x^T(\theta_1A + \theta_2B)x = \theta_1x^TAx + \theta_2x^TBx \geq 0 \textrm{ when } A \succeq 0, B \succeq 0, \; \theta_1,\theta_2 \geq 0
+\end{align*}
+
+
+\subsection{Operations preserving convexity}
+Can check for arbitrary case $x_1, x_2 \in C$, but better to show that it's a combination of convex sets. Street-fighting method: write code that randomly samples points and checks if the linear combination is C.
+\begin{itemize}
+  \item \textbf{Intersection:} The intersection of a finite (or infinite) number of convex sets is also convex\\
+  If $S_1, S_2$ convex $\Longrightarrow S_1 \cap S_2$ convex\\
+  If $S_\alpha$ convex for all $\alpha \in \mathcal{A} \Longrightarrow \bigcap_{\alpha \in \mathcal{A}} S_\alpha$ convex\\
+  \item \textbf{Image and inverse image}
+  \item \textbf{Affine functions:} An affine transformation of a convex set is convex. This can be thought of as scaling a convex set or shifting a convex set\\
+  If $S$ convex and $f(x)$ affine, then $f(S) = \{f(x) \mid x \in S\}$ is convex. 
+  \item \textbf{Perspective functions:} The perspective function scales vectors so that the last component is $1$, and then drops the last component. The result of a perspective function applied to a convex set is a convex set. $P: \mathbb{R}^{n+1} \rightarrow \mathbb{R}^n$, $P(x, t) = x/t$, $domP = \{(x,t) \mid t>0\}$
+  \item \textbf{Linear-fractional functions:} Linear-fractional functions are the composition of the perspective function with an affine function. They preserve convexity. $f: \mathbb{R}^n \rightarrow \mathbb{R}^m$, $f(x) = (Ax+b) / (c^Tx + d)$. Conditioning is a linear-fractional function.
+\end{itemize}
+
+
+\subsection{Generalized inequality} 
+Generalized inequality is a partial ordering in $\mathbb{R}^n$ that has many of the same properties as standard ordering in $\mathbb{R}$ ($<, >, \leq, \geq)$. Those properties include i) preserved under addition, ii) transitive, iii) preserved under nonnegative scaling, iv) reflexive, v) antisymmetric, vi) preserved under limits (see p44).\\
+We use \textit{proper cones} to define this ordering. A cone, $K$ is proper if it satisifes
+\begin{itemize}
+  \item $K$ is convex
+  \item $K$ is closed
+  \item $K$ is solid (i.e., nonempty interior)
+  \item $K$ is pointed (i.e., contains no full line, only rays)
+\end{itemize}
+A generalized inequality can be defined with a proper cone, $K$, as
+\begin{align*}
+  x \preceq_K y &\Longleftrightarrow y - x \in K\\
+  x \prec_K y &\Longleftrightarrow y - x \in int K
+\end{align*}
+Two useful examples of generalized inequalities:
+\begin{itemize}
+  \item Nonnegative orthant: componentwise inequality
+  \item Positive semidefinite cone: Difference in PSD matrices is also PSD (i.e., nonnegative eigenvalues)
+\end{itemize}
+
+
+\subsubsection{Minimum and minimal elements}
+In generalized inequalities, not all values are comparable. This motivates different definitions for minimum elements.
+\begin{itemize}
+  \item (stronger definition) $x \in S$ is \textit{minimum} if for every $y \in S$, we have $x \preceq_K y$. In set notation, $x \in S$ is minimum of $S \Longleftrightarrow S \subseteq x + K$
+  \item (weaker definition) $x \in S$ is \textit{minimal} if when $y \preceq_K x$ for $y \in S$, then $y = x$. In set notation, $x \in S$ is minimal in $S \Longleftrightarrow (x - K) \cap S = \{x\}$
+\end{itemize}
+Visually, think of how far negative you can go in each direction. If you reach a single point in this effort, it's \textbf{minimum}. If you reach a line, those points on the line are \textbf{minimal}
+
+
+\subsection{Separating hyperplanes}
+The \textbf{separating hyperplane theroem} result states: Suppose $C$ and $D$ are nonempty disoint convex sets ($C \cap D = \emptyset$). Then, there exist $a \neq 0$ and $b$, such that $a^Tx \leq b \; \forall x \in C$ and $a^Tx \geq b \; \forall x \in D$. The hyperplane $\{x \mid a^Tx = b\}$ is called the separating hypterplane for sets $C$ and $D$. See proof on p. 46.
+
+\subsection{Supporting hyperplanes}
+For $C \subseteq \mathbb{R}^n$ and $x_0 \in bd C$, the \textbf{supporting hyperplane} is the hyperplane $\{x \mid a^Tx = a^Tx_0\}$ that satisfies $a^Tx \leq a^Tx_0 \; \forall x \in C$.\\\\
+This is equivalent to saying that the point $x_0$ and the set $C$ are separated by the hyperplane $\{x \mid a^Tx = a^Tx_0\}$. The geometric interpretation is that the hyperplane $\{x \mid a^Tx = a^Tx_0\}$ is tangent to $C$ at $x_0$, and the halfspace $\{x \mid a^Tx \leq a^Tx_0\}$ contains $C$.\\\\
+The \textbf{supporting hyperplane theorem}, states that for any nonempty convex set $C$, and any $x_0 \in bd C$, there exists a supporting hyperplane to $C$ at $x_0$. The supporting hyperplane theorem is readily proved from the separating hyperplane theorem.
+
+\subsection{Dual cones}
+For cone $K$, the \textbf{dual cone}, $K^*$ is defined as
+\begin{align*}
+  K^* = \{y \mid x^Ty \geq 0 \; \forall x \in K\}
+\end{align*}
+\begin{itemize}
+  \item $K^*$ is always a cone and always convex, even when $K$ is not convex
+  \item Geometrically, $y \in K^* \Longleftrightarrow -y$ is normal of a hyperplane supporting $K$ at the origin
+  \item for proper cone, $K$, $x \preceq_K y \Longleftrightarrow \lambda^Tx \leq \lambda^Ty$ for all $\lambda \preceq_{K^*} 0$
+\end{itemize}
+
+
+
+% Convex functions
+\section{Convex functions}
+\subsection{Definitions}
+A function, $f: \mathbb{R}^n \rightarrow \mathbb{R}$ is \textbf{convex} if $dom f$ is a convex set and if
+\begin{align*}
+  f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y)
+\end{align*}
+\begin{itemize}
+  \item Geometrically, this can be interpreted as a convex function being a function where a line segment connecting any two points on the function lies above the graph.
+  \item Another interpretation: $f$ is convex $\Longleftrightarrow$ $\forall x \in dom f$ the function $g(t) = f(x + tv)$ is convex (requiring $x + tv \in dom f$)
+  \item The extended value extension of a convex function sets $f(x) = \infty$ for all $x \notin dom f$
+\end{itemize}
+We can verify convexity through one of three approaches
+\begin{itemize}
+  \item Directly verify the inequality
+  \item Restrict the function to an arbitrary line and verify convexity of the resulting function of one variable
+  \item Verify that the Hessian is positive semidefinite (second-order conditions)
+\end{itemize}
+\subsubsection{First-order conditions}
+For differentiable $f$ with convex domain:
+\begin{align*}
+  \textrm{$f$ convex } \Longleftrightarrow f(y) \geq f(x) + \nabla f(x)^T(y-x) \; \forall x,y \in dom f
+\end{align*}
+This is the first-order Taylor approximation of $f$ near $x$. For convex sets, the first-order Taylor approximation is a global underestimator of the function
+
+\subsubsection{Second-order conditions}
+For twice-differentiable $f$ with convex domain:
+\begin{align*}
+  \textrm{$f$ convex} \Longleftrightarrow \nabla^2f(x) \succeq 0
+\end{align*}
+The second-order condition states that the Hessian of $f$ must be a positive semidefinite matrix for $f$ to be concave. Geometrically, this means we require positive, upward curvature of $f$.\\
+We can evaluate PSD matrix by considering its eigenvalues. Note: rank-1 matrices are not positive semidefinite, so if we can rewrite a Hessian as a rank-1 matrix, we can show that it is not convex.
+
+\subsubsection{Examples}
+\begin{itemize}
+  \item \textit{Exponential:} $e^{ax}$ is convex on $\mathbb{R}^{}$
+  \item \textit{Powers:} $x^a$ is convex on $\mathbb{R}_{++}$ when $a \geq 1, a \leq 0$, concave otherwise
+  \item \textit{Powers of absolute value:} $\abs{x}^p$ is convex on $\mathbb{R}^{}$ for $p \geq 1$
+  \item \textit{Logarithm:} $log(x)$ is concave on $\mathbb{R}_{++}$
+  \item \textit{Negative entropy:} $x log(x)$ is convex on $\mathbb{R}_{++}$ or $\mathbb{R}$
+  \item \textit{Norms:} every norm $\norm{x}{x}$ is convex on $\mathbb{R}^n_{}$
+  \item \textit{Max function:} $f(x) = max\{x_1, \dots, x_n$ is convex on $\mathbb{R}^n_{}$
+  \item \textit{Quadratic-over-linear:} $x^2/y$ is convex on $\mathbb{R} \times \mathbb{R}_{++} = \{(x,y) \in \mathbb{R}^2 \mid y > 0\}$
+  \item \textit{Log-sum-exp:} $f(x) = log(\sum_ie^{x_i})$ is convex on $\mathbb{R}^n_{}$
+  \item \textit{Geometric mean:} $f(x) = (\prod_{i=1}^n x_1)^{1/n}$ is concave on $\mathbb{R}^n_{++}$
+  \item \textit{Log-determinant:} $f(X) = log(det(X))$ is concave on $\mathbb{S}^n_{++}$
+\end{itemize}
+
+
+\subsubsection{Sublevel sets}
+Sublevel sets of a convex function are convex. The \textbf{$\alpha$-sublevel set} of a function $f$ is defined as
+\begin{align*}
+  C_\alpha = \{x \in dom f \mid f(x) \leq \alpha \}
+\end{align*}
+\textbf{Note:} The converse is not true. A function can have all its sublevel sets convex, but not be convex\\
+\textbf{Note:} If $f$ concave, then the $\alpha$-superlevel set given by $\{x \in dom f \mid f(x) \geq \alpha \}$ is convex
+\subsubsection{Epigraph}
+The graph of a function $f: \mathbb{R}^n \rightarrow \mathbb{R}$ is defined in $\mathbb{R}^{n+1}$ as $\{(x, f(x)) \mid x \in dom f\}$\\
+The epigraph of a function $f: \mathbb{R}^n \rightarrow \mathbb{R}$ is defined in $\mathbb{R}^{n+1}$ as $\{(x, t) \mid f(x) \leq t\}$
+\subsubsection{Jensen's inequality}
+The basic convexity inequality is sometimes referred to as Jensen's inequality
+\begin{align*}
+  f(\alpha x + (1-\alpha) y) \leq \alpha f(x) + (1 - \alpha) f(y)
+\end{align*}
+It can easily be extended to convex combinations of more than two points 
+\begin{align*}
+  f(\theta_1 x_1 + \dots + \theta_k x_k) \leq \theta_1 f(x_1) + \dots + \theta_k f(x_k)
+\end{align*}
+And even to infinite sums, integrals and expected values. 
+
+
+\subsection{Operations preserving convexity}
+\begin{itemize}
+  \item \textit{Nonnegative weighted sums:} $f = w_1f_1 + \dots + w_mf_m$ convex for $f_i$ convex and $w_i \geq 0$
+  \item \textit{Composition with an affine mapping:} $g(x) = f(Ax + b)$ convex for $f$ convex and $dom g = \{x \mid Ax + b \in dom g \}$
+  \item \textit{Point-wise maximum and supremum:} $f(x) = \max\{f_1(x),f_2(x)\}$ convex for $f_1,f_2$ convex and $dom f = dom f_1 \cap dom f_2$ convex
+  \item \textit{Composition:} $f(x) = h(g(x))$ convex under certain conditions for \hyperref[scalarComp]{scalar composition} and \hyperref[vectorComp]{vector composition}
+  \item \textit{Minimization} $g(x) = \inf_{y \in C} f(x, y)$ convex for $f$ convex, $C$ a convex set, and $g(x) > -\infty$ for all $x$
+  \item \textit{Perspective of a function:} $g(x, t) = tf(x/t)$ convex for $f:\mathbb{R}^n \rightarrow R$ convex with $dom g = \{(x,t) \mid x/t \in dom f, t > 0\}$
+\end{itemize}
+
+
+\subsubsection{Scalar convexity-preserving function composition}\label{scalarComp}
+In the scalar case we consider $h:\mathbb{R} \rightarrow \mathbb{R}$, $g:\mathbb{R}^n \rightarrow \mathbb{R}$\\
+The convexity of $f$ is determined by $f'' \geq 0$, and the second derivative of the composition is
+\begin{align*}
+  f''(x) = h''(g(x))g'(x)^2 + h'(g(x))g''(x)
+\end{align*}
+How can we determine if $f(x) = h(g(x))$ is convex ($f''(x) \geq 0$)?
+\begin{itemize}
+  \item $f$ convex if: $h$ convex ($h'' \geq 0$) and $h$ nondecreasing ($h' \geq 0$) and $g$ is convex ($g'' \geq 0$)
+  \item $f$ convex if: $h$ convex ($h'' \geq 0$) and $h$ nonincreasing ($h' \leq 0$) and $g$ is concave ($g'' \leq 0$)
+  \item $f$ concave if: $h$ concave ($h'' \geq 0$) and $h$ nondecreasing ($h' \geq 0$) and $g$ is concave ($g'' \geq 0$)
+  \item $f$ concave if: $h$ concave ($h'' \geq 0$) and $h$ nonincreasing ($h' \geq 0$) and $g$ is convex ($g'' \geq 0$)
+\end{itemize}
+
+\subsubsection{Vector convexity-preserving function composition}\label{vectorComp}
+In the vector case we consider $h:\mathbb{R}^k \rightarrow \mathbb{R}$, $g_i:\mathbb{R}^n \rightarrow \mathbb{R}$\\
+Similarly, the convexity of $f$ is determined by $f'' \geq 0$, and the second derivative of the composition is
+\begin{align*}
+  f''(x) = g'(x)^T \nabla^2h(g(x)) g'(x)^2 + \nabla h(g(x))^T g''(x)
+\end{align*}
+How can we determine if $f(x) = h(g(x))$ is convex ($f''(x) \geq 0$)?
+\begin{itemize}
+  \item $f$ convex if: $h$ convex ($\nabla^2h \succeq 0$) and for reach argument, $i$, 
+  \begin{itemize}
+    \item $h$ is nondecreasing in that argument ($\partial h / \partial x_i \geq 0$) and $g_i$ is convex ($g'' \geq 0$)
+    \item $h$ is nonincreasing in that argument ($\partial h / \partial x_i \leq 0$) and $g_i$ is concave ($g'' \leq 0$)
+  \end{itemize}
+  \item $f$ concave if: $h$ concave ($\nabla^2h \preceq 0$) and for reach argument, $i$, 
+  \begin{itemize}
+    \item $h$ is nondecreasing in that argument ($\partial h / \partial x_i \geq 0$) and $g_i$ is concave ($g'' \leq 0$)
+    \item $h$ is nonincreasing in that argument ($\partial h / \partial x_i \leq 0$) and $g_i$ is convex ($g'' \geq 0$)
+  \end{itemize}
+\end{itemize}
+
+\subsection{Conjugate function}
+For function $f$, the conjugate of the function, $f^*$ is defined as
+\begin{align*}
+  f^*(y) = \sup_{x \in dom f} (y^Tx - f(x))
+\end{align*}
+We see immediately that $f^*$ is a convex function, since it is the pointwise supremum of a family of convex (indeed, affine) functions of $y$
+
+\subsection{Quasiconvex functions}
+A function $f$ is quasiconvex if its domain and all its sublevel sets are convex. A function is quasiconcave if $-f$ is quaiconvex (i.e., every superlevel set is convex). A function that is both quasiconvex and quasiconcave is called quasilinear.\\\\
+\textbf{Jensen's inequality for quasiconvex functions} characterizes quasiconvexity:
+\begin{align*}
+  f \textrm{ quasiconvex } \Longleftrightarrow f(\theta x + (1-\theta)y) \leq \max \{f(x), f(y)\}
+\end{align*}
+TODO: Additional properties of quasiconvex functions can be found in the textbook, including
+\begin{itemize}
+  \item First order conditions: quasiconvexity can be characterized by first order conditions
+  \item Second order conditions: quasiconvexity can be characterized by second order conditions
+  \item Nonnegative weighted maximum
+  \item Composition: g quasiconvex and h nondecreasing, then f = h(g(x)) is quasiconvex
+  \item Minimization
+\end{itemize}
+
+\subsection{Log-concave functions}
+A function $f : \mathbb{R}^n \rightarrow \mathbb{R}$ is log-concave if $f(x) > 0$ for all $x \in dom f$ and $\log f$ is concave. $f$ is log-convex if $\log f$ is convex. Log concavity can be characterized by the following inequality
+\begin{align*}
+  f(\theta x + (1 - \theta)y) \geq f(x)^\theta f(y)^{1-\theta} \textrm{ for } x,y\in dom f \textrm{ and } 0 \leq \theta \leq 1
+\end{align*}
+TODO: properties of log-concave functions include
+\begin{itemize}
+  \item Twice differentiable property
+  \item log-convexity and log-concavity are closed under multiplication and positive scaling
+  \item In some special cases, log-concavity is preserved by integration
+\end{itemize}
+
+\subsection{Convexity with respect to generalized inequalities}
+TODO
+
+\subsection{Disciplinned Convex Programming}
+Algorithmic methods for writing functions to determine concavity and convexity
+\begin{itemize}
+  \item \href{https://dcp.stanford.edu/}{Stanford DCP tutorial}
+  \item \href{https://www.cvxpy.org/tutorial/dcp/}{CVXPy DCP tutorial}
+\end{itemize}
+
+\section{Applied concepts}
+\subsection{How to set up an applied problem}
+\begin{itemize}
+  \item Write down all variables
+  \item Write down all constants
+  \item Write out the size of all variables and constants (e.g., $x\in \mathbb{R}^n$)
+  \item Write out optimization problem in a DCP compliant way
+  \item Write out all constraints in a DCP compliant way
+\end{itemize}
+
+\subsection{Constructing the dual of a perturbed problem}
+Take the original primal problem and its dual. Assume convexity and strong duality\\
+\begin{align*}
+  \textrm{\textbf{Primal: }}
+  min. & \;\; f_0(x)\\
+  s.t. & \;\; f_i(x) \leq 0\\
+  & \; h_i(x) = 0\\
+  \textrm{\textbf{Dual: }}
+  min. & \;\; g(\lambda, \nu) = \inf_x\{L(\lambda, \nu)\} = \inf_x\{f_0(x) + \sum_i\lambda_if_i(x) + \sum_j\nu_jh_j(x)\}\\
+  s.t. & \;\; \lambda \preceq 0\\
+  \textrm{\textbf{Perturbed primal: }}
+  min. & \;\; f_0(x)\\
+  s.t. & \;\; f_i(x) \leq u_i\\
+  & \;\; h_i(x) = v_i\\
+  \textrm{\textbf{Perturbed dual: }}
+  min. & \;\; g_{pert}(\lambda, \nu) = \inf_x\{L_{pert}(\lambda, \nu)\}\\
+  &= \inf_x\{f_0(x) + \sum_i\lambda_i(f_i(x) - u_i) + \sum_j\nu_j(h_j(x) - v_i)\}\\
+  &= \inf_x\{f_0(x) + \sum_i\lambda_if_i(x) + \sum_j\nu_jh_j(x)\} - \lambda^Tu - \nu^Tv\\
+  &= g(\lambda, \nu)- \lambda^Tu - \nu^Tv \textrm{, written as a function of the original lagrangian dual problem}\\
+  s.t. & \;\; \lambda \preceq 0\\  
+\end{align*}
+Now, by properties of strong and weak duality we have
+\begin{align*}
+  f_0(\tilde{x}) &\geq g_{pert}(\tilde{\lambda}, \tilde{\mu}) \textrm{, by weak duality for any feasible values}\\
+  p^*_{pert}(u, v) &\geq g_{pert}(\lambda, \mu) \text{, by weak duality, since the prior result holds for all values}\\
+  p^*_{pert}(u, v) &\geq g_{pert}(\lambda^*, \mu^*) \text{, the optimal values of the original problem}\\
+  &= g(\lambda^*, \mu^*) - \lambda^{*T}u - \nu^{*T}v \text{, rewriting equality from above}\\
+  &= p^*(0,0) - \lambda^{*T}u - \nu^{*T}v \text{, from strong duality of } p^*(0,0) = g(\lambda^*, \nu^*)\\
+\end{align*}
+
+\section{Assorted techniques}
+\subsection{...for constructing convex problems}
+\begin{itemize}
+  \item Monotonicity of functions
+  \item Condition on maximum of functions $\Longrightarrow$ condition on each individual function within the maximum
+  \item homogenous functions
+  \item change of variables: perspective, $g(x, t) = tf(x/t)$
+  \item change of varibles: replace a log of a variable with a new variable (e.g., $y = \log x$). This may lead to creating a perspective function
+  \item change of variables: replace a product of two variables with a single variable (e.g., $z = x/y$, $z = xy$)
+  \item scale variables in the problem -- can the variables be scaled without changing the objective or constraints?
+  \item or scale variables after solving the problem, i.e., $x = \tilde{x} / (1^T\tilde{x})$
+  \item keep things in norms and try to rewrite norms as subcomponents
+  \item When working with functions of the form $(x_i)_-$ and $(x_i)_+$, breaking it into two vectors: $x_+ \succeq 0, x_- \succeq 0, x = x_+ - x_-$
+  \item The geometric mean, $g(u,v) = \sqrt{uv}$ is concave
+  \item Change of variables for normal distribution: $\theta = \Sigma^{-1}$, $\omega = \Sigma^{-1}\mu$
+  \item Logarithms and maximums: $\max(\log f(x), \log g(x)) = \log\max(f(x), g(x))$
+\end{itemize}
+\subsection{...for coding in CVXPY}
+\begin{itemize}
+  \item Define variable constraints in the variable definition \verb|cp.Variable(n, nonneg=True)| or \verb|cp.Variable((m, n), PSD=True)|
+  \item Axis-level norms: \verb|cp.norm(u, 2, axis=0)|
+  \item sum of squares: \verb|cp.sum_squares()|
+\end{itemize}
+
+\section{Examples}
+\begin{itemize}
+  \item $\{ x \mid \abs{p(t)}, t\in [0, \pi/3]\} \Leftarrow \cap_{t\in [0, \pi/3]} \{x \mid p(t) \leq 1\}\cup \{x \mid p(t) \geq 1\}$
+\end{itemize}
+
+
+\section{Additional resources}
+\begin{itemize}
+  \item \href{https://web.stanford.edu/class/ee364a/solutions/midterm_19_sol.pdf}{2019 Practice Midterm}
+  \item \href{https://web.stanford.edu/class/ee364a/solutions/hw/2022_hw1sol.pdf}{HW 1 Solutions}
+  \item \href{https://web.stanford.edu/class/ee364a/solutions/hw/2022_hw2sol.pdf}{HW 2 Solutions}
+  \item \href{https://edstem.org/us/courses/16230/discussion/}{Ed discussion}
+  \item \href{https://web.stanford.edu/class/ee364a/solutions/final_17_sol.pdf}{Final 2017 solutions}
+  \item \href{https://web.stanford.edu/class/ee364a/solutions/final_19_sol.pdf}{Final 2019 solutions}
+\end{itemize}
+
+
+\end{document}

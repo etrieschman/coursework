@@ -1,0 +1,689 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\usepackage{booktabs}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{ECON271: Economectrics II, linear regression}
+\author{Erich Trieschman}
+\date{2023 Winter quarter class notes}
+
+
+\newcommand{\userMarginInMm}{8}
+\geometry{
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=5mm}
+
+\newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+\newcommand*\bspace{$\; \bullet \;$}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Regression models}
+Goal: Estimate $E[Y \mid X]$, oftentimes given $(y_i, x_i) \overset{iid}{\sim} P_\theta$
+Probability theory: $P_\theta \rightarrow \mathcal{P}_n$
+Statistics: $\mathcal{P}_n \rightarrow P_\theta$
+\subsection{Estimator properties}
+\begin{itemize}
+  \item \textbf{Identification:} Parameters of interest can be identified using joint distribution of observable variables and distribution assumptions. E.g., for $Y \sim N(\mu, \sigma^2), \mu = E_{\theta = (\mu, \sigma^2)}[Y]$, but for $Y \sim N(\mu_1 + \mu_2, \sigma^2)$, we can't identify $\mu_1, \mu_2$
+  \item \textbf{Unbiased:} $E_\theta[\hat{\mu}] = \mu$
+  \item \textbf{Admissibility:} Admissible if not inadmissible, where inadmissible means $\exists \tilde{\mu} s.t. E_\theta[(\hat{\mu} - \mu)^2] \geq E_\theta[(\tilde{\mu} - \mu)^2] \forall \theta$
+  \item \textbf{Efficiency:} $Var_\theta(\hat{\mu}) \leq Var_\theta(\tilde{\mu}) \forall \tilde{\mu}$ unbiased
+  \item \textbf{Consistency:} $\hat{\mu} \overset{p}{\longrightarrow} \mu$
+  \item \textbf{Asymptotic distribution:} $\sqrt{n}(\hat{\mu} - \mu) \overset{d}{\longrightarrow} N(0, \sigma^2)$
+\end{itemize}
+
+\section{Linear regression and the OLS estimator}
+\begin{align*}
+  y &= x^T\beta + \epsilon, \textrm{, where }\\
+  E[\epsilon \mid x] &= 0 \Longrightarrow E[y \mid x] = x^T\beta \textrm{ since } E[y \mid x] = E[x^T\beta + \epsilon \mid x] \textrm{(correct specification)}\\
+  Var(\epsilon \mid x) &= \sigma^2 \textrm{ (homoskedasticity)}
+\end{align*}
+
+\subsection{Identification}
+\begin{align*}
+  \beta &= E[xx^T]^{-1}E[xy], \textrm{ since }\\
+  \beta &= \beta E[xx^T]^{-1}E[xx^T] = E[xx^T]^{-1}E[xx^T\beta] = E[xx^T]^{-1}E[xE[y\mid x]] = E[xx^T]^{-1}E[E[xy\mid x]] = E[xx^T]^{-1}E[xy]\\
+  \beta &= argmin_b E[(y - x^Tb)^2] \overset{FOC}{\longrightarrow} E[2x(y - x^T\hat{\beta})] = 0 \Longrightarrow E[xy] = E[xx^T]\hat{\beta}, \textrm{ noting this requires $E[xx^T]$ invertible}
+\end{align*}
+
+\subsection{Estimation}
+\begin{align*}
+  \hat{\beta} =& argmin_b E_n[(y - x^Tb)^2] = argmin_b \frac{1}{n}\sum_{i=1}^n(y - x^Tb)^2 = argmin_b (y - X\beta)^T(y - X\beta)\\
+  & \overset{FOC}{\longrightarrow} \hat{\beta} = \left(\frac{1}{n}\sum_{i=1}^n x_ix_i^T\right)^{-1} \frac{1}{n}\sum_{i=1}^n x_iy_i = (X^TX)^{-1}X^Ty, \textrm{ again requiring $X^TX$ invertible}
+\end{align*}
+Note by construction, the first order condition is $E[x(y - x^T\beta)] = 0 = E[x\epsilon]$. This is a fact of the estimator.
+
+\subsubsection{Estimate as ratio of covariance to variance}
+TODO (see notes and homework)
+
+\subsection{Bias}
+\begin{align*}
+  E[\hat{\beta}\mid X] =& E[(X^TX)^{-1}X^Ty \mid X] = (X^TX)^{-1}X^TE[y\mid X]\\
+  =& (X^TX)^{-1}X^TX\beta = \beta \textrm{ when correctly specified, since } E[y\mid X] = X\beta
+\end{align*}
+
+\subsection{Variance}
+\begin{align*}
+  Var(\hat{\beta} \mid X) &= Var((X^TX)^{-1}X^Ty \mid X) = Var((X^TX)^{-1}X^TX\beta + (X^TX)^{-1}X^TE \mid X) \\
+  &= (X^TX)^{-1}X^T Var(X^TE\mid X) X (X^TX)^{-1} = (X^TX)^{-1}X^T Var(x\epsilon \mid x) X (X^TX)^{-1}\\
+  &= (X^TX)^{-1}X^T \sigma^2 X (X^TX)^{-1} = \sigma^2 (X^TX)^{-1} \textrm{ under homoskedasticity assumption}
+\end{align*}
+
+\subsubsection{Asymptotic variance}
+\begin{align*}
+  \sqrt{n}(\hat{\beta} - \beta) =& \sqrt{n}((X^TX)^{-1}Xy - \beta) \textrm{, for $X$ data matrix of $x_i$, $y$ data vector of $y_i$, $(y_i, x_i)$ iid}\\
+  =& \sqrt{n}((X^TX)^{-1}Xy - (X^TX)^{-1}(X^TX)\beta) = \sqrt{n}(X^TX)^{-1}(Xy - X^TX\beta) \\
+  =& (X^TX)^{-1}\left(\sqrt{n}(X^T(X\beta + E)) - X^TX\beta\right) = (X^TX)^{-1}\left(\sqrt{n}X^TE\right) \\
+  &(X^TX) \overset{p}{\longrightarrow} E[xx^T] \textrm{ (LLN) } \Longrightarrow (X^TX)^{-1} \overset{p}{\longrightarrow} E[xx^T]^{-1} \textrm{ (continuous mapping theorem)}\\
+  &\sqrt{n}(X^TE - 0) = \sqrt{n}(X^TE - E[E[x\epsilon\mid x]]) = \sqrt{n}(X^TE - E[x\epsilon]) \overset{d}{\longrightarrow} N(0, Var(x\epsilon))\\
+  &\overset{d}{\longrightarrow} N(0, E[xx^T]^{-1}Var(x\epsilon)E[xx^T]^{-1})\\
+  &\overset{d}{\longrightarrow} N(0, E[xx^T]^{-1}E[x\epsilon^2x^T]E[xx^T]^{-1}) \textrm{ for } Var(x\epsilon) = E[(x\epsilon)(x\epsilon)^T] = E[x\epsilon^2x^T]
+\end{align*}
+
+Depending on correct specification and homoskedasticity, the asymptotic variance can be simplified
+\begin{align*}
+  Var(x\epsilon) =& Var(E[x\epsilon \mid x]) + E[Var(x\epsilon \mid x)] = Var(xE[\epsilon \mid x]) + E[xVar(\epsilon\mid x)x^T]\\
+  =& 0 + E[xVar(\epsilon\mid x)x^T] \textrm{ under correct specification}\\
+  =& Var(xE[\epsilon \mid x]) + \sigma^2E[xx^T] \textrm{ under homoskedasticity}\\
+  =& \sigma^2E[xx^T] \textrm{ under both, leading to } \sqrt{n}(\hat{\beta} - \beta) \overset{d}{\longrightarrow} N(0, \sigma^2E[xx^T]^{-1})
+\end{align*}
+
+\subsection{Efficiency of linear regression}
+\subsubsection{Gauss-Markov Theorem}
+\textbf{Theorem:} Under assumptions below, OLS is Best Linear Unbiased Estimator (BLUE), where best is defined with respect to $Var(\hat{\beta})$\\
+\textbf{Assumptions:}
+\begin{itemize}
+  \item Correct specification (alternative: no omitted variable bias): $E[\epsilon_i \mid x_i] = 0$
+  \item Homoskedasticity: $Var(\epsilon_i \mid x_i) = \sigma^2$
+  \item No colinearity of regressors: $X^TX$ invertible when $x_i \in \mathbb{R}^{k>1}$, or $Var(x) > 0$ when $x_i \in \mathbb{R}$
+\end{itemize}
+\textbf{Proof sketch:}
+\begin{itemize}
+  \item Want to show: $Var(\hat{\beta}) \preceq Var(\tilde{\beta}) \forall \tilde{\beta}$ linear and unbiased
+  \item Suffice to show: $Var(\tilde{\beta}) - Var(\hat{\beta}) \preceq 0 \Longrightarrow  Var(\tilde{\beta}) - Var(\hat{\beta}) \in S_{++}$
+  \item Note $\tilde{\beta} = Wy \Longrightarrow WX = I$ since $E[\tilde{\beta}\mid X] = \beta \Longrightarrow WX\beta = \beta$
+  \item Note $\tilde{\beta} = \hat{\beta} + W(I - X(X^TX)^{-1}X^T)y$
+  \item Note $Cov(\hat{\beta}, W(I - X(X^TX)^{-1}X^T)y) = 0$
+  \item Combining these observations we see $\tilde{\beta} = \hat{\beta} + S$ for $S \in S_{++}$
+\end{itemize}
+
+\subsection{Incorrect specification}
+Even under misspecification, we can write 
+\begin{align*}
+  E[x\epsilon] &= 0 \textrm{, since } E[x\epsilon] = E[x(y - x^T\beta)] \textrm{ and we define beta as} \beta &:= argmin_b E[(y - x^Tb)^2] \textrm{ where the first order condition is} -2E[x(y-x^T\beta)] = 0
+\end{align*}
+And we can use linear prediction as an approximation for the true underlying model. Note here that unlike for the correctly specified OLS, the estimand depends on the distribution of $x$, not just $E[y \mid x]$
+\begin{align*}
+  E[y \mid x] \neq x^T\beta \textrm{, but instead }\\
+  \beta = argmin_bE[(E[y\mid x] - x^Tb)^2] = E[xx^T]^{-1}E[xy]
+\end{align*}
+
+\subsubsection{Omitted variable bias}
+Suppose 
+\begin{align*}
+  \textrm{True model: } y &= \beta_1^* + x\beta_2^* + u\beta_3^* + \epsilon, \textrm{ where } E[\epsilon \mid x, u] = 0\\
+  \textrm{Regression: } y &= \beta_1 + x\beta_2\\
+  \textrm{Then } \hat{\beta_2} \textrm{ estimates } \beta_2^* &= \frac{Cov(y, x)}{Var(x)} = \frac{Cov(\beta_1^* + x\beta_2^* + u\beta_3^* + \epsilon, x)}{Var(x)} = \frac{Cov(\beta_1^*, x) + Cov(x\beta_2^*,x) + Cov(u\beta_3^*, x) + Cov(\epsilon, x)}{Var(x)}\\
+  &= \beta_2^* + \beta_3^* \frac{Cov(u,x)}{Var(x)}
+\end{align*}
+
+
+\section{Maximum likelihood estimation (MLE)}
+Estimation technique where we find the parameter that maximizes the likelihood of our data: 
+\begin{align*}
+  \hat{\theta} = argmax_\theta f_\theta(z_1, \dots, z_n) = \prod_{i=1}^n f_\theta(z_i) \textrm{ for $z_i$ i.i.d.}
+\end{align*} 
+Oftentimes, we maximize the log-likelihood instead because it i) simplifies calculations, i) provides numerical stability, and iii) has ties to the information inequality ($\theta_0 = argmax_\theta E[\log f_\theta(x)])$
+
+\subsection{Conditional maximum likelihood}
+When we focus on conditional maximum likelihood, we don't always need to estimate all parameters. In fact, the log helps us drop extraneous ones.
+\begin{align*}
+  \textrm{Given: }& z=(y,x), \;\; y\mid x \sim f_\beta(y\mid x), \;\; x \sim g_\phi(x) \Longrightarrow f_\theta(x) = f\beta(y\mid x) g_\phi(x)\\
+  \log L(\theta) &= \sum_{i=1}^n \log(f_\theta(z_i)) = \sum_{i=1}^n \log(f_\beta(y_i\mid x_i)) + \log(g_\phi(x_))\\
+  \frac{\partial}{\partial \beta} \log L(\theta) &= \sum_{i=1}^n \frac{\partial}{\partial \beta}\log(f_\theta(z_i)) + 0
+\end{align*}
+
+\subsection{Generalized linear models}
+Linear prediction ($\nu = x^T\beta$) with a link function ($E[y\mid x] = g^{-1}(\nu) = \mu$). Common family is the linear exponential family of densities ($f_\mu(y) = \exp{a(\mu) + b(y) + c(\mu)y}$)
+
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{llcc}
+       \textbf{Distribution} & \textbf{Linear exponential density} & \textbf{$E[y]$} & \textbf{$Var(y)$}\\
+       \midrule
+      Normal ($\sigma^2$ known) & $\exp(\frac{-u^2}{2\sigma^2} - \frac{1}{2}\ln(2\pi\sigma^2) - \frac{y^2}{2\sigma^2} + \frac{\mu}{\sigma^2}y)$ & $\mu=\mu$ & $\sigma^2$\\
+      Bernoulli & $\exp(\ln(1-p) + \ln(\frac{p}{1-p})y)$ & $\mu=p$ & $\mu(1-\mu)$\\
+      Exponential & $\exp(\ln(\lambda) - \lambda y)$ & $\mu=\frac{1}{\lambda}$ & $\mu^2$\\
+      Poisson & $\exp(-\lambda - \ln(y!) + y\ln\lambda)$ & $\mu=\lambda$ & $\mu$\\
+      \bottomrule
+  \end{tabular}
+  \end{center}
+\end{table}
+
+\subsection{Extremum estimators}
+Extremum estimators (also called M-estimators) solve $\hat{\theta} = argmax_\theta \hat{Q}_n(\theta)$. Under regularity conditions (including uniform convergence of $\hat{Q}_n(\theta)$ to $Q_0(\theta)$), we have that $\hat{\theta} \overset{p}{\longleftarrow} \theta_0$ (consistency). \\\\
+Clearly, the MLE is an extremum estimator: $\frac{1}{n}\sum_{i=1}^n\log(f_\theta(z_i)) = \hat{Q}_n(\theta) \longrightarrow Q_0(\theta) = E_{\theta_0}[\log(f_\theta(z))]$ with $\theta_0 = argmax Q_0(\theta)$. Hence, MLE is consistent
+
+\subsection{Asymptotic normality}
+We say that $\hat{\theta}$ is asymptotically linear with influence function $\psi(z)$ if 
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta_0) &= \frac{1}{\sqrt{n}}\sum_i\psi(z_i) + o_P(1) \textrm{ with } E[\psi(z)] = 0 \textrm{ and finite variance}\\
+  \sqrt{n}(\hat{\theta} - \theta_0) &\overset{d}{\longrightarrow} N(0, E[\psi(z)\psi(z)^T]) \textrm{ by CLT}
+\end{align*} 
+Consider the FOC of the MLE
+\begin{align*}
+  \sum_i s_{\hat{\theta}}(z_i) =& 0 \textrm{ where } s_\theta = \partial/\partial\theta \log f_\theta(z)\\
+  &s_{\hat{\theta}}(z_i) \approxeq s_{\theta_0}(z_i) + \partial/\partial\theta s_{\theta_0}(z_i)(\hat{\theta} - \theta_0) \\
+  &s_{\hat{\theta}}(z_i) = s_{\theta_0}(z_i) + \partial/\partial\theta s_{\overline{\theta}}(z_i)(\hat{\theta} - \theta_0) \textrm{ by mean-value theorem for } \norm{\overline{\theta} - \theta_0}{x} \leq \norm{\hat{\theta} - \theta_0}{x}\\
+  0 &= \sum_i s_{\hat{\theta}}(z_i) = \sum_i s_{\theta_0}(z_i) + \sum_i \partial/\partial\theta s_{\overline{\theta}}(z_i)(\hat{\theta} - \theta_0)\\
+  \sqrt{n}(\hat{\theta} - \theta_0) &= \left[-\frac{1}{n}\sum_i \partial/\partial\theta s_{\overline{\theta}}(z_i)\right]^{-1} \frac{1}{\sqrt{n}}\sum_i s_{\theta_0}(z_i) \textrm{ with }\\
+  & \left[-\frac{1}{n}\sum_i \partial/\partial\theta s_{\overline{\theta}}(z_i)\right]^{-1} \overset{p}{\longrightarrow} E\left[\frac{\partial s_{\theta_0}(z)}{\partial\theta}\right]^{-1}, \;\; \frac{1}{\sqrt{n}}\sum_i s_{\theta_0}(z_i) \overset{d}{\longrightarrow} N(0, Var(s_{\theta_0}(z)))\\
+  \textrm{so } \sqrt{n}(\hat{\theta} - \theta_0) &\overset{d}{\longrightarrow} N(0, H^{-1}JH^{-1}) \textrm{ where } H = E\left[\frac{\partial s_{\theta_0}(z)}{\partial\theta}\right] \textrm{ and } J = Var(s_{\theta_0}(z)) = E[s_{\theta_0}(z)z_{\theta_0}(z)^T]
+\end{align*}
+When correctly specified and under regularity conditions, the Information Matrix Equality ($H = -J$) applies and this asymptotic distribution simplifies to 
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta_0) \overset{d}{\longrightarrow} N(0, J^{-1})
+\end{align*}
+
+\subsection{Cramer-Rao lower bound}
+Under some regularity conditions, any unbiased estimator $\hat{\theta}$ of $\theta$ has variance that is no smaller than 
+\begin{align*}
+  Var\left(\frac{\partial \log f_{\theta_0}(z)}{\partial \theta_0}\right)^{-1} &= -E\left[\frac{\partial^2 \log f_{\theta_0}(z)}{\partial \theta_0 \partial \theta_0^T}\right] \textrm{ (by the information inequality)}\\
+  &= J^{-1} \textrm{ (as defined above)}
+\end{align*}
+
+\subsection{Misspecification and QMLE}
+The QMLE estimates
+\begin{align*}
+  \theta_0^* = \max_\theta E_{f_0}[\log f_\theta(z)]
+\end{align*}  
+For which the density $f_{\theta_0^*}(\cdot)$ (in our pre-specified family) is the best approximation to the true density $f_0(\cdot)$, in the sense of minimizing K—L Divergence.
+\begin{align*}
+  D(f_\theta \mid \mid f_0) = E_{f_0}[\log(f_0(z)/f_\theta(z))] = E_{f_0}[\log(f_0(z)] - E_{f_0}[/f_\theta(z))]
+\end{align*}
+And when the likelihood is in fact correctly specified, $f_0(z) = f_{\theta_0}(z)$ then $D(f_\theta \mid \mid f_0) = 0$
+
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{lllll}
+       \textbf{Method} & \textbf{True dist.} & \textbf{Estimated dist.} & \textbf{Estimate} & \textbf{K-L Divergence}\\
+       \midrule
+      MLE & $z \sim f_{\theta_0}$ & $f_{\theta_0}$ & $\theta_0 = argmax_\theta E_{f_{\theta_0}}[\log f_\theta(z)]$ & $D(f_{\theta_0} \mid \mid f_{\theta_0}) = 0$\\
+      QMLE & $z \sim f_0$ & $f_{\theta_0}$ & $\theta_0^* = argmax_\theta E_{f_0}[\log f_\theta(z)]$ & $D(f_0 \mid\mid f_{\theta_0^*}) > 0$\\
+      \bottomrule
+  \end{tabular}
+  \end{center}
+\end{table}
+Note that the information inequality does not hold under QMLE so we have $\sqrt{n}(\hat{\theta} - \theta_0) \overset{d}{\longrightarrow} N(0, H^{-1}JH^{-1})$
+
+\subsection{Tests}
+Under our null hypothesis we suppose that some function of our parameters equals zero, $H_0: a(\theta_0) = 0$ where $a(\theta): \mathbb{R}^k \rightarrow \mathbb{R}^r$. 
+
+\subsubsection{Test overview}
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{lcc}
+       \textbf{Test} & \textbf{model under null, $\tilde{\theta}$} & \textbf{model under alternative, $\hat{\theta}$}\\
+       \midrule
+      Wald & False & True\\
+      Lagrange Multiplier & True & False\\
+      Likelihood Ratio & True & True\\
+      \bottomrule
+  \end{tabular}
+  \end{center}
+\end{table}
+\begin{itemize}
+  \item The three tests are equivalent in large samples
+  \item Wald has a tendency to over-reject in finite samples (size distortion)
+  \item LM has low finite-sample power against some alternative
+  \item Wald and LM are not invariant to reparameterizations; for example, the  parameterization $H_0:\;\; 1 /(\beta_L + \beta_K) - 1 = 0$ could produce a different result in finite samples than $H_0:\;\; \beta_L + \beta_K - 1 = 0$, even though it's the same hypothesis
+\end{itemize}
+
+
+\subsubsection{Wald test}
+For $\hat{\theta}$ asymptotically normal, and given null, $H_0: a(\theta_0) = 0$
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta_0) &\overset{d}{\longrightarrow} N(0, V) \Longrightarrow \sqrt{n}(a(\hat{\theta}) - a(\theta_0)) \overset{d}{\longrightarrow} N\left(0, \frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right) \textrm{ by the delta method}\\
+  H_0:\;\; & \sqrt{n} a(\hat{\theta}) \overset{d}{\longrightarrow} N\left(0, \frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right)\\
+  H_0:\;\; & \sqrt{n} \left(\frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right)^{-\frac{1}{2}}a(\hat{\theta}) \overset{d}{\longrightarrow} N(0, I)\\
+  H_0:\;\; & n \left(\left(\frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right)^{-\frac{1}{2}}a(\hat{\theta})\right)^T \left(\left(\frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right)^{-\frac{1}{2}}a(\hat{\theta})\right)\overset{d}{\longrightarrow} \chi_r^2 \overset{d}{=} \sum_{j=1}^r Z_j^2\\
+  H_0:\;\; & n * a(\hat{\theta})^T \left(\frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right)^{-1}a(\hat{\theta}) \overset{d}{\longrightarrow} \chi_r^2 \\
+\end{align*}
+Rejecting the null hypothesis when
+\begin{align*}
+  W = n * a(\hat{\theta})^T \left(\frac{\partial a(\theta_0)}{\partial \theta}V\frac{\partial a(\theta_0)}{\partial \theta}^T\right)^{-1}a(\hat{\theta}) > Q_{1-\alpha(\chi_r^2)}
+\end{align*}
+We must assume that $\frac{\partial a(\theta_0)}{\partial \theta}$ has full row rank, $r$. I.e., the number of hypothesis, $r$ does not exceed the number of parameters, $k$, and the null hypothesis are not redundant or mutually inconsistent.
+
+\subsubsection{Likelihood ratio test}
+Here we look at the difference in log likelihoods between an unrestricted estimator and a restricted estimator follows a Chi squared distribution
+\begin{align*}
+  \hat{\theta} &= argmax_{\theta \in \Theta} \hat{Q_n}(\theta) \textrm{ the unrestricted estimator}\\
+  \tilde{\theta} &= argmax_{\theta \in \Theta} \hat{Q_n}(\theta) \; s.t. \; a(\theta) = 0 \textrm{ the restricted estimator}\\
+  H_0: \;\; & 2(\log L_n(\hat{\theta}) - \log L_n(\tilde{\theta})) \overset{d}{\longrightarrow} \chi_r^2
+\end{align*}
+Rejecting the null hypothesis when
+\begin{align*}
+  LR = 2(\log L_n(\hat{\theta}) - \log L_n(\tilde{\theta})) > Q_{1-\alpha(\chi_r^2)}
+\end{align*}
+
+
+\subsubsection{Lagrange multiplier (score) test}
+The motivation of this test is to see what the gradient of the log likelihood is under the restricted parameters. Under the null hypothesis, we assume this gradient is close to zero (the maximizer). For the same restricted and unrestricted estimators defined above
+
+\begin{align*}
+  H_0: \;\; & \frac{1}{n} \frac{\partial \log L_n(\tilde{\theta})}{\partial \theta}^T \hat{J}^{-1} \frac{\partial \log L_n(\tilde{\theta})}{\partial \theta} \overset{d}{\longrightarrow} \chi_r^2 \textrm{ where $\hat{J}$ is an efficient estimator for the Fischer Information Matrix}
+\end{align*}
+Rejecting the null hypothesis when
+\begin{align*}
+  LM = \frac{1}{n} \frac{\partial \log L_n(\tilde{\theta})}{\partial \theta}^T \hat{J}^{-1} \frac{\partial \log L_n(\tilde{\theta})}{\partial \theta} > Q_{1-\alpha(\chi_r^2)}
+\end{align*}
+
+
+
+\section{Generalized method of moments (GMM)}
+The generalized methods of moments estimand is a vector function, $g(z, \theta)$, such that the moment, $E[g(z, \theta)]$ identifies $\theta_0$:
+\begin{align*}
+  E[g(z, \theta)] = 0 \iff \theta = \theta_0 \textrm{, equivalently we have }\\
+  \theta_0 = argmin_\theta E[g(z, \theta)]^T WE[g(z, \theta)] \textrm{ for any } W \in S_{++}
+\end{align*}
+By analogy principle, we get the generalized method of moments estimator
+\begin{align*}
+  \hat{\theta} = argmin_\theta \left(\frac{1}{n}\sum_{i=1}^n g(z_i, \theta)\right)^T \hat{W} \left(\frac{1}{n}\sum_{i=1}^n g(z_i, \theta)\right) \textrm{ for any } W \in S_{++}
+\end{align*}
+Note, this is an extremum estimator, hence we get with it all the properties of consistency and asymptotic distribution!
+
+\begin{itemize}
+  \item If $r < k$, the model is not identified (no unique solution)
+  \item If $r = k$, the model is just identified and the choice of $\hat{W}$ is inconsequential
+  \item If $r > k$, the model is overidentified. In this case, the choice of $\hat{W}$ affects the estimator
+\end{itemize}
+
+\subsection{Asymptotic normality}
+Using Taylor expansions and the mean value theorem we can write the scaled difference between the estimator and the truth with respect to an influence function:
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta) &= -(\hat{G}^T\hat{W}\overline{G})^{-1} \hat{G}^T\hat{W}\frac{1}{\sqrt{n}}\sum_{i=1}^ng(z_i, \theta_0), \textrm{ where } \hat{G} = \frac{1}{n}\sum_{i=1}^n \frac{\partial g(z_i, \hat{\theta})}{\partial \theta}^T \;\;, \overline{G} = \frac{1}{n}\sum_{i=1}^n \frac{\partial g(z_i, \overline{\theta})}{\partial \theta}^T
+\end{align*}
+Since we can write it in this way, when we also assume the conditions in the consistency theorem, we have asymptotic normality
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta) &\overset{d}{\longrightarrow} N(0, (G^TWG)^{-1}G^TW\Omega WG(G^TWG)^{-1}), \textrm{ by Slutsky's Lemma where } \Omega = E[g(z, \theta_0)g(z, \theta_0)^T]
+\end{align*}
+Note when GMM is just-identified
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta) &\overset{d}{\longrightarrow} N(0, G^{-1}W^{-1}G^{-T}G^TW\Omega WGG^{-1}W^{-1}G^{-T}) \textrm{, since we can now distribute the inverse}\\
+  \sqrt{n}(\hat{\theta} - \theta) &\overset{d}{\longrightarrow} N(0, G^{-1}\Omega G^{-T}) 
+\end{align*}
+Note when GMM is over-identified, we can minimize the variance of our estimator by choosing $W = c\Omega^{-1}$
+\begin{align*}
+  \sqrt{n}(\hat{\theta} - \theta) &\overset{d}{\longrightarrow} N(0, (G^T(c\Omega^{-1})G)^{-1}G^T(c\Omega^{-1})\Omega (c\Omega^{-1})G(G^T(c\Omega^{-1})G)^{-1}) = N(0, (G^T\Omega^{-1}G)^{-1})
+\end{align*}
+
+
+\subsection{OLS as a special case}
+OLS is a special case of GMM. With assumptions $y = x^T\beta + \epsilon$, $E[\epsilon\mid x] = 0$, we have 
+\begin{align*}
+  E[g(z, \theta)] = 0 \iff E[x\epsilon] = 0 \iff E[x(y - x^T\beta)] = 0  
+\end{align*} 
+Which is simply the first order condition that we solve in OLS! We note that MLE is a special case of GMM too.
+
+\subsection{MLE as a special case}
+MLE is a special case of GMM. With $g(z, \theta) = s_\theta(z) = \partial/\partial\theta \log f_\theta(z)$ we note that 
+\begin{align*}
+  \hat{\theta}_{MLE} = argmin_\theta E[\log f_\theta(z)] \Longrightarrow \partial/\partial\theta \log f_\theta(z) = s_\theta(z) = 0
+\end{align*}
+
+\subsection{Example set-up}
+Set up for simple heteroskedastic linear regression
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.4\textwidth]{"gmm_hetero.png"}
+  \caption{Example of simple heteroskedastic linear regression}
+\end{figure}
+
+
+
+% =====================================
+%     INCONSISTENCY IN OLS
+% =====================================
+\section{Inconsistency in OLS}
+OLS consistency: 
+\begin{itemize}
+  \item $\epsilon_i \sim N(0, \sigma^2)$: Normal errors (or mean zero, same variance)
+  \item $\epsilon_i \perp x_i$: Fully independent errors
+  \item $E[\epsilon_i \mid x_i] = 0$: Conditional mean independent errors
+  \item $E[\epsilon_i x_i] = 0$: Uncorrelated errors
+\end{itemize}
+
+OLS is always consistent for something, often times called a pseudo-value. The question is whether that something is what you want in the model. How to assess consistency:
+
+\begin{enumerate}
+  \item Propose the estimation procedure: what we do with the data.
+  \item Make assumptions about the true data generating process. This is from our theory and NOT from the data.
+  \item Decide on the meaning of a parameter in the context of the assumed true data generating process
+  \item Ask if the estimator is consistent for the parameter under the assumed true data generating process  
+\end{enumerate}
+
+\subsection{Omitted variable bias}
+Omitted variable bias biases our estimator (no longer consistent for true estimator). For
+
+\begin{itemize}
+  \item True model: $y = \beta_0 + \beta_iX + \beta_oU + \epsilon$
+  \item Estimation: $y = \beta_0 + \beta_iX$
+\end{itemize}
+We have
+\begin{align*}
+  \hat{\beta_i} \longrightarrow& Cov(X, y)Var(X)^{-1} = Cov(X, \beta_0 + \beta_iX + \beta_oU + \epsilon)Var(X)^{-1}\\
+  &= \beta_i + \beta_oCov(X, U)Var(X)^{-1}
+\end{align*}
+In summary, use long regression if and only if $\beta_o \neq 0$. See slide 115+ for details.
+\begin{itemize}
+  \item When $Cov(X, U) \neq 0$, only the long regression is consistent
+  \item When $Cov(X, U) = 0$, the long regression is more efficient. Intuitively, accounting for x reduces the error variance.
+  \item When $\beta_o = 0$, but $Cov(X, U) \neq 0$, the short regression is more efficient. Intuitively, a parsimonious model with less parameters is more precisely estimated.
+\end{itemize}
+Nonlinearity is a form of omitted variable bias: 
+\begin{itemize}
+  \item True model: $y = \beta_0 x^2 + 0 x$
+  \item Estimation: $y = \beta x$
+\end{itemize}
+
+
+\subsection{Measurement error bias}
+See p123 of lecture notes. Instead of measuring $x$, we can only measure $w = x + u$ where $u \perp x, e$. A similar model is a \textit{proxy} model where we assume $x = w + v$ with $v \perp w, e$. Under proxy assumptions, OLS is consistent (but people mostly don't make this assumption)
+
+\subsection{Sample selection}
+Motivated by wanting to study weekly wage. If a person doesn't work, then we can't calucate this estimate (since we can't divide by zero). f we want to interpret the coefficient on education as the return to education for the average person in the population (regardless of whether they are currently working or not), then such a conditional regression might suffer from sample selection bias. To account for such bias, we need to jointly model the wage equation and the labor force participation decision.
+
+This requires a two-stage approach, or a more elaborate likelihood function that also includes the propensity to work. 
+
+Problem set-up:
+\begin{align*}
+  \ln W &= X_w'\beta_w + \epsilon_w \textrm{ log weekly wage}\\
+  U &= X_u'\gamma_u +\epsilon_u = X_w'\gamma_w + Z'\gamma_z + \epsilon_u \textrm{ utility from working}\\
+  P(U > 0 \mid X_u) &= P(\epsilon_u > X_u'\gamma_u \mid X_u) = 1 - \Phi(-X_u'\gamma_u)\\
+  (\epsilon_w, \epsilon_u) &\sim N(0, \Sigma_\epsilon)
+\end{align*}
+See p133 of class notes for walkthrough of the Heckman two-stage least squares and the Mills Ratio.
+\begin{itemize}
+  \item Typically the second stage $\hat{\beta}_w$ and $\hat{\theta}$ will be consistent (as if the true $\alpha$ is known) as long as the first stage $\hat{\alpha}$ is consistent. Here $\theta = \sigma_{uv}/\sigma_u$
+  \item Furthermore, the second stage $\hat{\beta}_w$ and $\hat{\theta}$ will be $\sqrt{n}$ consistent and asymptotically normal (as if the true $\alpha$ is known) as long as the first stage $\hat{\alpha}$ is consistent and asymptotically normal
+  \item However, both nonrobust AND robust standard errors are in general incorrect
+  \begin{itemize}
+    \item Solution 1: derive an analytic correction formula (MLE) 
+    \item Solution 2: Use bootstrap; valid for i.i.d. sample.
+    \item Solution 3: rely on software
+  \end{itemize}
+\end{itemize}
+See p141 of class notes for walkthrough of the MLE approach. This considers two cases. Case 1, not working: $P(\textrm{not work}\mid X_u) = \Phi(-X_u'\gamma_u)$. Case 2, log wage and working: $P(\ln W, \textrm{work} | X_u) = f(\ln W \mid X_u)P(\textrm{work}\mid X_u)$
+
+Comparison between two-step and MLE:
+\begin{itemize}
+  \item Two step estimators are numerically easier to implement, and are closely
+  related to identification arguments
+  \item Statistical inference requires additional work to account for the sampling noise from the first stage, which MLE achieves
+  \item Two step estimators tend to be less statistically efficient than maximum likelihood, unless additional steps are designed to improve efficiency.
+\end{itemize}
+
+\subsection{Instrumental variables}
+See p150 of class notes for instrumental variables to address simultenaity (modeling supply and demand on prices)
+
+For $y_i = x_i'\beta + \epsilon_i$
+
+\begin{itemize}
+  \item OLS is inconsistent when $Cov(x_i, \epsilon_i) \neq 0$, meaning that at least one element of $x_i$ is correlated with $\epsilon_i$
+  \item A vector of instruments $z_i$ is available so that $Cov(z_i, \epsilon_i) = E[z_i\epsilon_i] = 0$
+  \item $z_i$ includes other predictors excluded from $x_i$, as well as other predictors in $x_i$ (i.e., $z_i$ and $x_i$ share common components $w_i$)
+  \item Require $dim(z_i) \geq dim(x_i)$
+  \item A good instrument $z_i$ is one that is independent of $\epsilon_i$ and correlated with $x_i$. Larger covariance $Cov(z_i, z_i)$ leads to smaller variance $Var(\hat{\beta}_{IV})$.
+\end{itemize}
+
+When $dim(z_i) = dim(x_i)$, $E[z_i\epsilon_i] = E[z_i(y_i - x_i'\beta)] = 0 \Longrightarrow E[z_iy_i] = E[z_ix_i']\beta \Longrightarrow \beta = E[z_ix_i']^{-1}E[z_iy_i]$, and
+
+\begin{align*}
+  \sqrt{n}(\hat{\beta}_{IV} - \beta) & = \left(\frac{1}{n}\sum_i^nz_ix_i'\right)^{-1}\frac{1}{n}\sum_i^nz_i\epsilon_i\\
+  &\overset{d}{\longrightarrow} N(0, E[z_ix_i']^{-1} E[z_iz_i\epsilon_i^2] E[z_ix_i']^{-1})
+\end{align*}
+
+When $dim(z_i) > dim(x_i)$, we still expect in the populationthat $E[z_i(y_i - x_i'\beta)] = E[z_i\epsilon_i] = 0$, so we can choose to minimize $\frac{1}{n}\sum_i^nz_i(y_i - x_i'\hat{\beta})$
+
+\begin{align*}
+  \hat{\beta} &= argmin_b \left(\frac{1}{n}\sum_i^nz_i(y_i - x_i'b)\right)^T W_n \left(\frac{1}{n}\sum_i^nz_i(y_i - x_i'b)\right)
+  \\
+  \hat{\beta}_{2SLS} &= argmin_b \left(\frac{1}{n}\sum_i^nz_i(y_i - x_i'b)\right)^T \left(\frac{1}{n}\sum_i^nz_iz_i'\right)^{-1} \left(\frac{1}{n}\sum_i^nz_i(y_i - x_i'b)\right)
+\end{align*}
+With robust asymptotic distribution
+\begin{align*}
+  \sqrt{n}(\hat{\beta}_{2SLS} - \beta) &\overset{d}{\longrightarrow} N(0, (Exz'(Ezz')^{-1}Ezx')^{-1} Exz'(Ezz')^{-1}E\epsilon^2zz'(Ezz')^{-1}Ezx' (Exz'(Ezz')^{-1}Ezx')^{-1})\\
+  &\overset{d}{\longrightarrow} N(0, (GWG')^{-1} GW\Omega WG' (GWG')^{-1})\\
+  \textrm{where }& G=Exz' \textrm{ is Jacobian of moments wrt parameters}\\
+  & W=(Ezz')^{-1} \textrm{ is weight matrix}\\
+  & \Omega = E\epsilon^2zz' \textrm{ is var matrix of moments}
+\end{align*}
+See p174 of class notes for 3SLS or "2-step GMM"
+\begin{itemize}
+  \item If the linear model is correct, then calculating standard errors with 2SLS and 3SLS should be similar
+  \item Large difference raises concern of model misspecification, which can be tested statistically. If the linear model is correct, there is no first order asymptotic benefit in iterating; If the linear model is misspecified, iteration might not converge and exposes the possibility of misspecification.
+\end{itemize}
+
+\subsubsection{J-test}
+When using “optimal weighting matrix” $W = \Omega - 1$ is that 
+\begin{align*}
+  \left(\frac{1}{n}\sum_i^nz_i(y_i - x_i'\beta)\right)^T W_n \left(\frac{1}{n}\sum_i^nz_i(y_i - x_i'\beta)\right) ~\sim \chi^2_d\\
+  \textrm{Under $H_0$: all instruments are correct} & \textrm{ where $d =$ [n. instruments] - [n. regressors]}
+\end{align*}
+
+\begin{itemize}
+  \item This forms the basis of a J-test, or over-identification test. It is used to test the joint validity of all the instruments.
+  \item he estimator is more efficient if the J-test does not reject.
+\end{itemize}
+
+
+
+
+% =====================================
+%     NONLINEAR MODELS
+% =====================================
+\section{Nonlinear models}
+Typical steps in analyzing a nonlinear model:
+\begin{itemize}
+  \item Show estimator consistency
+  \item Derive estimator asymptotic distribution
+  \item Provide a consistent estimate of the asymptotic distribution
+  \item Conduct Monte Carlo simulation to evaluate the estimator finite sample properties
+  \item Use the Delta method to conduct inference on the function(al) of the parameter.
+\end{itemize}
+
+\subsection{Model based and robust standard errors in nonlinear models}
+There are two general principle for deriving asymptotic variance:
+\begin{enumerate}
+  \item Robust sandwich variance that does not take into account
+  \item Model based asymptotic variance that takes into account correct model specification.
+\end{enumerate}
+
+The difference in robust versus model based std errors lies in how to compute $E[]$: robust standard errors replace $E[] \leftarrow \frac{1}{n}\sum_{i=1}^n ()$. Model based standard errors calculate $E_{\hat{\theta}}$ by integrating $f(y \mid x, \hat{\theta})$ first.
+
+\textbf{Robust:} The sandwich form $\hat{H}^{-1}\Omega\hat{H}^{-1}$ for the asymptotic variance of $\sqrt{n}(\hat{\theta} - \theta_*)$ is the general form of the Huber-White robust variance estimate. It is robust under general misspecification that essentially only requires the existence of $\theta_*$
+
+\textbf{Model-based:} If we believe that the conditional model is correctly specified and $\theta_0 = \theta_*$. They are not robust against model misspecification.
+
+
+\subsection{The Delta Method for functions of parameters}
+\subsubsection{Analytic delta method}
+For $\sqrt{n}(\hat{\theta} - \theta_0) \longrightarrow N(0, \Sigma)$
+\begin{align*}
+  \sqrt{n}(\rho(\hat{\theta}) - \rho(\theta_0)) = \frac{\partial\rho(\theta)'}{\partial \theta_0}N(0, \Sigma) = N\left(0, \frac{\partial\rho(\theta)'}{\partial \theta_0} \Sigma \frac{\partial\rho(\theta)}{\partial \theta_0}\right)
+\end{align*}
+See p102 of class notes for analytic derivation of asymptotic distribution of partial effects for probit and logit models.
+
+\subsubsection{Asymptotic delta method}
+Analytic delta method can be costly to compute or not possible. One alternative is to bootstrap, but that requires recomputing $\hat{\theta}$ repeatedly, which can be expensive. The asymptotic delta method is an alternative:
+
+\begin{enumerate}
+  \item Draw $\theta_i \sim N(0, \frac{1}{n}\hat{\Sigma})$ for $i \in \{1, \dots, r\}$
+  \item Recompute $\rho(\theta_i)$
+  \item Use the resulting histogram to form confidence intervals (by calculating percentiles)
+\end{enumerate}
+
+
+
+
+% =====================================
+%     BINARY CHOICE MODELS
+% =====================================
+\section{Binary choice models}
+\begin{itemize}
+  \item For $y \in \{0, 1\}$, $E[y \mid x] = 1 * p(y=1 \mid x) + 0 * p(y=0\mid x) = p(y=1 \mid x)$
+  \item Since $x'\beta$ isn't bounded between 0 and 1, it's not the best model to use to model probability. but for $F: \mathbb{R} \rightarrow [0,1]$, we can model $p(y=1\mid x) = F(x'\beta)$. CDFs can make great link functions
+\end{itemize}
+
+\subsection{Deviance}
+Likelihood is related to the probability of your data given parameters. You want to make it as big as possible. Deviance refers to a notion of distance between data and the fit of the model. You want to make it as small as possible.
+\begin{align*}
+  \textrm{Deviance} &= -2\log[\textrm{likelihood}] + C \textrm{ for logistic regression}\\
+  \textrm{Deviance} &= \sum_i^n \hat{e}^2
+\end{align*}
+
+\subsection{Partial effects}
+Unlike the linear OLS model, now the partial effect is a function of $x$.
+\begin{align*}
+  \frac{\partial E[y\mid x]}{\partial x_j} = \frac{\partial F(x'\beta_0)}{\partial x_j} = f(x'\beta_0)\beta_j
+\end{align*}
+\begin{itemize}
+  \item Average partial effects: $\frac{1}{n}\sum_i^n\frac{\partial}{\partial x_j}F(x_i'\hat{\beta}) = \frac{1}{n}\sum_i^nf(x_i'\hat{\beta})$
+  \item Partial effects at the mean: $\frac{\partial E[y \mid \overline{x}]}{\partial x_j} = \frac{\partial F(\overline{x}'\hat{\beta})}{\partial x_j} = f(\overline{x}'\hat{\beta})$
+\end{itemize}
+
+
+
+
+% =====================================
+%     TIME SERIES
+% =====================================
+\section{Time series}
+
+\begin{itemize}
+  \item Transformation methods include detrending, deseasonizing, differencing, log-differencing (approximating growth rate), etc.
+  \item Identical and independently distributed (iid) in a crossectional setting maps to stationary and weekly dependent in a timeseries setting
+  \item Week stationarity: mean and covariance are finite and don't depend on $t$. Strong stationarity requires the distribution of any series isn't dependent on $t$
+  \item Weekly dependent: observations far apart are virtually independent
+\end{itemize}
+
+\subsection{CLT under stationarity}
+\begin{align*}
+  Var(S_n) &= \frac{1}{n}\left(n \Sigma + \sum_{l=1}^n(n-l)\Gamma(l)\right) = \Sigma + \sum_{l=1}^n\left(1 - \frac{l}{n}\right)(\Gamma(l) + \Gamma^T(l)) = \sum_{l=-n}^n\left(1 - \frac{l}{n}\right)\Gamma(l)\\
+  &\textrm{Where } \Sigma = Eu_tu_t' = \Gamma(0), \;\; \Gamma(l) = Eu_tu_{t-l}, \;\; \Gamma(l) = \Gamma^T(-l)\\
+  Var(S_n) &\longrightarrow \sum_{l=-\infty}^\infty\Gamma(l) := \Omega
+\end{align*}
+
+Estimated by Newey-West Heteroskedasticity and Autocorrelation Consistent (HAC) estimator. Newey-West HAC generalizes Huber-White Heteroscedastic consistent robust standard errors to allow for serial correlation.
+\begin{align*}
+  \hat{\Omega} &:= \sum_{l=-M}^M\left(1 - \frac{\abs{l}}{M + 1}\right) \hat{\Gamma}(l)\\
+  &\textrm{Where } \hat{\Gamma}(l) := \frac{1}{n}\sum_{t=l+1}^nu_tu_{t-l}'
+\end{align*}
+
+\begin{itemize}
+  \item The Newey-West Heteroscedasticity and Autocorrelation-Consistent Covariance Matrix extends the CLT to parameter estimates.
+  \item If the true process is AR(p) with white noise or i.i.d. et, then we only need the conventional nonrobust standard errors.
+  \item If we don't think et is white noise or i.i.d, but only believe that $E[y_t|y_{t-1}, \dots, y_{t-p}] = \alpha_0 + \alpha_1y_{t-1} + \dots + \alpha_py_{t-p}$ then we can use Huber-White HC robust std errors. (assumes correct specification, or "dynamic completeness")
+  \item Without dynamic completeness, need to use Newey-West HAC std errors.
+\end{itemize}
+
+\subsection{Moving average model and autoregressive model}
+Any stationary $y_t$ can be represented as an MA($\infty$) series
+
+\begin{align*}
+  y_t &= \mu + \Sigma_{j=1}^\infty \theta_je_{t-j} \textrm{, where $e_t$ is white noise}\\
+  &= \mu + \Sigma_{j=1}^\infty \theta_jL^je_t \textrm{, where } L^ie_t = e_{t-i}\\
+  &= \mu + \theta(L)e_t \textrm{, where } \theta(L) = \theta_0 + \theta_1L^1 + \dots
+\end{align*}
+
+Under most conditions, $y_t$ can also be represented as an AR($\infty$) seriers
+\begin{align*}
+  y_t &= \mu_a + \Sigma_{j=1}^\infty a_ty_{t-j} + e_t = \mu_a + \Sigma_{j=1}^\infty a_jL^jy_t + e_t \textrm{, where } L^iy_t = y_{t-i}\\
+  &= \mu_a + a(L)y_t + e_t \textrm{, where } \theta(L) = \theta_0 + \theta_1L^1 + \dots
+\end{align*}
+
+These are related through a simple mapping
+\begin{itemize}
+  \item $a(l) = \theta(L)^{-1}$
+  \item $u_a = a(1)\mu$
+  \item Solving for $\theta(l), a(l)$ can be done with recursive formulas. See p224 of lecture notes for inversion approach.
+\end{itemize}
+
+\subsubsection{Moments of MA(q) and MAM(1)}
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{lcc}
+       \textbf{Moment} & \textbf{MA(q)} & \textbf{MA(1)} \\
+       \midrule
+      $E[y_t]$ & $\mu$ & $\mu$ \\
+      $Var(y_t)$ & $\left(\sum_{j=0}^q \theta^2_j \right)\sigma^2$& $(1 + \theta^2)\sigma^2$\\
+      $\gamma(k), k \leq q$ & $\left(\sum_{j=0}^{q-k} \theta_{j+k}\theta_j \right)\sigma^2$& $\theta\sigma^2$ \\
+      $\gamma(k), k > q$ & 0 & 0 \\
+      $\rho(k), k \leq q$ & $\gamma(k)/Var(y_t)$ & $\gamma(k)/Var(y_t)$\\
+      $\rho(k), k > q$ & 0& 0\\
+      \bottomrule
+  \end{tabular}
+  \end{center}
+\end{table}
+
+\subsection{Partial autocorrelation function}
+\begin{itemize}
+  \item Partial autocorrelation function (pacf) is related to but differs from autocorrelation function.
+  \item pacf(k) is defined as coefficient on $y_{t-k}$ of a population regression of $y_t$ on $y_{t-1}, \dots, y_{t-k}$
+  \item Only for k = 1, pacf(1) = acf(1). When k > 1, pacf(1) $\neq$ acf(1)
+  \item ACF and PACF functions are collectively used to differentiate between MA, AR, and ARMA processes.
+  \begin{itemize}
+    \item AR(p): geometric decay in acf(k), complete drop off in pacf(k) after p
+    \item MA(p): complete drop off in acf(k) after p, geometric decay in pacf(k)
+  \end{itemize}
+\end{itemize}
+
+
+
+
+\end{document}

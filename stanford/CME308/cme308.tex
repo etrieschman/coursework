@@ -1,0 +1,243 @@
+\documentclass[9pt]{extarticle}
+\usepackage{extsizes}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{CME308: Stochastic Methods in Engineering}
+\author{Erich Trieschman}
+\date{2022 Spring quarter}
+
+\newcommand{\userMarginInMm}{5}
+\geometry{
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=3mm}
+
+\newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+\newcommand*\bspace{$\; \bullet \;$}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+
+\begin{document}
+% \maketitle
+% --------------------------------------------------------------------------------------
+\subsection{Markov chains}
+\textbf{Example (Reservoir storage):} \textbf{Given:} $S_{n+1} = S_n +Z_{n+1} - (aS_{n+1}^b)$, $Z_i \sim f_z(\cdot)$. \textbf{Want:} $P_x(S_1 \leq y)$ \bspace $P_x(S_1 \leq y) = P_x(g(S_1) \leq g(y)) = P_x(S_1 + aS_1^b \leq y + ay^b) = P_x(x + Z_1 \leq y + ay^b) = F_z(y + ay^b - x)$ \bspace $p(x,y) = \frac{d}{dy}F_z(y + ay^b - x) = f_z(y + ay^b - x)*(1 + aby^{b-1})$ \bspace $P(x,B) = \int_Bf_z(y + ay^b - x)*(1 + aby^{b-1})dy$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Congestion modeling):} \textbf{Given:} Markov chain $W = (W_n:n\geq 0)$, $W_{n+1} = [W_n + Z_{n+1}]^+$, $Z_i \sim f_z(\cdot)$. \textbf{Want:} Transition kernel. \bspace $P_x(W_1 \leq y) = P_x([x + Z_1]^+ \leq y) = P_x(x + Z_1 \leq y) = F_z(y-x)$ \bspace When $y = 0: P_x(W_1 = 0) = P(W_1 \leq 0) = F_z(-x) \textrm{(point mass at $y=0$)}$ \bspace When $y > 0: \frac{d}{dy}P_x(W_1 \leq y) = f_z(y-x)$ \bspace $P(x,dy) = F_z(-x)\delta_0(dy) + f_z(y-x)dy$, $P(X, B) = F_z(x)\delta_0(B) + \int_Bf_x(y-x)dy$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Autogregressive modeling):} For $X_{n+1} = a_0X_n + c + \epsilon_{n+1}, \, \epsilon \sim N(0,\sigma^2)$, $L(a_0,c,\sigma^2 \mid X) = \prod_{j=0}^{n-1}(\frac{1}{\sqrt{2\pi}\sigma})\exp(\frac{-1}{2\sigma^2}(X_{j+1} - a_0X_j - c)^2)$; $Cov(X_{n+1}, X_n) = Cov(a_0X_n + c+ \epsilon, X_n) = a_0var(X_n)$
+
+
+% --------------------------------------------------------------------------------------
+\subsection{Martingales}
+\textbf{Martingale definition:} A martingale $(M_n : n \geq 0)$ is adapted to $(Z_n : N\geq 0)$ if 1) Adaptedness: for each $n \geq 0$ there exists function $f_n(\cdot)$ such that $M_n = f_n(X_0, \dots, X_n)$, 2) $E\abs{M_n} < \infty$, 3) $E[M_{n+1} \mid X_0, \dots, X_n] = M_n$ \bspace $D_n = M_n - M_{n-1}$ \bspace $M_n = M_0 + \sum_iD_i$ \bspace $ED_i = 0$ \bspace $Cov(D_i, D_j) = ED_iD_j = 0, i\neq j$ \bspace $Cov(M_0, D_i) = 0$ \bspace $Var(M_n) = Var(M_0) + \sum_iVar(D_i)$ \bspace \textbf{Martingale convergence:} $\frac{1}{n}M_n \overset{a.s.}{\rightarrow} 0$\\
+\textbf{Martingale CLT:} If a martingale $(M_n : n \geq 0)$ adapted to $(Z_n:N\geq 0)$ is square integrable, then $\frac{1}{\sqrt{n}}M_n \overset{d}{\rightarrow} \sigma N(0,1)$ \bspace $\sigma^2 = Var(D_1) = E(D_1^2)$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Demonstrate martingale sequence):} \textbf{Given:} $S_n = Z_1 + \dots + Z_n$, $Z_i$ iid, $EZ_1^2 < \infty$, $EZ_1 = 0$, $M_n = S_n^2 - n\sigma^2$. \textbf{Solution:} Adaptedness condition exists by definition. Boundedness condition holds since $\sigma^2 < \infty$, $EZ_1 = 0$. $E(M_{n+1} \mid Z_0,\dots,Z_n) = E[(S_n + Z_{n+1})^2 - (n+1)\sigma^2 \mid Z_0,\dots,Z_n] = S_n^2 + 2S_nE[Z_{n+1} \mid Z_0,\dots,Z_n] + E[Z_{n+1}^2\mid Z_0, \dots, Z_n] - n\sigma^2 - \sigma^2 = S_n^2 + 2S_n*0 + \sigma^2 - n\sigma^2 - \sigma^2 = S_n^2 - n\sigma^2 = M_n$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Demonstrate martingale sequence):} \textbf{Given:} $f:S\longrightarrow \mathbb{R}$, bounded and $Pf = f$, one-step transition matrix, $X_n$ a Markov sequence. \textbf{Want:} show $f(X_n)$ is a martingale sequence. \textbf{Solution:} Adaptedness condition exists by definition. Boundedness condition holds by boundedness of $f$. $E[f(X_{n+1})\mid X_0,\dots,X_n] = \sum_{y\in S}f(y)P(X_{n+1}=y \mid X_0,\dots,X_n) = \sum_{y\in S}F(y)P(X_n,y) = \large [Pf\large ]_{X_n} = f(X_n)$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Demonstrate martingale difference sequence):} \textbf{Given:} $g: S \longrightarrow \mathbb{R}$ bounded and $D_i = g(X_i) - E[g(X_i)\mid X_{i-1}]$. \textbf{Show:} This is a martingale difference adapted to $X = (X_n:n\geq 0)$. \textbf{Solution:} Adaptedness condition exists by definition. Boundedness condition holds by definition of $g$. $E[D_n+1 \mid X_0, \dots, X_n] = E[g(X_{n+1})\mid X_0, \dots, X_n] - E[E[g(X_{n+1})\mid X_n] \mid X_0, \dots, X_n] \Longleftrightarrow E[g(X_{n+1})\mid X_n] - E[g(X_{n+1})\mid X_n] = 0$ 
+
+
+
+\subsection{Bayesian statistics}
+\textbf{Example (posterior distribution):} \textbf{Want:} posterior distribution of probability of success, $p$. \textbf{Given:} $\pi(p) \sim Beta(\alpha, \beta)$, $k$ successes in $n$ experiments. $\pi(p \mid X) \propto \pi(p)L(p \mid X) \propto p^{\alpha-1}(1-p)^{\beta - 1}p^k(1-p)^{n-k} = p^{\alpha + k - 1}(1-p)^{\beta + n - k - 1} \propto Beta(\alpha + k, \beta + n - k)$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (posterior distribution):} \textbf{Given:} iid data, $X_1, \dots, X_n$, follows Poisson: $f(x) = \lambda e^{-\lambda x}$, $\lambda > 0$, unknown; prior on $\lambda$ follows Gamma with shape param ($\alpha$) 3 and rate ($\beta$) param 2$\pi(\lambda) = 4\lambda^2e^{-2\lambda}$ \textbf{Aside}: Gamma rv, $g(x) = \frac{\beta^\alpha}{\Gamma(\alpha)}x^{\alpha-1}e^{\beta x}$, $\Gamma(\alpha) = \int_0^\infty x^{\alpha-1}e^{-z}dx$, the integrating constant is $\frac{\beta^\alpha}{\Gamma(\alpha)}$. $\pi(\lambda \mid X) \propto \pi(\lambda) L(X \mid \lambda) = 4\lambda^2e^{-2\lambda} \prod_{i=1}^n \lambda e^{-\lambda X_i}  \sim Gamma(\alpha, \beta)$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (posterior of linear regression):} \textbf{Given:} $Y_i = \beta_0 + \sum_j\beta_jx_{ij} + \epsilon_i$, $f(\beta) \sim N(0, s^2I)$ \bspace $f(\beta \mid X, Y) \propto f(\beta)L(\beta \mid X,Y) = \exp(\frac{-1}{2s^2}\beta^T\beta)\exp(\frac{-1}{2\sigma^2}(Y - X\beta)^T(Y - X\beta))$ \bspace Now map this expression to the general equation: $\exp(\frac{-1}{2}(\beta - \mu)^T\Sigma^{-1}(\beta - \mu))$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Markov Chain Monte Carlo:} Generate a posterior distribution by running a markov chain whose equilibrium distribution is the posterior, $f(\theta \mid X)$. "Detailed balance" required: $\tilde{p}(x)p(x,y) = \tilde{p}(y)p(y,x)$. \textit{Metropolis Algorithm:} 1) Start with harris recurrent transition density, $(q(x,y): x,y \in S), q(x,y)>0$, 2) define $p(x,y) = q(x,y) \min\large (1, \frac{p(y)Q(x,y)}{p(x)Q(x,y)} \large )$
+
+% --------------------------------------------------------------------------------------
+\subsection{Likelihood and estimation}
+\textbf{Estimating equations:} Objective is to postulate $g(\cdot)$ such that $E_{\theta_1}g(\theta_2, X_1) = 0 \Longleftrightarrow \theta_1 = \theta_2$. We can estimate $\theta$ with the root, $\hat{\theta}$, of the equation $\frac{1}{n}\sum_{i=1}^ng(\hat{\theta}, X_i) = 0$. Estimating equations are a generalization of Method of Moments ($g(\theta, x) = E_\theta k(X_1) - k(x)$) and Maximum likelihood estimators ($g(\theta, x) = \frac{\nabla_\theta f(\theta, x)^T}{f(\theta, x)}$)\\
+Assume we've established that $\hat{\theta} = \hat{\theta}_n \overset{p}{\longrightarrow} \theta^*$ (consistent), then
+$\sqrt{n}(\hat{\theta} - \theta^*) \overset{d}{\longrightarrow} \frac{\sigma}{E_{\theta^*}g'(\theta^*, X_1)}N(0,1)$, $\sigma^2 = E_{\theta^*}[G(\theta^*, X_1)^2]$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Markov chain parameter estimation):} \textbf{Given:} $X_n = \beta n + W_n$, $W_n = \rho W_{n-1} + Z_n$, $Z_i \sim N(\mu, \sigma^2) iid rvs$. \textbf{Solution:} Rearrange everything in terms of $Z_i: Z_n = W_n - \rho W_{n-1} \Longrightarrow Z_n = X_n - \beta n - \rho (X_{n-1} - \beta(n-1))$
+\begin{align*}
+    L = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp(\frac{-1}{2\sigma^2} (Z_n - \mu)^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp(\frac{-1}{2\sigma^2} (X_n - \beta n - \rho (X_{n-1} - \beta(n-1)) - \mu)^2) \Longrightarrow \log L = \textrm{const} - \frac{1}{2}(2-\rho)^2 \Longrightarrow \hat{\rho} = 2
+\end{align*}
+% --------------------------------------------------------------------------------------
+\textbf{Example (Markov chain parameter estimation):} \textbf{Given:} $(X_j: 0 \leq j \leq n)$ observed path for finite state Markov chain. $P(\theta) = (P(\theta, x, y):w, y \in S)$ transition matrix depending on unknown param. $P(\theta)$ infinetely differentiable in $\theta$. \textbf{Want:} Likelihood, MLE, Martingale CLT
+\begin{align*}
+    L(\theta \mid X) &= \prod_{j=1}^n P(\theta, X_{j-1}, X_j) \textrm{, by Markov property} \Longrightarrow l(\theta \mid X) = \log L(\theta \mid X) = \sum_{j=1}^n \log P(\theta, X_{j-1}, X_j)\\
+    \frac{d}{d\theta}l(\theta \mid X) &= \sum_{i=1}^n \frac{\frac{d}{d\theta}P(\theta, X_{i-1}, X_i)}{P(\theta, X_{i-1}, X_i)} \Longrightarrow \hat{\theta} \textrm{ is solution to } \sum_{i=1}^n \frac{\frac{d}{d\theta}P(\hat{\theta}, X_{i-1}, X_i)}{P(\hat{\theta}, X_{i-1}, X_i)} = 0
+\end{align*}
+\textbf{Martingale CLT:} First show its a martingale, then use CLT: \bspace $M = (M_n = f(X_{n-1}, X_n): n \geq 0)$ adapted to $X = (X_n : n\geq 0)$ with Martingale difference, $D_i = \frac{\frac{d}{d\theta}P(\theta, X_{i-1}, x_i)}{P(\theta, X_{i-1}, x_i)}$ \bspace $X$ stationary $\Longrightarrow D_i := (P'/P)(\theta, X_{i-1}, X_i)$ stationary ergotic sequence \bspace $E[D_i] = \int \frac{\frac{d}{d\theta}P(\theta, X_{i-1}, x_i)}{P(\theta, X_{i-1}, x_i)} P(\theta, X_{i-1}, x_i)dx_i = \int \frac{d}{d\theta}P(\theta, X_{i-1}, x_i)dx_i = \frac{d}{d\theta} 1 = 0$ \bspace $EM_n = E[M_0 + \sum_i D_i] = E[M_0] + \sum_i E[D_i] = E[M_0] < \infty$ \bspace $E[M_{n+1} \mid X_0, \dots, X_n] = E[M_n + \frac{\frac{d}{d\theta}P(\theta, X_{i-1}, x_i)}{P(\theta, X_{i-1}, x_i)} \mid X_0, \dots, X_n] = M_n + 0$ \bspace $\frac{1}{\sqrt{n}}M_n \overset{d}{\rightarrow} \sigma N(0,1)$, where  $\sigma^2 = E[D_1^2] = E\left [ \left (\frac{\frac{d}{d\theta}P(\theta, X_{i-1}, x_i)}{P(\theta, X_{i-1}, x_i)}\right )^2 \right ]$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Kernel density estimation:} Estimate unknown density, $f^*(x)$ from 1D iid data, $X_1, \dots, X_n$ with a normal (or other kernel) function about each point, that's then summed up: $f_n(x)
+= \frac{1}{n}\sum_{i=1}^n\frac{1}{h}\phi(\frac{x - X_i}{h})$ \bspace \textbf{Equation derivation:} At each point, $X_i$, smooth using density $N(X_i, h^2)$: $P(N(X_i, h^2)\leq y) = P(N(0,1) \leq (\frac{y-X_i}{h})) = \Phi(\frac{y-X_i}{h}) \Longrightarrow \frac{d}{dy}\Phi(\frac{y-X_i}{h}) = \phi(\frac{y-X_i}{h}) * \frac{1}{h}$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Kernel density estimation for derivative):}
+\begin{align*}
+    E[\frac{d}{dx} f_n(x)] &= \frac{1}{h}E[\frac{d}{dx}\phi(\frac{x - X_1}{h})] = \frac{1}{h}\int \frac{d}{dx}\phi(\frac{x - y}{h})  f^*(y) dy = \frac{1}{h}\int \frac{1}{h}\phi'(z)  f^*(x - zh) (-h) dz \textrm{, for } zh = x - y\\
+    &= \frac{-1}{h} \int \phi'(z)[f(x) - zhf'(x) + \frac{(xh)^2}{2!}f''(x) - \frac{(zh)^3}{3!}f'''(x) + O(h^3)]dz\\
+    &= \frac{-1}{h} f(x)\int\phi'(z)dz + f'(x)\int z\phi'(z)dz - \frac{h}{2} f''(x)\int z^2\phi'(z)dz + \frac{h^2}{3!}f'''(x)\int z^3 \phi'(z) dz + O(h^2)\\
+    &= \frac{-1}{h} f(x) * 0 + f'(x) * 1 - \frac{h}{2} f''(x) * 0 + \frac{h^2}{3!}f'''(x) * \frac{1 * 4!}{2^2 * 2} + O(h^2) \textrm{, where } \phi'(x) = x\phi(x) \longrightarrow \textrm{bias} = \frac{h^2}{2}f'''(x) + O(h^2) = O(h^2)
+\end{align*}
+\begin{align*}
+    Var(\frac{d}{dx}f_n(x)) &= \frac{1}{nh^2}Var(\frac{d}{dx}\phi(\frac{x - X_1}{h})) = \frac{1}{nh^2} E[(\frac{d}{dx}\phi(\frac{x - X_1}{h}))^2] - \frac{1}{nh^2}[E(\frac{d}{dx}\phi(\frac{x - X_1}{h}))]^2\\
+    &= \frac{1}{nh^2} E[\frac{1}{h^2}\phi'^2(\frac{x - X_1}{h})] - \frac{1}{nh^2} * (O(h^2))^2 = \frac{1}{nh^2} \frac{1}{h^2} \int \phi'(z)^2f^*(x - zh)(-h)dz - \frac{1}{nh^2} * (O(h^2))^2\\
+    &= \frac{1}{nh^2} \frac{-1}{h} \int z^2 \phi^2(z)[f^*(x) - O(h)]dz - \frac{1}{nh^2} * (O(h^2))^2 = O(\frac{1}{nh^3}) - O(h^2) = O(\frac{1}{nh^3})\\
+    O(var) &\approx O(bias^2) \Longrightarrow O(\frac{1}{nh^3}) \approx O(h^4) \Longrightarrow h = O(n^{-1/7}) \Longrightarrow MSE = O(n^{-2/7})
+\end{align*}
+
+\subsection{First transition analysis}
+% --------------------------------------------------------------------------------------
+\textbf{Example (Expectation of hitting time):} \textbf{Want:} $E_xT_A$, $x\notin A$, $T_A = \inf\{n\geq 0 : X_n \in A\}$. When $x \in A, E_xT_A = 0$, otherwise:
+\begin{align*}
+    &E_xT_A = 1 + E_x[T_A - 1] = 1 + \sum_{y\in A} E_x[T_A - 1 \mid X_1 = y]P_x(X_1 = y) + \sum_{y\notin A} E_x[T_A - 1 \mid X_1 = y]P_x(X_1 = y) = 1 + 0 + \sum_{y\notin A} E_y(T_A)P_x(X_1 = y)\\
+    &E_x[T_{A-1} \mid X_1 = y] = E_x[\sum_{j=1}^{T_{A-1}} 1 \mid X_1 = y] =  E_x[\sum_{j=1}^\infty\mathbb{I}\{j < T_A\} \mid X_1 = y] = E_x[\sum_{j=1}^\infty \mathbb{I}\{X_0 \notin A, \dots, X_j \notin A\} \mid X_1 = y]\\
+    &E_x[T_{A-1} \mid X_1 = y] = E_x[\sum_{j=1}^\infty \mathbb{I}\{X_1 \notin A, \dots, X_j \notin A\} \mid X_1 = y] = E_y[\sum_{j=0}^\infty \mathbb{I}\{X_1 \notin A, \dots, X_{j-1} \notin A\}] = E_y[\sum_{j=1}^\infty \mathbb{I}\{X_0 \notin A, \dots, X_{j} \notin A\}] = E_yT_A\\
+    &u = e + Bu \textrm{, where } u = \{E_xT_X\}_{x \in A^c}, B = \{P_{x,y}\}_{(x, y) \in A^c \times A^c}
+\end{align*}
+% --------------------------------------------------------------------------------------
+\textbf{Example (Expectation of reward):} \textbf{Given:} $S$ discrete finite, $u(i) = E_i[\exp(-\sum_{n=0}^{T_{A-1}}\rho(X_n))r(X_{T_A})]$, $X_n$ Markov chain, $T_A$ hitting time. When $i \in A$, then $T_A = 0, u(i) = E_i[\exp(0)r(X_0)] = r(i)$, otherwise:
+\begin{align*}
+    u(i) &= \exp(-p(i))E_i[\exp(-\sum_{n=1}^{T_{A-1}}\rho(X_n))r(X_{T_A})] = \exp(-p(i)) \sum_{j\in S} E_i[\exp(-\sum_{n=1}^{T_{A-1}}\rho(X_n))r(X_{T_A}) \mid X_1 = j]P_i(X_1 = j)\\
+    &= \exp(-p(i)) \sum_{j\in A} E_i[\exp(-\sum_{n=1}^{T_{A-1}}\rho(X_n))r(X_{T_A}) \mid X_1 = j]P_i(X_1 = j) + \exp(-p(i)) \sum_{j\notin A} E_i[\exp(-\sum_{n=1}^{T_{A-1}}\rho(X_n))r(X_{T_A}) \mid X_1 = j]P_i(X_1 = j)\\
+    &= \exp(-p(i)) \sum_{j\in A} E[r(X_1)\mid X_1 = j]P_i(X_1 = j) + \exp(-p(i)) \sum_{j\notin A} u(j)P(i,j) = \exp(-p(i)) \sum_{j\in A} r(j)P(i,j) + \exp(-p(i)) \sum_{j\notin A} u(j)P(i,j)\\
+    u &= b + Ku \textrm{, where } b_i = exp(-p(i))\sum_{j\in A}r(j)P(i,j), K(i,j) = exp(-p(i))P(i,j)
+\end{align*}
+% --------------------------------------------------------------------------------------
+\textbf{Example (Transition analysis):} \textbf{Given:} $\phi(\theta,x) = E_x\exp(\theta T)$, $X$ finite state space Markov \bspace if $x\in C^c$ then $T_x = 1$, else $T_x = 1 + T_{X_1}$ \bspace $E_x\exp(\theta T_x) = E_x\exp(\theta + \theta T_{X_1}) = \exp\theta\sum_{y\in S}E_x[\exp\theta T_{X_1} \mid X_1=y] = \exp\theta\sum_yP(x,y)\phi(\theta,y)$
+
+\subsection{Infinite horizon stochastic control}
+\textbf{Objective:} Find optimal control $A^* = (A_n^*: n \geq 0)$ for objective $\max_{(A_n:n\geq0)}E_x\sum_{n=1}^\infty \exp(-\alpha n)r(X_n, A_n)$\\
+\textbf{Solution:} Let $v(x) = \max_{(A_n:n\geq0)}E_x\sum_{n=1}^\infty \exp(-\alpha n)r(X_n, A_n)$\\
+\textbf{By first transition analysis:} $v(x) = \max_{a \in \mathcal{A}(x)}[r(x,a) + \exp(-\alpha)\sum_yP_a(x,y)v(y)] = \max_{a \in \mathcal{A}(x)}\{r(x,a) + \exp(-\alpha)E[v(X_1) \mid X_0 = x, A_0 = a]\}$\\
+\textbf{Solution approach 1 - Fixed point equation:} Notice this is a solution to the fixed point equation $v = Tv$, where $(Tu)(x) =\max_{a \in \mathcal{A}(x)}[r(x,a) + \exp(-\alpha)\sum_yP_a(x,y)u(y)]$. 1 Choose any $v_0$, 2) iterate $v_n = Tv_{n-1}$, 3), if $v_n \longrightarrow v_\infty$ then $v_\infty$ is solution. Convergence guaranteed with contractive property: $\norm{Tv_n - Tv_{n-1}}{\infty} \leq \exp(-\alpha)\norm{v_n - v_{n-1}}{\infty}$\\
+\textbf{Solutions approach 2 - Linear program:} $\min_v \sum_xv(x) \,\,\, s.t., v(x) \geq r(x,a) + \exp(-\alpha)\sum_yP_a(x,y)v(y)$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Optimal stopping time):} \textbf{Given:} reward function $r: \{0, \dots, m\} \rightarrow \mathbb{R}_+$, $(X_n:n \geq 0)$ has transition probabilities $P(x,y) = 1/2, \, x \in \{1, \dots, m-1\}, y\in \{0, \dots, m\}$, $P(0,0) = P(m,m) = 1$. \textbf{Optimality equation (HJB equation):} $v(x) = \sup_TE_xr(X_T) = \max\{\textrm{stop, continue}\} = \max(r(x), \frac{1}{2}(v(x-1) + v(x+1))), \, x \in \{1, \dots, m-1\}; \,\, v(0) = r(0),\,\, v(m) = r(m)$. Let $r(m) = 0$ and $r(x) = x$ otherwise. Compute \textbf{value function:} must be unique, using intuition you can claim it is $v(x) = x$. Given this, $v(x) = \frac{1}{2}(v(x-1) + v(x+1))$ for $x \leq m-1$. Hence, optimal stopping time is immediately if you are at $m-1$ or indifferent otherwise.\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Optimal stopping time):} \textbf{Given:} $(X_n : n\geq 0)$, finite state, $P = (P(x,y):x,y \in S)$. \textbf{Want:} $T$ to maximize $E_x \sum_{j=1}^{T-1} \exp(-\alpha j)r(X_j) + \exp(-\alpha T)w(X_T)$
+\begin{align*}
+    v^*(x) = \sup_TE_x\sum_{j=1}^{T-1} \exp(-\alpha j)r(X_j) + \exp(-\alpha T)w(X_T) \textrm{, is finite valued and should satisfy } v(x) = max\{w(x), r(x) + \exp(-\alpha)\sum_yP(x,y)v(y)\}
+\end{align*}
+\textbf{Solution 1, Linear program:} $\min_{v^*(x)} \sum_{x\in S}v(x)$ s.t., $v(x) \geq w(x), \,\, v(x) \geq r(x) + \exp(-\alpha)\sum_yP(x,y)v(y)$ \bspace \textbf{Solution 2, Value iteration: } $(Ru)(x) =  max\{w(x), r(x) + \exp(-\alpha)\sum_yP(x,y)v(y)\}$, choose $v_0$ and iterate; guaranteed convergence
+
+% --------------------------------------------------------------------------------------
+\subsection{Positive recurrence}
+\textbf{SLLN for Markov chains:}
+\begin{align*}
+    \frac{1}{n}\sum_{j=1}^{n-1}I(X_j = y) \overset{a.s}{\longrightarrow} \frac{EY_1}{E\tau_1}: \, \frac{1}{n}\sum_{j=1}^{n-1}I(X_j = y) &\approx \sum_{j=0}^{N(n)}Y_j / \sum_{j=1}^{N(n)}\tau_j \textrm{, where } Y_j = \sum_{i=T_{j-1}}^{T_j - 1}I(X_j = y), \, \tau_j = T_j - T_{j-1}, \, \frac{1}{n}\sum_{j=1}^nY_j \overset{a.s}{\longrightarrow} EY_1, \, \frac{1}{n}\sum_{j=1}^n\tau_j \overset{a.s}{\longrightarrow} E\tau_1
+\end{align*}
+\textbf{Lyapunov method to demonstrate postivie Harris recurrence:} Must demonstrate for some $g(x) \geq 0$ and $A \subseteq S$ a) $E_x[g(X_1)] \leq g(x) - \epsilon$ for $x \in A^c$ b) $\sup_{x\in A} E_x[g(X_1)] < \infty$, c) $P_x(X_m \in \cdot) \geq \lambda \varphi(\cdot)$ for $x \in A$. Common choices of $g(x): \{x, \abs{x}^p, \log(1 + x)^p, \exp(a\abs{x}^p)\}$. Positive Harris Recurrence guarantees unique solution for stationary density of chain\\\\
+% --------------------------------------------------------------------------------------
+\textbf{General approach for element c):} $P_x(X_1 \in B) \geq \lambda \varphi(B) \Longleftrightarrow \int_Bp(x,y)dy \geq \lambda \int_B \phi(y)dy$. Then simply let $\varphi(y) = \inf_{x\in A}p(x,y) / \lambda$ and $\lambda = \int_S \inf_{x\in A} p(x,y)dy$, making sure $\lambda > 0$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Explanation of P(x, dy):} $P(x, dy) = P(x \in y + dy) \approx P(x \in [y - \Delta y/2, y + \Delta y/2]) = \int_{-\Delta y/2}^{\Delta y/2}f(x)dx \approx f(y)\Delta y \approx f(y)dy$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Markov chain positive recurrence properties:} Markov chain is positive recurrent ($E_x\pi(x) < \infty$) $\Longrightarrow \frac{1}{n}\sum_{i=0}^{n-1}r(X_i) \overset{a.s.}{\rightarrow} \sum_w \pi(x)r(w)$ and $\pi(x) = \frac{E_x\sum_{j=1}^{\tau(x)-1}I(X_j = x)}{E_x\pi(x)}$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Markov chain aperiodicity:} $\gcd\{n\geq 1 : P^n(x,x) > 0\} = 1 \Longleftrightarrow P(x,x) > \infty$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Positive Harris recurrence):} \textbf{Given:} $X = \{X_n: n \geq 0\}, [X_{n+1} \mid X_n = x] \sim N(\lambda x, 1 - \lambda^2)$, $\lambda \in (0,1)$ a constant. Choosing $g(x) = x^2$:
+\begin{align*}
+    \textrm{a) }& E_xg(X_1) = E_xX_1^2 = varX_1 + (E_xX_1)^2 = (1-\lambda^2) + (\lambda x)^2 = x^2 - (x^2 - 1)(1 - \lambda^2) \leq g(x) - 3(1 - \lambda^2) \textrm{ when } x\in K^c \, K = [-2, 2]\\
+    \textrm{b) }& \sup_{x\in K}E_xg(X_1) = \sup_{x\in K}[(1-\lambda^2) + (\lambda x)^2] \leq 1 - \lambda^2 + 4\lambda^2 < \infty\\
+    \textrm{c) }& P_x(X_1 \leq y) = P(N(\lambda x, 1 - \lambda^2)) = P(N(0,1) \leq \frac{y - \lambda x}{\sqrt{1 - \lambda^2}}) \Longrightarrow p.d.f: p(x,y) = \phi(\frac{y - \lambda x}{\sqrt{1 - \lambda^2}}) * \frac{1}{\sqrt{1 - \lambda^2}} > 0\\
+    & \varphi(y) = \inf_{x\in K}p(x,y) / c = \inf_{x\in K} \phi(\frac{y - \lambda x}{\sqrt{1 - \lambda^2}}) * \frac{1}{c\sqrt{1 - \lambda^2}} > 0 \textrm{, since $\phi$ continuous, positive, $K$ compact} \Longrightarrow \textrm{choose} \lambda = \int_\mathbb{R} \inf_{x\in K}p(x, y)
+\end{align*}
+\textbf{Stationary sequence:} Noting $X_{n+1} = \lambda X_n + \epsilon_{n+1}, \, \epsilon \sim N(0, 1 - \lambda^2)$. When $X_0 \sim N(0,1) \Rightarrow X_n \sim N(0,1)$, so $N(0,1)$ is stat. distribution of $X$.\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Positive Harris recurrence):} \textbf{Given:} $(Z_n:n\geq 1)$ iid positive, $\abs{EZ_1^2} < \infty$, positive continuous density, $f(\cdot)$; $X = \{X_n:n\geq 0\}$ Markov chain such that $X_{n+1} = \abs{X_n - Z_{n+1}}$. \textbf{Want:} Transition density, positive Harris recurrence, equilibrium density, stationary distribution, SLLN \bspace \textbf{Transition density: } $P(x, dy) = P(\abs{x - Z} \in y + dy) = P(Z \in x - y + dy) + P(Z \in x + y + dy) = f(x-y)dy + f(x+y)dy$ \bspace \textbf{Positive Harris recurrence:}
+\begin{align*}
+    Z \textrm{ integrable } &\Longrightarrow \exists M \, s.t.,\, E[X \mathbb{I}(Z \leq M)] \geq (2/3)EZ, \, E[X \mathbb{I}(Z > M)] \leq (1/3) EZ \textrm{; now choose } g(x) = \abs{x} \textrm{ and define } A^c: x > M\\
+    \textrm{For } x\in A^c: \, E(g(X_1)) &= E\abs{x - Z} = E(x-Z)\mathbb{I}(Z\leq x) + E(Z-x)\mathbb{I}(Z > x)\\
+    &\leq x - E(Z)\mathbb{I}(Z\leq x) + E(Z)\mathbb{I}(Z > x) \leq x - (2/3)EZ + (1/3)EZ = g(x) - \epsilon \textrm{, since} EZ_1 < \infty\\
+    \textrm{For } x\in A: \, P(x,dy) &\geq \inf_{x'\in[0,M]} P(x', dy) = [\inf_{x'\in[0,M]} (f(x' - y) + f(x' + y))]dy > 0 \textrm{, since $f(\cdot)$ is positive continuous} \Rightarrow P(x,dy) \geq \lambda \varphi(y) 
+\end{align*}
+\textbf{Stationary distribution:} Need to verify $\int_0^\infty P(x,dy)\pi(dx) = \pi(dy) = \pi(y)dy = \frac{P(Z_1 > y)dy}{EZ_1}$, equivalent to showing $\int_0^\infty (f(x-y) + f(x+y))P(Z > x)dx = P(Z > y)$
+\begin{align*}
+    \textrm{When $y=0$: }& \int_0^\infty 2f(x) \frac{P(Z_1 > x)}{EZ_1}dx = \int_0^\infty 2f(x) \frac{1 - F(x)}{EZ_1}dx = \frac{1}{EZ_1} [\frac{d}{dx}\int_0^\infty 2F(x)dx - \frac{d}{dx}\int_0^\infty 2F(x)^2dx] = \frac{2 - 1}{EZ_1} = \frac{P(Z_1 > 0)dy}{EZ_1} = \pi(0)\\
+    \textrm{When $y>0$: }& \frac{d}{dy}(\int_0^\infty (f(x-y) + f(x+y))P(Z > x)dx) = \frac{d}{dy}(\int_0^\infty f(w)P(Z>w+y)dw + \int_y^\infty f(w)P(Z > w-y)dw)\\
+    &= -\int_0^\infty f(w)f(w+y)dw - f(y)P(Z>0) + \int_y^\infty f(w)f(w-y)dw = -f(y) = \frac{d}{dy}(P(Z > y))
+\end{align*}
+\textbf{SLNN:} By stat. dist. and PHR, we have $\frac{1}{n}\sum_{i=1}^n f(X_i) \overset{a.s.}{\rightarrow} E_\pi f(X_0)$ and $E_\pi x = \int_0^\infty x\pi(x)dx = \int_0^\infty x \frac{P(Z_1 > x)}{E[Z_1]}dx = \frac{1}{EZ_1} \frac{E[Z_1^2]}{2}$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Example (Positive recurrent Markov chain):} \textbf{Given:} $N_{n+1} = R_{n+1} + B_{n+1}(N_n)$, $R_1, \dots \overset{iid}{\sim} Poisson(\lambda_*)$, $(B_n(k) = Bin(k, p) : n \geq 0, k\geq 0)$
+\begin{align*}
+    P(N_{n+1} &= y \mid N_n = x) = P(R_{n+1} = y - B_{n+1}(x)  \mid N_n = x) = \sum_{k=1}^{min(x,y)} \frac{\lambda_*^{y-k}e^{-\lambda}}{(y - k)!} P(B_{n+1}(x) = k) = \sum_{k=1}^{min(x,y)} \frac{\lambda_*^{y-k}e^{-\lambda}}{(y - k)!} \binom{x}{k}p^k(1 - p)^{x-k} 
+\end{align*}
+\textbf{Chain irreducible and aperiodic:} Since $P(x,y) > 0$ for all $(x,y)$ (irreducible) and $P(x,x) > 0$ for all $x$ (aperiodic) \bspace \textbf{Chain positive recurrent:} Irreducible Markov chain on discrete state space is positive recurrent $\Longleftrightarrow \exists \pi \, s.t. \pi = \pi P$. We find $\pi = Poisson(\frac{\lambda_*}{1 - p})$ (not shown) \bspace \textbf{Approximate for} $\frac{1}{n}\sum_{j=0}^{n-1}I(N_j = 0)$: $\frac{1}{n}\sum_{j=0}^{n-1}I(N_j = 0) \rightarrow \pi(0)$ \bspace \textbf{First transition analysis:} For $N_0 = k$, find $u(k) = E[\inf\{n\geq 1 : N_n - N_{n-1} \geq 3\} \mid N_0 = k] = E_kT$ \bspace $u(k) = E_kT = 1 + \sum_{y - x \geq 3}0 * P(k, y) + \sum_{y - x < 3} E_yTP(k,y) = 1 + \sum_{y-x<3}P(k,y)u(y)$
+
+
+% --------------------------------------------------------------------------------------
+\subsection{Calculus cheat sheet}
+\textbf{Logs:} $log_b(M * N) = log_bM + log_bN$ \bspace $log_b(\frac{M}{N}) = log_bM - log_bN$\bspace $log_b(M^k) = klog_bM$\bspace $e^ne^m = e^{n+m}$ \bspace \textbf{Derivatives:} $(x^n)' = nx^{n-1}$\bspace $(e^x)' = e^x$ \bspace $(e^{u(x)})' = u'(x)e^x$ \bspace $(log_e(x))' = (lnx)' = \frac{1}{x}$\bspace $(f(g(x)))' = f'(g(x))g'(x)$ \bspace \textbf{Integrals: } $\int_a^b f(x)dx = \int_{g(a)}^{g(b)}f(g(u))g'(u)du$ where $g(u) = x$\bspace $\int_a^b u(x)v'(x)dx = u(b)v(b) - u(a)v(a) - \int_a^b u'(x)v(x)dx$ \bspace \textbf{Infinite series and sums:} $e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \dots = \sum_{n=0}^\infty \frac{x^n}{n!}$\bspace $(1 + \frac{a}{n})^n \longrightarrow e^a$\\
+\bspace $ln(1 + x) = 1 - x + \frac{x^2}{2} - \frac{x^3}{3} + \dots = \sum_{n=0}^\infty (-1)^n\frac{x^n}{n}$\bspace $\frac{1}{1-x} = 1 + x + x^2 + x^3 + \dots = \sum_{n=0}^\infty a^x$ for $\abs{x} < 1$ \bspace \textbf{L'Hopitale:} $\lim_{n\rightarrow c} f(x) / g(x) = \lim_{n\rightarrow c} f'(x)/g'(x)$ if $\lim_{n\rightarrow c} f(x) = \lim_{n\rightarrow c} g(x) = 0/\infty/-\infty$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Generating functions:} $\varphi_X(t) = E \exp(itX)$ \bspace $M_X(t) = E\exp(tX)$ \bspace $N(\mu, \sigma^2): \exp(it\mu - \frac{1}{2}\sigma^2t^2)$ \bspace $Exp(\lambda): (1 - it\lambda ^{-1})^{-1}$ \bspace $Poisson(\lambda): \exp{\lambda(e^{it} - 1)}$ \bspace $Bin(n,p): (1 - p + pe^{it})^n$ \bspace $Unif(a,b): (e^{itb} - e^{ita})/ (it(b-a))$ \bspace $Gamma(k,\theta): (1 - it\theta)^{-k}$ \bspace $Lapl(\mu, b): e^{it\mu}/(1 + b^2t^2)$ \bspace $\chi^2_k: (1 - 2it)^{-k/2}$ \bspace $E[X^k] = i^{-k}\varphi_X^{(k)}(0)$ \bspace $\phi_{a_1X_1 + \dots + a_nX_n}(t) = \phi_{X_1}(a_1t) \dots \phi_{X_n}(A_nt)$ for $X_i$ independent \bspace for $Y = aX + b$, $\varphi_Y(t) = e^{itb}\varphi_X(at)$\\\\
+% --------------------------------------------------------------------------------------
+\textbf{Expectation:} $E(X) = \sum_x xP(X=x)$ \bspace $P_{Y,X}(Y > X) = E_{Y,X}\mathbb{I}\{Y>X\} = E_XE_Y[\mathbb{I}\{Y>X\} \mid X] = E_XP_Y(Y > X \mid X) = \int_\mathbb{R}P_Y(Y > x \mid X = x)F_X(dx)$ \bspace \textbf{Variance: } $Var(X) = E((X - E(X))^2) = \sigma^2$ \bspace $Var(X) = E(X^2) - \mu^2$ \bspace $Var(aX+b) = a^2Var(X)$ \bspace $Var(X + Y) = Var(X) + Var(Y) + 2Cov(X, Y)$ \bspace \textbf{Covariance: } $Cov(X, Y) = E((X - E(X))(Y - E(Y))) = E(XY) - E(X)E(Y)$ \bspace $Cov(X, X) = Var(X)$ \bspace $Cov(aX, bY) = abCov(X, Y)$ \bspace $Cov(X, Y+Z) = Cov(X, Y) + Cov(X, Z)$ \bspace \textbf{Law of iterated expectation: } $E(E(Y\mid X)) = E(Y)$ \bspace \textbf{Law of total probability}: $P(E) = \sum_{i=-\infty}^\infty P(E \mid X = x)P(X) \textrm{ and } P(E) = \int_{-\infty}^\infty P(E \mid X=x)f(x)dx$ \bspace \textbf{Variance decomposition formula: } $Var(Y) = E(Var(Y\mid X)) + Var(E(Y \mid X))$\\\\
+\textbf{Markov inequality: } For $X\geq 0 \;, \;P(X \geq t) \leq \frac{E(X)}{t} \; \; \forall t>0$. \bspace 
+\textbf{Chebyshev inequality: } $P(\abs{X - E(X)} \geq t) \leq \frac{Var(X)}{t^2} \; \; \forall t > 0$. \bspace 
+\textbf{Exponential inequality: } $P(X > a) \leq e^{-\theta a} E(e^{\theta X})$ for all $\theta > 0$. \bspace
+\textbf{(Corrolary) Upper bound on large deviations: } $P(S_n < na) \leq e^{-nI(x)}$. \bspace
+\textbf{Proof: } $P(S_n > a) \leq e^{-\theta a} E(e^{\theta S_n}) = e^{-\theta a} \prod_i E(e^{\theta X_i}) = e^{-\theta a} E(e^{\theta X_1})^n = e^{-\theta a + n \psi(\theta)} \textrm{, by exponential inequality, iid, where } \psi(\theta) = \log{Ee^{\theta X_1}}$ \bspace 
+$P(S_n > na) = e^{-n(\theta(x) a - n \psi(\theta(x))} \textrm{; minimizing RHS w.r.t } \theta \Longrightarrow e^{-nI(x)} \textrm{ where } I(x) = \theta(x) a - n \psi(\theta(x))$\\\\
+\textbf{Weak law of large numbers:} For $X_1, X_2, \dots, X_n$ i.i.d. with $E(X_i) = \mu$,  $Var(X_i) = \sigma^2$, $\overline{X}_n = \frac{1}{n}\sum_{i = 1}^n X_i$, then for any $\epsilon > 0$. $P(\abs{\overline{X}_n - \mu} > \epsilon) \leq \frac{Var(\overline{X}_n)}{\epsilon^2} = \frac{\sigma^2}{n\epsilon^2} \rightarrow 0 \textrm{ as } n \rightarrow \infty$\\\\
+\textbf{Central limit theorem:} $\sqrt{n}\frac{(\overline{X}_n - \mu)}{\sigma} \longrightarrow N(0, 1) \Longleftrightarrow \sqrt{n}(\overline{X}_n - \mu) \longrightarrow N(0, \sigma^2) = \sigma N(0, 1)$ \bspace $X_1 + \dots + X_n = S_n \approx N(E S_n, Var S_n)$\\\\
+\textbf{Monte Carlo: }\bspace Sample $Y \in \mathbb{R}^d$ \bspace Compute $X = g(Y)$ \bspace Repeat $n$ times \bspace form $\overline{X}_n$ and use CLT for asymptotic behavior.\\
+\textbf{Generating random data:} with $X = F_X^{-1}(U)$ since $P(F_X^{-1}(U) \leq x) = P(F_X(F_X^{-1}(U)) \leq F_X(x)) = P(U \leq F_X(x)) = F_x(x)$\\
+\textbf{Confidence intervals: } $P(Z_{\alpha / 2} \leq Z \leq Z_{1-\alpha / 2}) = P(\frac{\hat{\sigma}}{\sqrt{n}}Z_{\alpha/ 2} \leq \bar{X}_n - \mu \leq \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha / 2}) = P(\mu \in \left[\bar{X}_n \pm \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha/2}\right]) = 1-\alpha$ for $\hat{\sigma}\overset{p}{\longrightarrow} \sigma$\\
+\textbf{Slutsky's lemma:} $A_nX_n + B_n \overset{d}{\rightarrow} aX + b$ if $\{X_n\}$ sequence, $X_n \overset{d}{\rightarrow} X$,  $\{A_n\}$ sequence, $A_n \overset{d}{\rightarrow} A$, $\{B_n\}$ sequence, $B_n \overset{p}{\rightarrow} b$\\
+\textbf{Delta method:} If $g$ is a differentiable function at $\mu$, $\sqrt{n}(g(\bar{X}_n) - g(\mu)) \overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma^2) = g'(\mu)\sigma N(0,1)$. \textbf{Proof sketch:} Start with Taylor expansion $g(\bar{X}_n) \approx g(\mu) + g'(\mu)(\bar{X}_n - \mu)$, rearrange to get $ \sqrt{n}(g(\bar{X}_n) - g(\mu)) \approx g'(\mu)\sqrt{n}(\bar{X}_n - \mu) \overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma(2))$.\\\\
+\textbf{Variance reduction: } $E_ph(X)$ where $X \sim P = \int_{-\infty}^\infty h(x) p(x)dx = \int_{-\infty}^\infty h(x) p(x) q(x) / q(x) = E_q[h(x)p(x)/q(x)]$ where $X \sim Q$.\\
+$\sqrt{n}(\overline{X} - E_pX) \overset{d}{\longrightarrow} N(0, Var_p(X))$, $\sqrt{n}(\overline{\hat{X}} - E_q\hat{X}) \overset{d}{\longrightarrow} N(0, Var_q(\hat{X}))$ where $\hat{X} = Xp(x)/q(X)$\\
+\textbf{Importance sampling:} Choose $h(x)$ to minimize variance. Minimal $H(dx)$ turns out to be the conditional probability of the event happening on event happening: $H^*(dx) = \mathbb{I}\{A\}(x)F(dx)/F(A)$\\
+\textbf{Exponential tilting:} $Ef(X_1, \dots, X_n) = E_\theta \exp(-\theta S_n + n \psi(\theta))f(X_1, \dots, X_n)$, where $\psi(\theta) = \log{M_x(\theta)}$\\
+\textbf{Large deviations:} \bspace Use exponential tilting with $f(X_1, \dots, X_n) = \mathbb{I}(S_n > an)$: $E\mathbb{I}(S_n > an) = E_\theta[ \exp(-\theta S_n + n \psi(\theta))\mathbb{I}(S_n > an)]$ \bspace Choose optimal $\theta^* = \theta(a)$ which satisfies $\psi'(\theta(a)) = a$, which guarantees $E_{\theta(a)}X_i = a$ \bspace E.g., Gaussian: $M_X(\theta) = \exp(\mu\theta + \sigma^2\theta^2/2) \Longleftrightarrow \psi(\theta) = \mu\theta + \sigma^2\theta^2/2 \Longleftrightarrow \psi'(\theta) = \mu + \sigma^2\theta \leftarrow$ evaluate at $\psi'(\theta) = a$\\\\
+\textbf{Method of moments estimator:} $E(X^k) = g(\theta)$: Calculate moment with MGF, lower moments typically lead to estimators with lower asymptotic variance \bspace {$g^{-1}(E(X^k)) = \theta$: Invert this expression to create an expression for the parameter(s) in terms of the moment \bspace $\hat{\theta} = g^{-1}(\frac{1}{n}\sum X_i^k)$: Insert the sample moment into this expression, thus obtaining estimates of the parameters in terms of data \bspace $\sqrt{n}(g^{-1}(\frac{1}{n}\sum X_i^k) - \theta) \overset{d}{\longrightarrow}  N(0, f'(E(X_i^k))^2Var(X_i^k)^2)$: Use the delta method \bspace If multiple parameters characterize the distribution, use multiple moments and a system of equations\\\\
+\textbf{Maximum likelihood estimator}
+\bspace $L(\theta) = \prod_{i=1}^nf(X_i, \theta)$: Construct the likelihood function \bspace $log(L(\theta)) = l(\theta) = \sum_{i=1}^nlog(f(X_i, \theta))$: Take the log of the likelihood \bspace Find critical points of this function (e.g., $0 = \sum_{i=1}^n\frac{d}{d\theta}log(f(X_i, \hat{\theta}))$) and determine that one is a maximum
+
+
+
+
+\end{document}

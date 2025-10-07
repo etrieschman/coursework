@@ -1,0 +1,707 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+% \usepackage[pass,paperwidth=10in,paperheight=11in]{geometry}
+\pdfpageheight=11in
+\pdfpagewidth=11in
+\title{CME302 class notes}
+\author{Erich Trieschman}
+\date{2021 Fall quarter}
+
+\newcommand{\userMarginInMm}{8}
+\geometry{
+%  legal,
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=5mm}
+
+ \newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+ \newcommand*\bspace{$\; \bullet \;$}
+
+ \hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+    aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+%HEADERS
+% https://web.mit.edu/texsrc/source/latex/layouts/layman.pdf
+% \textheight=650pt
+% \textwidth=450pt
+% \headheight=-25pt
+% \oddsidemargin=5pt
+% \footskip=25
+
+\begin{document}
+\section{Linear algebra review}
+
+\subsection{Vector products}
+\textbf{inner product: } $x^Ty = \sum x_i*y_i$ \bspace $x^Ty = \norm{x}{2}\norm{y}{2}\cos\theta \Longleftrightarrow \abs{x^Ty}\leq \norm{x}{2}\norm{y}{2}$ \bspace $x^Ty = 0 \Leftrightarrow x \perp y$\\
+The \textbf{outer product} results in a matrix, the outer sum of the two vectors
+
+\subsection{Norms}
+\textbf{All norms: } $\norm{x}{x} = 0 \Leftrightarrow x = 0$ \bspace $\norm{\alpha x}{x} = \abs{\alpha}\norm{x}{x}$ \bspace $\norm{x+y}{x} \leq \norm{x}{x} + \norm{y}{x}$ \bspace $\norm{x-y}{x} \geq \norm{x}{x} - \norm{y}{x}$\\
+\textbf{Vector norms:} $\norm{x}{1} = \sum_{i=1}^n \abs{x_i}$ \bspace $\norm{x}{2} = \sqrt{\sum_{i=1}^n (x_i)^2}$ \bspace $\norm{x}{\infty} = \max_{i \in i,\dots, n} \abs{x_i}$ \bspace $\norm{x}{\infty} \leq \norm{x}{2} \leq \sqrt{n}\norm{x}{\infty}$\\
+\textbf{Matrix norms:}
+\begin{itemize}
+    \item $\norm{A}{\infty} = \sup_{x\neq 0}\frac{\norm{Ax}{\infty}}{\norm{x}{\infty}} = \max_{\norm{x}{\infty}=1}\norm{Ax}{\infty} = \max_i\norm{a_i^T}{1}$
+    \item $\norm{A}{F} = \sqrt{\sum_{i,j} a_{ij}^2} = \sqrt{tr(AA^T)} = \sqrt{tr(A^TA)} = \sqrt{\sum_{k=1}^{min(m,n)}\sigma_k^2} $
+    \item $\norm{AB}{p} \leq \norm{A}{p}\norm{B}{p}$ (not always true for Frobenius norms) \bspace $\norm{Ay}{p} \leq \norm{A}{p}\norm{y}{p}$
+    \item $\norm{Qx}{x} = \norm{x}{x}$ \bspace $\norm{QA}{x} = \norm{A}{x}$ (for $Q$ orthogonal)
+    \item $\norm{A}{2} \leq \sqrt{m}\norm{A}{\infty}$ \bspace $\norm{A}{\infty} \leq \sqrt{n}\norm{A}{2}$
+\end{itemize}
+
+\subsection{Matrix properties}
+\textbf{Determinant: } represents how the volume of a hypercube is transformed by the matrix.
+\begin{itemize}
+    \item For square matrix: $det(\alpha A) = \alpha^ndet(A)$\bspace$det(AB) = det(A)det(B)$ \bspace $A$ singular $\Leftrightarrow det(A) = 0$
+    \item For all matrices: $det(A) = det(A^T)$ \bspace $det(A^{-1}) = \frac{1}{det(A)}$
+\end{itemize}
+\textbf{Trace:} $tr(A) = \sum_{i = 1}^n a_{ii}$\bspace$tr(A) = tr(A^T)$\bspace$tr(A + \alpha B) = tr(A) + \alpha tr(B)$\bspace$tr(ABCD) = tr(BCDA)$\bspace$tr(uv^T) = v^Tu$\\
+\textbf{Inverse and transpose:} $A^T(A^{-1})^T = (A^{-1}A)^T = I^T = I = I^T = (AA^{-1})^T =(A^{-1})^TA^T$\\
+\textbf{Sherman-Morrison-Woodbury formula: } $(A+UV^T)^{-1} = A^{-1} - A^{-1}U(I+V^TA^{-1}U)^{-1}V^TA^{-1}$ for $A\in \mathbb{R}^{n\times n}, U,V \in \mathbb{R}^{n\times k}$\\
+\textbf{Proof:} $LHS^{-1}*RHS$: $(A+UV^T) (A^{-1} - A^{-1}U(I+V^TA^{-1}U)^{-1}V^TA^{-1})$. The end result is $I \Longrightarrow RHS$ is an inverse of $(A+UV^T)$\\\\
+\textbf{Orthogonal matrices:} $q_i^Tq_j = 1$ for $i=j$, and $q_i^Tq_j = 0$ for $i\neq j$. Equivalently, $Q^TQ = I$. For square matrices, $Q^TQ = QQ^T = I$
+
+\subsection{Projections, reflections, and rotations}
+\textbf{Projections:} A projection, $v$, of vector $x$ onto vector $y$ $v = \frac{y^Tx}{y^Ty}y$. Interpreted as portion of $x$ in the direction of $y$ ($y^Tx$), times the direction of $y$, divided by the length of $y$ twice ($y^Ty $)\\
+\textbf{Projection matrices} are square matrices, $P$, s.t., $P^2 = P$.\\\\
+\textbf{Reflection: } $P^2 = I$ \bspace $P = I - \beta vv^T$, with $\beta = \frac{2}{v^Tv}$, and $v$ the vector orthogonal to the line/plane of reflection \bspace $Px = x \Leftrightarrow v^Tx = 0$ ("fixed points" of $P$)
+
+% SYMMETRIC POSITIVE DEFINITE
+\subsection{Symmetric Positive Definite (SPD) Matrices}
+For \textbf{$A$, SPD:} i) $A = A^T$, ii) $x^TAx > 0$  $\forall x \neq 0$, iii) $a_{ii} > 0$, iv) $\lambda(A) \geq 0$, v) for $B$ nonsingular, $B^TAB$ is also SPD.\\
+\textbf{Tricks for proofs:} i) Multiply by $e_i$ since $e_i \neq 0$, ii) Use matrix transposes$x^TA^T = (Ax)^T$ to rearrange formulas\\\\
+\textbf{$B^TAB$ is SPD} if $A$ SPD and $B$ nonsingular: $x^TB^TABx = (Bx)^TA(Bx) > 0, \textrm{(since $B$ nonsingular $\Rightarrow Bx \neq 0$)}$
+
+% EIGENVALUES
+\subsection{Eigenvalues}
+\textbf{Eigenvalues:} $Ax= \lambda x \Longleftrightarrow (A - \lambda I)x = 0$ \bspace $\lambda(A) = \lambda(A^T)$ \bspace $\lambda_1 = \max_{x \neq 0}\frac{x^TAx}{\norm{x}{2}^2}$ \bspace $det(A) = \prod_{i=1}^n \lambda_i$ \bspace $tr(A) = \sum_{i=1}^n \lambda_i$\\
+The \textbf{algebraic multiplicity} of an eigenvalue, $\lambda_i$, is the number of times that $\lambda_1$ appears in $\lambda(A)$\\
+The \textbf{geometric multiplicity} of an eigenvalue, $\lambda_i$, is the dimension of the space spanned by the eigenvectors of $\lambda_i$\\ \\
+\textbf{Triangular matrices: } $t_{ii} = \lambda_i, \forall i \in \{1,\dots, n\}$ \bspace $T$ nonsingular $\Leftrightarrow$ all $t_{ii} \neq 0$\\\\
+\textbf{Gershgorin disc theorem:} all $\lambda \in \lambda(A) \subset \mathbb{D}_i = \{z \in \mathbb{C} \mid \lvert z - a_{ii}\rvert \leq \sum_{j \neq i} \lvert a_{ij}\rvert\}$\\
+\textbf{Proof:} $Ax = \lambda x \longleftrightarrow (A - \lambda I)x = 0 \longleftrightarrow \sum_{j \neq i} a_{ij}x_j + (a_{ii} - \lambda)x_i = 0, \; \forall \space i \in \{1, \dots, n\}$
+\begin{align*}
+    \lvert (a_{ii} - \lambda) \rvert &= \lvert \sum_{j \neq i} \frac{a_{ij}x_j}{x_i}\rvert
+    \leq \sum_{j \neq i} \lvert \frac{a_{ij}x_j}{x_i}\rvert \; \textrm{, by triangle inequality for } i \; s.t. \lvert x_i\rvert  = \max_{i} \lvert x_i \rvert \Longrightarrow \lvert (\lambda - a_{ii}) \rvert &\leq \sum_{j \neq i} \lvert a_{ij}\rvert 
+    \textrm{, since $\lvert \frac{x_j}{x_i} \rvert \leq 1$}
+\end{align*}
+
+% DECOMPOSITIONS
+\section{Matrix Decompositions}
+% SCHUR DECOMP
+\textbf{Schur Decomposition:} (any matrix) $A = QTQ^H$, $Q$ unitary $(Q^HQ = I)$, $T$ upper triangular. $Q$ orthogonal when $A \in \mathbb{R}^{n \times n}$\\ \\
+\textbf{Eigenvalue Decomposition:} ($A$ diagonalizable) $A = X \Lambda X^{-1}$, $\Lambda$ diagonal with $\lambda(A)$. $X$ orthogonal for $A$ real symmetric
+
+\subsection{Singular Value Decomposition}
+\textbf{Definition:} $A = U\Sigma V^H$. When $A \in \mathbb{R}^{m \times n}$, $A = U\Sigma V^T$ with $U, V, \Sigma \in \mathbb{R}$ \\ \\
+\textbf{Derivation:} Below considers case when $A$ full rank. Observe $A^TA$ symmetric: $(A^TA)^T = A^TA$
+\begin{align*}
+    A^TA \textrm{ symmetric} &\Rightarrow \exists \; Q \textrm{ orthogonal and } \Lambda \textrm{ diagonal matrix of $\lambda_i$ s.t., }\\
+    A^TA & = Q\Lambda Q^T \Longleftrightarrow Q^TA^TAQ = Q^TQ\Lambda Q^TQ \longleftrightarrow (AQ)^T(AQ) = \Lambda\\
+    &\textrm{note $AQ$ is orthogonal, but scaled to the eigenvalue in that row: }\lambda_i  = \norm{Aq_i}{2}^2\\
+    A &= AQQ^T = (AQ) Q^T = AQD^{-1}DQ^T \textrm{, where } D \textrm{ has $\sqrt{\lambda_i}$ on diagonal and } D^{-1} \textrm{has $\frac{1}{\sqrt{\lambda_i}}$ on diagonal}\\
+    A &= U\Sigma V^T \textrm{, where } U  = AQD^{-1}, \Sigma = D, V^T = Q^T\\
+\end{align*}
+\textbf{SVD properties:} 
+\begin{itemize}
+    \item $\sigma_i$ always $\geq0$ \bspace $\norm{A}{2} = \sigma_1$ \bspace $\norm{A^{-1}}{2} = \frac{1}{\sigma_n}$ when $A$ nonsingular \bspace $\norm{A}{F} = \sqrt{\sum_i^{min\{n,m\}}\sigma_i^2}$
+    \item $\lambda(A^TA) = \lambda(AA^T) = (\sigma(A))^2$ \bspace \textbf{Condition number}, $\kappa(A) = \norm{A}{2}\norm{A^{-1}}{2} = \frac{\sigma_1}{\sigma_n}$
+    \item When $A$ symmetric, $\sigma_i = \abs{\lambda_i}$ \bspace When $A$ orthogonal, $\sigma_1 = \dots = \sigma_n = 1$
+    \item $V$ contains the eigenvectors of $A^TA$ ($A^TAv_i = \sigma_i^2v_i$) \bspace $U$ contains the eigenvectors of $AA^T$ ($AA^Tu_i = \sigma_i^2u_i$)
+\end{itemize}
+
+% ERROR ANALYSIS
+\section{Error analysis}
+\textbf{Floating point equation:} $\pm (\sum_{i=1}^{t-1} d_i\beta^{-i})\beta^e$\\
+\textbf{Unit roundoff:} $u = \frac{1}{2} \times \beta^{-(t-1)}$ (distance between the smallest digits stored in a floating-point number). For double precision floating point numbers (64 bits), $u \approx 10^{-16}$\\
+\textbf{Conditioning: } relative sensitivity of a problem \bspace Sensitivity: $\frac{\norm{\Tilde{f}(x) - f(x)}{p}}{\norm{\Tilde{x} - x}{p}}$ \bspace Relative sensitivity: $\frac{\norm{\Tilde{f}(x) - f(x)}{p}\norm{x}{p}}{\norm{\Tilde{x} - x}{p}\norm{f(x)}{p}}$
+
+
+% LU FACTORIZATIONS
+\section{LU Factorization}
+$Ax=b \Longrightarrow LUx=b \Longrightarrow Lz=b, Ux=z$\\\\
+\textbf{Description: } $LU = l_1u_1^T + \dots + l_nu_n^T$, and when $l_1, u_1^T$ are from lower/upper respectively, $LU - l_1u_1^T$ yields a matrix with zeros in the first row and column\\
+\textbf{Basic altorithm:} $u_1^T = a_1^T$ \bspace $l_1 = a_1/a_{11}$ \bspace $A' \leftarrow A - l_1u_1^T$. In practice (and somewhat confusingly), $A'$ is now referred to as $A$ Observe each $l_i, u_i^T$ constructed are the rows/columns of the lower and upper triangular matrices of $L, U$ respectively.
+
+\subsection{Pivoting}
+\subsubsection{When pivoting is needed}
+\textbf{When pivot = 0:} Basic algorithm relies on the pivots, $a_{kk}\neq 0$. This will occur if none of the $k \times k$ blocks of $A, \; A[1:k, 1:k],$ have a determinant of 0. \textbf{Proof by induction}:\\
+\textit{Case k=1:} 
+\begin{align*}
+    A_1 &= L_1U_1 \longleftrightarrow det(A_1) = det(L_1U_1) \longleftrightarrow det(A_1) = det(L_1)det(U_1) \textrm{, by property of determinants}\\
+    det(A_1) &= det(U_1) \textrm{, since determinant of a triangular matrix is a product of the diagonals and the diagonal of $L_1$ are 1's}\\
+    det(A_1) &= a_{11} = u_{11} \rightarrow \textrm{so when determinant is not zero, we have a nonzero pivot}
+\end{align*}
+\textit{Case k=n:} assumed to be true\\
+\textbf{When small values on diagonal:} If entries of $L$ large this algorithm can generate roundoff errors.
+
+% CHOLESKY FACTORIZATION
+\subsection{Cholesky factorization}
+$A = GG^T$, with $G$ lower triangular. \textbf{Sketch of proof:} 
+\begin{itemize}
+    \item An SPD matrix, $A = \begin{bmatrix} a & C^T\\ C &  B \end{bmatrix}$ where a is 1x1, C is n-1x1, and b is n-1xn-1
+    \item First step of LU: $A = L_1U_1 \Longleftrightarrow \begin{bmatrix} a & C^T\\ C &  B \end{bmatrix} = \begin{bmatrix} 1 & 0\\ C/a &  I \end{bmatrix} \begin{bmatrix} a & C^T\\ 0 & B - (1/a)CC^T \end{bmatrix} = \begin{bmatrix} 1 & 0\\ C/a &  I\end{bmatrix} \begin{bmatrix} a & 0\\ 0 & B - (1/a)CC^T \end{bmatrix}
+    \begin{bmatrix} 1 & C^T/a\\ 0 & I \end{bmatrix}$
+    \item Observing i) $A$ symmetric $\Rightarrow B$ symmetric $\Rightarrow B - (1/a)CC^T$ symmetric ii) $A$ is SPD $\Longrightarrow a = e_1^TAe_1 > 0$
+    \item $\begin{bmatrix} 1 & 0\\ C/a &  I\end{bmatrix}$ nonsingular $\Longrightarrow \begin{bmatrix} a & 0\\ 0 & B - (1/a)CC^T \end{bmatrix}$ SPD ($A$ SPD $\Rightarrow B^TAB$ SPD)
+    \item This shows this process preserves SPD. Complete proof with induction
+\end{itemize}
+Continuing with this factorization, we get $A = LDL^T$. Common to rewrite $A = LDL^T = GG^T$, where $G = LD^{\frac{1}{2}}$
+
+% SCHUR COMPLEMENT
+\subsection{Schur complement}
+\begin{equation*}
+    \textrm{For } A = \begin{bmatrix} A_{11} & A_{12}\\ A_{21} & A_{22}\end{bmatrix}, \textrm{ after k steps of LU, }
+    A' = \begin{bmatrix} I & 0\\ A_{21}A_{11}^{-1} & I\end{bmatrix}
+    \begin{bmatrix} A_{11} & 0\\ 0 & A_{22} - A_{21}A_{11}^{-1}A_{12}\end{bmatrix}
+    \begin{bmatrix} I & A_{21}A_{11}^{-1}\\ 0 & I\end{bmatrix}
+\end{equation*}
+\textbf{Schur complement:} The bottom-right block of $A', A_{22}'$, equal to $A_{22} - A_{21}A_{11}^{-1}A_{12}$ from the original matrix.
+
+\subsubsection{Schur complement derivation}
+At any step in the LU factorization, $A$ can be written in the form $A' = \begin{bmatrix} A_{11} & A_{12}\\ A_{21} & A_{22}\end{bmatrix} = \begin{bmatrix} L_{11} & 0\\ L_{21} & L_{22}\end{bmatrix} \begin{bmatrix} U_{11} & U_{12}\\ 0 & U_{22}\end{bmatrix}$\\
+From this equality, we can create a system of equations
+\begin{align*}
+    U_{12} = L_{11}^{-1}A_{12} \;\bullet\; L_{11}^{-1} = L_{21}A_{21}A_{11}^{-1} \;\bullet\; A_{22} - L_{21}U_{12} = L_{22}U_{22} \;\bullet\; A_{22} - A_{21}A_{11}^{-1}A_{12} = L_{22}U_{22}
+\end{align*}
+Notice that the Schur complement equals the product of $L_{22}U_{22}$\\
+We can then show $A_{22}'$ in the LU factorization is equal to $A_{22} - L_{21}U_{12}$ (since at each step we're subtracting $l_iU_i^T$), and get
+\begin{align*}
+    A_{22}' &= A_{22} - L_{21}U_{12} = (L_{21}U_{12} + L_{22}U_{22}) - L_{21}U_{12} = L_{22}U_{22} = A_{22} - A_{21}A_{11}^{-1}A_{12}
+\end{align*}
+
+% QR FACTORIZATION
+\section{QR factorization}
+\textbf{The QR factorization is unique: } for full rank matrix, $A$:
+\begin{align*}
+    A &= QR \longleftrightarrow Q^TA = R \longleftrightarrow ^TQ^TA = R^TR \longleftrightarrow (QR)^TA = R^TR \longleftrightarrow A^TA = R^TR
+\end{align*}
+We now have a matrix, $A^TA$ that can be written of the form $R^TR$, which is the structure of the Cholesky factorization. Suffice to show that $A^TA$ is Symmetric and Positive Definite (SPD) to prove the uniqueness of R.
+
+% HOUSEHOLDER REFLECTION
+\subsection{Householder reflection}
+\textbf{Householder reflection algorithm:} Construct $Q^T$ for each column in $A$ that projects it onto a corresponding column of an upper right triangular matrix, $R$. \textbf{The key} to the iterative part of the algorithm is to construct $Q_i^T, i > 1$ with an identity matrix in the upper-left $i-1 \times i-1$ quadrant, and a smaller $Q_i^{*T}$ in the lower right $n-i \times n-i$ quadrant\\
+\textbf{Constructing the Householder reflection:} maps $a \rightarrow \norm{a}{2}e_1$ with $P = I - \beta vv^T \textrm{, where $v = a - \norm{a}{2}e_1$, and $\beta = 2/v^Tv$}$
+\begin{itemize}
+    \item Mechanics: multiplying $Px$ is the same as taking the vector $x$ and subtracting $\frac{2vv^T}{v^Tv}x$ from it, twice the projection of $x$ onto $v$
+    \item In our case we want to reflect $a$ onto $\norm{a}{2}e_1$.  $a + \norm{a}{2}e_1$ is the line of reflection, and $v=a - \norm{a}{2}e_1$, perpendicular to this, is the vector that defines the line of reflection
+\end{itemize}
+
+% GIVENS TRANSFORMATION
+\subsection{Givens transformation}
+Useful for sparse matrices. A \textbf{Givens rotation} rotates $u = (u_1, u_2)^T$ to $\norm{u}{2}e_1$. The matrix that does this, $G^T$, is defined by
+\begin{equation*}
+    G^T = \begin{bmatrix} c & -s \\ s & c \end{bmatrix}, c = \frac{u_1}{\norm{u}{2}}, s = -\frac{u_2}{\norm{u}{2}}
+\end{equation*}
+A matrix, $P_i$, can be constructed to only contain this targeted transformation. Sequentially, the $P_i$'s can multiply $A$ to arrive at $R$
+
+% GRAM-SCHMIDT TRANSFORMATION
+\subsection{Gram-Schmidt transformation}
+For $A \in \mathbb{R}^{m\times n}$ is tall and thin. Similar to $LU$, \textbf{Gram-Schmidt Transformation} starts with $A=QR= q_1r_1^T + \dots q_mr_m^T$:
+\begin{align*}
+    r_{11} &= \norm{a_1}{2} \textrm{, since } \norm{a_1}{2} = \norm{q_1r_{11}}{2} \textrm{ and $q_i$ orthogonal} \; \bullet \; q_1 = \frac{1}{r_{11}}a_1\textrm{, since } a_1 = q_1r_{11} \textrm{ by construction of } QR \\
+    r_{1j} &= q_1^Ta_j \textrm{, (repeat for all $j$) since } a_j = q_1r_{1j} + \dots + q_jr_{jj}\Longleftrightarrow q_1^Ta_j = q_1^Tq_1r_{1j} + \dots + q_1^Tq_jr_{jj} \Longleftrightarrow q_1^Ta_j = r_{1j} \textrm{, since $q_i$ orthonormal}\\
+    A' &= A - q_1r_1^T
+\end{align*}
+Repeat for $A'$, the construction of $r_{kk}, q_k, r_{kj}$: \bspace $a_k = \sum_{i=1}^kr_{ik}q_i = r_{kk}q_k + \sum_{i=1}^{k-1}r_{ik}q_i$ \bspace $1. \; r_{ik} = q_i^Ta_k$ for each $r_{ik}, i < k$, since $Q$ orthonormal and $q_{k-1}$ known \bspace $2. \; z = r_{kk}q_k = q_k - \sum_{i=1}^{k-1}r_{ik}q_i$ \bspace $3. \; r_{kk} = \norm{z}{2}, \; q_k = \frac{z}{r_{kk}}$
+
+% LEAST SQUARES
+\subsection{QR factorization to solve least-squares problems}
+Least-squares problem: $argmin_x\norm{Ax - b}{2}$. \\\\
+% NORMAL EQUATIONS
+\textbf{Method of normal equations:} $A$ full rank. The point, $x$ which solves $argmin_x\norm{Ax - b}{2}$ is one where $b-Ax \perp Range(A)$. To solve for this:
+\begin{align*}
+    \textrm{Want: } (b-Ax) &\perp \{z \vert z = Ay\} \longleftrightarrow (b-Ax) \perp range(A) \longleftrightarrow (b-Ax) \perp a_i, \forall i \in A\\
+    a_1^T(b-Ax) &= 0, \forall i \in A \longleftrightarrow A^T(b-Ax) = 0 \longleftrightarrow x = (A^TA)^{-1}A^Tb
+\end{align*}
+Use Cholesky for fast/accurate solve since $A^TA$ is SPD. Notice $\kappa(A^TA) = \kappa(A)^2$, so inaccurate method if A poorly conditioned\\\\
+% QR METHOD FOR LEAST SQUARES
+\textbf{QR method for least squares:} $A$ full rank. Attempts to address issue of poor contiioning. 
+\begin{align*}
+    A^T(Ax-b) &= 0 \longleftrightarrow R^TQ^T(Ax-b) = 0\\
+    Q^T(Ax-b) &= 0 \textrm{, since we assume $A, R$ full rank (multiply both sides by $R^{-T}$})\\
+    Q^TQRx-Q^Tb &= 0 \longleftrightarrow Rx = Q^Tb \longleftrightarrow x = R^{-1}Q^Tb
+\end{align*}
+% SVD FOR RANK-DEFICIENT A
+\textbf{SVD for rank-deficient A: } $A$ not full rank, we can get infinite solutions (a line of points that satisfy $argmin_x\norm{Ax - b}{2}$). To choose $x$, we add constraint $\min_x \norm{x}{2}$ to our original objective function. Use "thin" SVD so $\Sigma$ has an inverse and calculate $x$ as
+\begin{align*}
+    (Ax-b) &\perp range(A) \longleftrightarrow (Ax-b) \perp range(U) \textrm{, since $R(A) = R(U)$ for $A=U\Sigma V^T$}\\
+    U^T(Ax-b) &= 0 \longleftrightarrow U^T(U\Sigma V^Tx - b) = 0 \longleftrightarrow \Sigma V^Tx = U^Tb\\ 
+    x &= V\Sigma^{-1}U^Tb \textrm{ (the "thin" SVD here provides a nonsingular $\Sigma\in \mathbb{R}^{r \times r}$, so we can take the inverse}
+\end{align*}
+Observe for $\min_x \norm{x}{2}$ that the $x \perp N(A)$ is the shortest vector between $N(A)$ and the vector/plane of solutions to $argmin_x\norm{Ax - b}{2}$. This value must be in $Range(V)$ since $Range(V) = N(A)^\perp$
+
+
+% ITERATIVE METHODS FOR EIGENVALUES
+\section{Iterative methods to find eigenvalues}
+\subsection{Select eigenvalue theorems}
+\textbf{Eigenvalues of similar matrices:} For $S$ nonsingular and $A = S^{-1}BS$, then i) $\lambda(A) = \lambda(B)$ and ii) $x$ eigenvector of $A$ $\Leftrightarrow S^{-1}x$ eigenvector of $B$.
+\begin{align*}
+    i) \; &\lambda(A) = \lambda(B): det(A - \lambda I) = det(S^{-1})det(A - \lambda I)det(S) = det(S^{-1}(A - \lambda I)S) = det(B - \lambda I)\\
+    ii) \;& \textrm{$x$ e-vect of $A \Leftrightarrow S^{-1}x$ e-vect of $B$}: Ax = \lambda x \rightarrow S^{-1}Ax = \lambda S^{-1}x \rightarrow S^{-1}ASS^{-1}x = \lambda S^{-1}x \rightarrow B(S^{-1}x) = \lambda (S^{-1}x)
+\end{align*}
+\textbf{Eigenvalues from invariant subspaces:} $X \in \mathbb{R}^{n \times m}$ invariant subspace of $A \in \mathbb{R}^{n \times n} \Leftrightarrow \exists B \in \mathbb{R}^{n \times m}$ s.t. $AX = XB$
+\begin{align*}
+    \Rightarrow: \;& X \textrm{ invariant} \longrightarrow Ax_i \in X \longrightarrow Ax_i = \sum_{j=1}^mx_jb_{ji} \longrightarrow AX = XB\\
+    \Leftarrow: \;& AX = XB \longrightarrow Ax_i = \sum_{j=1}^mx_jb_{ji} \longrightarrow Ax_i \in X \longrightarrow X \textrm{ invariant}
+\end{align*}
+Furthermore, when $AX = XB$, the $m$ eigenvalues of $B$ are also eigenvalues of $A$: $By = \lambda y \longrightarrow XBy = \lambda Xy \longrightarrow AXy = \lambda Xy$
+
+\subsection{Power iteration}
+Assuming $A = X\Lambda X^{-1}$, diagonalizable, given $\lambda_1 > \lambda_2 \geq \dots \geq \lambda_n \in \lambda(A)$. Implemented through the following method:
+\begin{align*}
+    1. \;& q_0 \textrm{, vector chosen at random}\\
+    2. \;& z_k = Aq_k = A^kq_0 \textrm{, evaluating for convergence if } z_k \parallel q_k \rightarrow z_k^Tx_k = \norm{z}{2}\norm{x}{2}\\
+    3. \;& q_{k+1} = \frac{z_k}{\norm{z_k}{2}} = \frac{A^kq_0}{\norm{A^kq_0}{2}} \approx (\frac{\lambda_2}{\abs{\lambda_1}})^kx_1
+\end{align*}
+Since $A^{k}q_0 = Aq_{k} \approx \lambda_1 x_1$, where $\norm{x_1}{2} = 1 \; (WLOG)$ and $q_k \parallel x_1$, we can solve for $\lambda$:
+\begin{align*}
+    Aq_k \approx \lambda_1 x_1 &\Longrightarrow Ax_1 \approx \lambda_1x_1 \Rightarrow x_1^HAx_1 \approx \lambda_1\\
+    \textrm{Convergence: } &O((\abs{\frac{\lambda_1}{\lambda_2}})^k) \textrm{, since}\\
+    A^kq_0 &= \sum_i \alpha_i A^k x_i = \sum_1 \alpha_i \lambda_i^k x_i = \alpha_1\lambda_1^k(x_i + \frac{\alpha_2}{\alpha_1}(\frac{\lambda_2}{\lambda_1})^k + \dots + \frac{\alpha_n}{\alpha_1}(\frac{\lambda_n}{\lambda_1})^k) \Longleftrightarrow \norm{A^kq_0}{2} = \abs{\alpha_1\lambda_1^k}(1 + O(\frac{\lambda_2}{\lambda_1})^k) 
+\end{align*}
+
+\subsection{Inverse iteration}
+This process finds the eigenvector of $A$ that to $\mu$. Do this by iteratively multiplying matrix $(A - \mu I)^{-1}$ instead of $A$.\\
+Observe $(A - \mu I)^{-1}$ has the same eigenvectors of $A$:
+\begin{align*}
+    (A - \mu I)^{-1}x &= \lambda x \longleftrightarrow x = (A - \mu I)x = \lambda Ax - \lambda \mu x \longleftrightarrow \lambda Ax = x + \lambda \mu x \longleftrightarrow Ax = \frac{(1 + \lambda \mu)}{\lambda}x
+\end{align*}
+Performing the power iteration on $(A - \mu I)^{-1}$, the largest eigenvalue to emerge will be of the form $\frac{1}{\lambda_i - \mu}$, and we get
+\begin{align*}
+    (A - \mu I)^{-1k}q_0 &= (A - \mu I)^{-1}q_{k} \approx \lambda_i x_i \textrm{, where } \norm{x_i}{2} = 1 \; (WLOG) \textrm{ and } q_k \parallel x_i
+\end{align*}
+Since $x_i$ is also an eigenvalue of $A$, we can solve $x_i^HAx_i = \lambda_i$ for the $\lambda_i$ closest in magnitude to $\mu$.\\
+\textbf{Convergence: } $O(\abs{\frac{\lambda_i - \mu}{\lambda_j - \mu}})^k)$, where $\lambda_j$ is the next closest eigenvalue to $\mu$
+
+\subsection{Orthogonal iteration}
+This process finds $r$ eigenvalues of $A$ in a single iterative process. Assume we use power iteration to compute $q_1$. To get $q_2$:
+\begin{align*}
+    A^k &= \lambda_1x_1y_1^T + \lambda_2x_2y_2^T + \dots \Longrightarrow PA^k = \lambda_1Px_1y_1^T + \lambda_2Px_2y_2^T + \dots \textrm{, where } P = I - x_1x_1^T\\
+    PA^k &= 0 + \lambda_2Px_2y_2^T + \dots \textrm{, since } Px_1 = Ix_1 - x_1x_1^Tx_1 = x_1 - x_1 = 0 \Longrightarrow \textrm{, and apply power iteration on } PA \textrm{to to reveal $\lambda_2$}
+\end{align*}
+The general process is: \bspace Start with $\lambda_1, q_1$ from power iteration \bspace Build $P_2$, orthogonal projector onto $\{q_1\}^\perp$, use power iteration to reveal ($\lambda_2, q_2$) \bspace Build $P_r$, orthogonal projector onto  $\{q_1, \dots, q_{r-1}\}^\perp$, use power iteration to reveal ($\lambda_r, q_r$)\\
+Now consider the QR decomposition of $X$, observing its connection to the Schur Decomposition:
+\begin{align*}
+    A &= X\Lambda X^{-1} = QR \Lambda R^{-1} Q^H = QTQ^H \textrm{, where upper triangular } T = R\Lambda R^{-1}
+\end{align*}
+\bspace The eigenvalues of $A$ are on the diagonal of $T$ \bspace By construction, each column of $Q$ is projecting the corresponding column of $X$ onto a vector orthogonal to the preceding ones \bspace The span of the columns of $Q, span\{q_1, \dots, q_n\}$ will be equal to the span of the columns of $X, span\{x_1, \dots, x_n\}$.\\
+The process for the \textbf{orthogonal iteration} is:
+\begin{align*}
+    1. \;& AQ_k \rightarrow Z \textrm{, where $k$ is the iteration and } Q_0 = I\\
+    2. \;& Z \rightarrow Q_{k+1}R_{k+1} \textrm{, the QR factorization of $Z$}\\
+    3. \;& \textrm{Repeat } AQ_{k+1} \rightarrow Z \textrm{ and eventually } Q_k \rightarrow Q
+\end{align*}
+Note in each iteration we are calculating $Q_{k+1}^HAQ_k = R_{k+1}$
+
+\subsubsection{Reveal eigenvectors of $A$ from $T$}
+Motivation: $A = X\Lambda X^{-1}$ can be hard to calculate.
+\begin{align*}
+    A &= X\Lambda X^{-1} = QR \Lambda R^{-1}Q^H = QTQ^H \textrm{, where } T = R\Lambda R^{-1}\\
+    A &= QY\Lambda Y^{-1}Q^H \textrm{, where $T = Y \Lambda Y^{-1}$ is easier to compute}
+\end{align*}
+Focusing on $T = Y \Lambda Y^{-1}$, choose some $\lambda_i$ (we could get from power or QR iteration). 
+\begin{align*}
+    Tx &= \lambda_i x \Longrightarrow (T - \lambda_i I)x = 0 \Longrightarrow  (T - \lambda_i I)x  = \begin{bmatrix} T_{11} - \lambda_i I & T_{12} & T_{13}\\ 0 & 0 & T_{23}\\
+            0 & 0 & T_{33} - \lambda_i I \end{bmatrix} \begin{bmatrix} X_1 \\ X_2 \\ X_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \textrm{, where one diagonal element is 0}
+\end{align*}
+And solve with back substitution:
+\begin{align*}
+    X_3 &= 0: (T_{33} - \lambda_i I) X_3 = 0\\
+    X_2 &\textrm{ is a free parameter} \in \mathbb{R}: 0X_2 + T_{33}X_3 = 0 \Longrightarrow 0X_2 = 0\\
+    X_1 &= -(T_{11}-\lambda_i I)^{-1}T_{12}X_2: (T_{11}-\lambda_i I)X_1 + T_{12}X_2 + T_{13}X_3 = 0
+\end{align*}
+So, if $T$ upper triangular with $\lambda_i$ on diagonal of T, you can figure out all the columns of $Y$ for $T = Y\Lambda Y^{-1}$. It follows the eigenvectors of $A$ are $Qy_i$. Note, $(T_{11} - \lambda_i I)$ nonsingular as long as the algebraic multiplicity of $\lambda_i$ is 1.
+
+\subsubsection{Rate of convergence in orthogonal (and QR) iteration}
+\textbf{Property:} the angle between two subspaces, $U$ and $V$, is defined as $\norm{UU^T - VV^T}{2}$\\
+\noindent In orthogonal interation, the span of those $i$ columns of $Q_k, span\{q_1, \cdots, q_i\} \longrightarrow$ the span of those columns of $X, span \{x_1, \cdots, x_i\}$. Convergence is dictated by how quickly these spans converge. The rate of convergence is $O(\abs{\frac{\lambda_{i+1}}{\lambda_i}}^k)$.
+
+% QR ITERATION
+\subsection{QR iteration}
+The QR iteration builds directly on the framework of the orthogonal iteration. In orthogonal iteration, we compute $T_{k+1}$ with the eigenvalues of $A$ appearing on the diagonal of $T_{k+1}$: $Q_{k+1}^HAQ_k = T_{k+1} \textrm{ with }AQ_k = Z = Q_{k+1}T_{k+1}$\\
+In the QR iteration, we ask if we can go from $T_k$ to $T_{k+1}$ directly. Observe
+\begin{align*}
+    A = Q_k T_k Q_k^H \Longrightarrow T_k = Q_k^HAQ_k \; &\bullet \; AQ_k = Q_{k+1}R_{k+1} \Longrightarrow Q_{k+1}^HA = R_{k+1}Q_k^H\\
+    T_k = Q_k^H(Q_{k+1}R_{k+1}) \longrightarrow T_k = U_{k+1} R_{k+1} \textrm{ for } U_{k+1} = Q_k^HQ_{k+1} \; &\bullet \; T_{k+1} = (R_{k+1}Q_k^H)Q_{k+1} \longrightarrow T_{k+1} = R_{k+1}U_{k+1} \textrm{ for } U_{k+1} = Q_k^HQ_{k+1}
+\end{align*} 
+So we have an algorithm for $T_k \rightarrow T_{k+1}$, this process is the \textbf{QR iteration}:\\
+$1. \; T_k \longrightarrow U_{k+1}R_{k+1} \textrm{, the QR factorization of } T_k$ \bspace $2.\; R_{k+1}U_{k+1} \longrightarrow T_{k+1}$ \bspace $3.\; \textrm{Repeat with } T_{k+1}$\\\\
+\textbf{Property:} $R_{k+1}$ is the same in both QR factorization of $A = Q_{k+1}R_{k+1}$ and $T_k = U_{k+1}R_{k+1}$
+\begin{align*}
+    case \; 1: &A = AQ_0 = Q_1R_1, A = T_0 =U_1R_1^* \textrm{, and } T_1 = Q_k^HAQ_1\\
+    &U_1R_1^* = Q_0^TQ_1R_1 = Q_1R_1 \; \Longrightarrow R_1^* = R_1 \textrm{ and } U_1 = Q_0^TQ_1\\
+    case \; k:& \textrm{ Assume } R_k^* = R_k, U_k = Q_{k-1}^TQ_k \textrm{, and } T_k = Q_k^HAQ_k\\
+    case \; k+1:& AQ_k = Q_{k+1}R_{k+1}\\
+    T_k &=U_{k+1}R_{k+1}^* = Q_k^HAQ_k = Q_k^HQ_{k+1}R_{k+1} \Longrightarrow R_{k+1}^* = R_{k+1} \text{ and } U_{k+1} = Q_k^HQ_{k+1}\\
+    T_{k+1} &= R_{k+1}U_{k+1} = Q_{k+1}^H(Q_{k+1}R_{k+1})U_{k+1} = Q_{k+1}^HAQ_kQ_k^HQ_{k+1} \Longrightarrow T_{k+1} = Q_{k+1}^HAQ_{k+1}
+\end{align*}
+
+\subsection{QR iteration on upper Hessenberg}
+Each QR iteration step of a dense matrix is $O(n^3)$. If we run for $O(k)$ iterations, then this algorithm is $O(kn^3)$.\\
+If we first convert $A$ to upper Hessenberg with $O(n^3)$, and Givens rotations ($O(n^2)$), we can reduce algorithm to $O(n^3 + kn^2)$:
+\begin{align*}
+    \textrm{Choose } Q_1^T &= \begin{bmatrix} 1 & 0 \\ 0 & \tilde{P_1} \end{bmatrix} \textrm{ to perform a Householder rotation onto the first two entries of } a_1 \in A\\
+    \textrm{Observe }Q_1^T A Q_1 &= \begin{bmatrix} 1 & 0 \\ 0 & \tilde{P_1} \end{bmatrix} A \begin{bmatrix} 1 & 0 \\ 0 & \tilde{P_1^T} \end{bmatrix} = \begin{bmatrix} x & x & \cdots & \\
+        x & x & \cdots \\ 0 & x &\cdots \\ \vdots & \vdots & \ddots \end{bmatrix} \textrm{ where $a_{11}$ is never changed, the rest of $a_1$}\\
+        &\textrm{is only operated on by $\tilde{P_1}$, and the rest of $a_1^T$ is only operated on by $\tilde{P_1^T}$}\\
+    \textrm{Continuing on, } & Q_n^T \dots Q_2^TQ_1^T A Q_1Q_2 \dots Q_n = H = Q^HAQ \textrm{ where } Q_k^T = \begin{bmatrix} I_k & 0 \\ 0 & \tilde{P_k} \end{bmatrix}
+\end{align*}
+\textbf{$H$ remains upper Hessenberg in QR iteration:} This follows since in the first step of QR iteration, $H_k$ is transformed to $R_k$ with givens rotations, $U_k^HH_k = R_k$. And in the second step of QR iteration, $H_{k+1}$ is created as $R_kU_k = H_{k+1} = U_k^HH_kU_k$. Since $U_k$ is a series of givens rotations, these rotations can be constructed/ordered so that $H_{k+1}$ preserves upper Hessenberg.
+
+\subsection{QR iteration with shift}
+When $\lambda_{i+1}$ is close to $\lambda_i$ this accelerates convergence. First observe for $\lambda_i \in \lambda(A) \rightarrow (\lambda_i - \mu) \in \lambda(A - \mu I)$. In this algorithm, at each step we shift $T_k$ by $\mu I$. For $\mu$ close to $\lambda_{i+1}$ close to $\lambda_i$, the resulting converence, $\abs{[(\lambda_{i+1} - \mu) / (\lambda_i - \mu)]}^k$ will be faster. Shift does not require that $\abs{\lambda_1} > \abs{\lambda_2} \geq \dots \geq \abs{\lambda_n}$.
+\begin{align*}
+    1. \;& \mu_k = T_k[n, n]\\
+    2. \;& (T_k - \mu_k I) \longrightarrow U_{k+1}R_{k+1} \textrm{, QR factorization of the shifted } T_k\\
+    3. \;& R_kU_k + \mu_k I \longrightarrow T_{k+1} \textrm{, and repeat!}\\
+\end{align*}
+Observe, this shift preserves the original QR iteration:
+\begin{align*}
+    (T_k - \mu_ I) &= U_{k+1}R_{k+1} \Longrightarrow U_{k+1}^HT_k - \mu_k U_{k+1}^H = R_{k+1}\\
+    T_{k+1} &= R_{k+1}U_{k+1} + \mu_k I \Longrightarrow T_{k+1} = (U_{k+1}^HT_k - \mu_k U_{k+1}^H)U_{k+1} + \mu_k I = U_{k+1}^HT_kU_{k+1} - \mu_k I + \mu_k I = U_{k+1}^HT_kU_{k+1}
+\end{align*}
+
+\subsection{QR iteration with deflation}
+\textbf{Deflation} allows us to break up the current QR iteration process into two smaller/easier problems.
+\begin{itemize}
+    \item If any sub-diagonal element of an upper Hessenberg matrix, $H$, is 0, it can be written as $H = \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} &\end{bmatrix}$ with $H_{11}$ and $H_{22}$ upper Hessenberg and $\lambda(H) = \lambda(H_{11})\cup \lambda(H_{22})$
+    \item Therefore, if when updating $T_k = R_kU_k + \mu_k I$, any sub-diagonal element of $T_k = 0$, then $T_k$ can be written in this form and the QR iteration can be performed on $(T_k)_{11}$ and $(T_k)_{22}$ separately (simpler  problems)
+\end{itemize}
+\textbf{Theorem:} $\lambda(H) = \lambda(H_{11})\cup \lambda(H_{22})$ for $H$ block upper triangular. \textbf{Proof:}
+\begin{align*}
+    \Longrightarrow& Hx = \lambda x \longrightarrow \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix}
+     = \begin{bmatrix} H_{11}x_1 + H_{12}x_2 \\ H_{22}x_2 \end{bmatrix} = \begin{bmatrix} \lambda x_1 \\ \lambda x_2 \end{bmatrix}\\
+     &\textrm{and either $x_2=0$ and $\lambda \in \lambda(H_{11})$ or not and $\lambda \in \lambda(H_{22})$}\\
+     \Longleftarrow& H_{11}p_1 = \lambda p_1 \longrightarrow \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} \end{bmatrix} \begin{bmatrix} p_1 \\ 0 \end{bmatrix}
+     = \begin{bmatrix} H_{11}p_1 \\ 0 \end{bmatrix} = \begin{bmatrix} \lambda p_1 \\ 0 \end{bmatrix}\\
+     \Longleftarrow& H_{22}p_2 = \lambda p_2 \longrightarrow \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} \end{bmatrix} \begin{bmatrix} x \\ p_2 \end{bmatrix}
+     = \begin{bmatrix} H_{11}x + H_{12}p_2 \\ H_{22}p_2 \end{bmatrix} = \begin{bmatrix} \lambda x_1 \\ 0 \end{bmatrix}\\
+     &\textrm{where } H_{11}x + H_{12}p_2 = \lambda x \textrm{ for } x = -(H_{11} - \lambda I)^{-1}H_{12}p_2 \textrm{, making } \lambda \in \lambda(H)
+\end{align*}
+\textbf{Theorem:} If $H$ is singular unreduced upper Hessenberg, then in QR factorization, $H=QR$, the last row of $R$ is zero.\\
+\textbf{Explanation:} When constructing QR iteration, each column of $R$ can be linearly independent from the previous ones (since we're adding a dimension) except for the last one (since $H$ and $R$ must be singluar):
+\begin{align*}
+    h_1 &= h_{11}e_1 + h_{21}e_2 & h_2 = h_{12}e_1 + h_{22}e_2 + h_{32}e_3 && h_{n-1} = \sum_{i=1}^n h_{n-1,i}e_i
+\end{align*}
+
+\section{Finding eigenvalues of sparse matrices}
+Reducing complexity in sparse matrices through matrix-vector products, $Ax = \sum_j a_{ij}x_j$, where you can skip all $a_{ij}$ when $a_{ij} = 0$. 
+
+\subsection{Arnoldi process}
+Reveals the first $k$ eigenvalues of a sparse matrix using a process similar to \textit{Gram-Schmidt}\\
+With Arnoldi process, we start with equation $Q^HAQ = H \Longrightarrow AQ = QH$ and use $Q$ to make $H$ where each subsequent column of $AQ$ is made orthogonal to all preceeding columns.\\
+The process follows: \bspace $1. \; \textrm{Begin with random } q_1 \in Q \textrm{, such that } \norm{q_1}{2} = 1$. (Iterate through each of the first $k$ columns of $Q$ with \bspace $2. \; Aq_j = \sum_{k = 1}^{j+1} h_{kj}q_k \textrm{, observing we can recover all $h_{ij}$ for $i \leq j$ since } q_i^TAq_j = h_{ij}$ \bspace $3. \; Aq_j = \sum_{k = 1}^{j} h_{kj}q_k + h_{j+1, j}q_{j+1}$ \bspace $4. \; r = Aq_j - \sum_{k = 1}^{j} h_{kj}q_k = h_{j+1, j}q_{j+1} \textrm{, where only $r$ is unknown}$ \bspace $5. \; \norm{q_{j+1}}{2} = 1 \Longrightarrow h_{j+1, j} = \norm{r}{2} \textrm{ and } q_{j+1} = \frac{r}{h_{j+1, j}}$\\\\
+The output of this process is $k$ columns of $Q$ and the upper $k \times k$ block of upper Hessenberg matrix, $H$, which can be used in the QR iteration to reveal $k$ eigenvalues close to $\lambda(A)$:
+\begin{align*}
+    AQ &= QH \Longrightarrow AQ_k = Q_kH_k + h_{k+1,k}q_{k+1}e_k^T \textrm{, where } Q_k = Q[:, 1:k], H_k = [1:k, 1:k]\\
+    AQ_k &= Q_kX_k\Lambda_k X_k^{-1} + h_{k+1,k}q_{k+1}e_k^T \textrm{, where } H_k = X_k\Lambda_k X_k^{-1} \textrm{ through QR iteration}\\
+    A(Q_kX_k) &= (Q_kX_k)\Lambda_k + h_{k+1,k}q_{k+1}x_k^T \textrm{, where } x_k^T \textrm{ is the $k^{th}$ column of } X
+\end{align*}
+And we get an equation where i) $AQ_k \approx Q_kH_k$, ii) $\Lambda_k$ contains $k$ eigenvalues close to $\lambda_i \in \lambda(A)$, iii) $(Q_kX_k)$ serve as eigenvectors for those eigenvalues, and iv) $h_{k+1,k}q_{k+1}x_k^T$ represents something like an error term.
+
+\subsubsection{QR factorization of Krylov subspace contains $Q_k$ from Arnoldi}
+\textbf{Proof:} We show for $K_k = Q_kR_k$, that $R_k$ is upper triangular.
+\begin{align*}
+    \textrm{Start with } Q^TK_k &= R \textrm{ upper triangular for } K_k = \begin{bmatrix}
+        \vline & \vline & & \vline \\ q_1 & Aq_1& \dots & A^kq_1 \\ \vline & \vline & & \vline \end{bmatrix}\\
+        Q^Tk_j &= Q^TA^{j-1}q_1 = Q^T Q H^{j-1} Q^T q_1 \textrm{, since } A^k = Q^T H^k Q\\
+        &= H^{j-1} Q^T q_1 = H^{j-1} e_1 \textrm{, since $Q$ orthogonal}\\
+        \Rightarrow r_j \in R &= h_1 \in H^{j-1} \textrm{, which has top $j$ rows nonzero}
+\end{align*}
+This also means $Q_k$ forms a basis for $K(A, q_1, k)$.
+
+
+\subsubsection{Arnoldi process generates a minimal polynomial}
+\textbf{Polynomial properties}
+\begin{itemize}
+    \item If A is diagonalizable, i.e., $A = X\Lambda X^{-1}$, then polynomial $f(A) = Xf(\Lambda)X^{-1}$
+    \item \textbf{Characteristic polynomial} of A is $p_A(z) = det(zI - A) = \prod(z - \lambda_i)$ and $p_A(\lambda_i) = 0$ for $\lambda_i \in \lambda(A)$
+    \item $f(A) = 0 \Longrightarrow \lambda_i \in \lambda(A)$ are the roots of the polynomial (e.g., $p_A(A) = Xp_A(\Lambda)X^{-1} = 0$)
+\end{itemize}
+Our hope with the Arnoldi process is that for $p_k(H_k) = 0$, revealed in Arnoldi, $p_k(A)$ is minimally small among degree $k-1$ polynomials. Instead of showing $\norm{p_K(A)}{2}$ is minimized (which is hard), we show $\norm{p_K(A)q_1}{2}$ is minimized
+
+% LANCZOS PROCESS FOR SYMMETRIC MATRICES
+\subsection{Lanczos process}
+The \textbf{Lanczos process} is a parallel process to the Arnoldi process, but for symmetric matrices. Reminder: A symmetric upper Hessenberg matrix, $T$ is tri-diagonal. The process follows
+\begin{align*}
+    1. \; \alpha_k = q_k^TAq_k \Longrightarrow \alpha_kq_k = Aq_k \; &\bullet \; 2. \; r_k = Aq_k - \beta_{k-1}q_{k-1} - \alpha_kq_k \Longrightarrow r_k = \beta_{k-1}q_{k-1} \textrm{, $r_k$ becomes the orthogonal part of $Aq_k$}\\
+    3. \; \beta_k = \norm{r_k}{2} \; &\bullet \; 4. \; q_{k+1} = \frac{r_k}{\beta_k}
+\end{align*}
+The orthogonalization in step 2 is reduced from $O(k)$ in Arnoldi to $O(1)$ in Lanczos because of the symmetry of $A$
+
+\section{Iterative splitting methods for solving linear systems}
+\textbf{General idea:} $\textrm{For } A = M - N \textrm{, where } M \textrm{ nonsingular: } Ax = b \Longleftrightarrow Mx - Nx = b \Longleftrightarrow x = M^{-1}Nx + M^{-1}b$\\
+\textbf{Convergence} depends on $M^{-1}N$: Define the error at step $k+1$ as $e_{k+1} = x_{k+1} - x$, then
+\begin{align*}
+    e_{k+1} &= x_{k+1} - x = M^{-1}Nx_{k} + M^{-1}b - M^{-1}Nx - M^{-1}b\\
+    &= M^{-1}Nx_{k} - M^{-1}Nx = M^{-1}N(x_{k} - x) = M^{-1}Ne_k = (M^{-1}N)^ke_0
+\end{align*}
+Convergence only occurs when the spectral radius of $M^{-1}N$, $\rho(M^{-1}N)<1$. Where $\rho(A) = \max_{\lambda_i \in \lambda(A)} \abs{\lambda_i}$. \textbf{Proof:}
+\begin{align*}
+    \textrm{Let } Gv&=\lambda v \textrm{, where } G = M^{-1}N \textrm{ and pick } x_0 = x + v \textrm{ as a first guess solve}\\
+    \textrm{Then } e_k &= G^ke_0 = G^k(x_0 - x) = G^kv = \lambda^kv \textrm{ and } e_k \rightarrow 0 \textrm{if} \abs{\lambda} < 1
+\end{align*}
+
+\subsection{Jacobi}
+\textbf{Definition: }Let $A = D - L - U$, and choose $M = D$ and $N = L+U$. Then we have $Dx_{k+1} = (L+U)x_k + b$\\
+\textbf{Convergence: }Converges for any $x_0$ when $A$ is strictly diagonally dominant: $\abs{a_ii} > \sum_{j\neq i} \abs{a_ij}$\\
+\textbf{Proof: }
+\begin{align*}
+    g_{ii} = 0 \textrm{ for } G = M^{-1}N &\Longrightarrow \lambda \in D_i = \{ z \mid \abs{z} \leq \sum_{i\neq j}\abs{g_{ij}}\} \textrm{, by Gershgorin Disc Theorem}\\
+    \textrm{Suffice to show } \sum_{i\neq j}\abs{g_{ij}} < 1: \; \;& \sum_{i\neq j}\abs{g_{ij}} < 1 \Longrightarrow \sum_{i\neq j} \frac{\abs{a_{ij}}}{\abs{a_{ii}}} <1 \Longrightarrow \sum_{i\neq j}\abs{a_{ij}} < \abs{a_{ii}} \Longrightarrow \textrm{$A$ is strictly diagonoally dominant}
+\end{align*}
+
+\subsection{Gauss-Seidel}
+\textbf{Definition: } Let $A = D - L - U$, and choose $M = D - L$ and $N = U$. Then we have $(D - L)x_{k+1} = Ux_k + b$\\
+\textbf{Householder-John Theorem: } if $A, B \in \mathbb{R}^{m \times n}$ and $A$ and $[A - B - B^T]$ are SPD, then $\rho(H) < 1$ where $H = (A - B)^{-1}B$. \textbf{Proof:}
+\begin{align*}
+    Hx = \lambda x &\Longrightarrow (A - B)^{-1}Bx = \lambda x \Longrightarrow Bx = \lambda (A - B)x \Longrightarrow Bx = \frac{\lambda}{1 + \lambda}Ax\\
+    x^HBx &= \frac{\lambda}{1 + \lambda}x^HAx \Longrightarrow x^HB^Tx = \frac{\tilde{\lambda}}{1 + \tilde{\lambda}}x^HA^Tx \textrm{, by taking the complex conjugate of both sides}\\
+    0 &< x^HAx - x^HBx - x^HB^Tx = \frac{1 - \abs{\lambda}^2}{\abs{1 + \lambda}^2}x^HAx \textrm{, since $A-B-B^T$ SPD} \Longrightarrow 0 < x^HAx \Longrightarrow \abs{\lambda}<1 \textrm{, since $A$ SPD}
+\end{align*}
+\textbf{Convergence: } If $A$ SPD, then Gauss-Seidel converges for any $x_0$\\
+\textbf{Proof:} Choose $A$ SPD with $A = D - L - U$ and $B = -U = -L^T$ and use Householder-John theorem. 
+
+\subsection{Successive Over-Relaxation (SOR)}
+\textbf{Definition:} Using the Gauss-Seidel method, we attempt to increase acceleration using $0<\omega<2$. The  iterative method is $x_{k+1} = x_k + \omega\left[D^{-1}(b + Lx_{k+1} + Ux_k) - x_k\right]$
+\begin{align*}
+    \textrm{In SOC: } x_{k+1} = x_k + \omega\Delta x_{k+1} = x_k + \omega(D^{-1}(b + Lx_{k+1} + Ux_k) - x_k)
+\end{align*}
+SOR is itself a splitting method with $A = D - L - U$,  $M = \frac{1}{\omega}D - L$ and $N = (\frac{1}{\omega} - 1)D + U$\\
+\textbf{Convergence:} If $A$ SPD, then SOR converges for any $\omega \in (0, 2)$\\
+\textbf{Proof:} In the Householder-John Theroem, choose $A_{HJ} = \omega A$ and $B_{HJ} = (\omega - 1)D - \omega U$\\
+Also, for $\omega \notin (0, 2)$ there exists $x_0$ s.t. SOR will not converge\\
+\textbf{Proof:}
+\begin{align*}
+    det(G) &= det(M^{-1}N) = \frac{det((1-\omega)D + \omega U)}{det(D - \omega L)} = \frac{\prod_i(1-\omega)d_{ii}}{\prod_i d_{ii}} = (1-\omega)^n \textrm{, since $L, U$ triangular with 0 on diagonal}\\
+    det(G) &= \prod_{\lambda_i \in \lambda(G)}\lambda_i = (1-\omega)^n \Longrightarrow \abs{\lambda_{max}(G)}\geq \abs{1 - \omega} \Longrightarrow \textrm{Convergence only when } \abs{1 - \omega} < 1
+\end{align*}
+
+\subsection{Chebyshev Semi-iterative Method}
+The most efficient splitting method, but requires us knowing the interval containing $\lambda(A)$. It also uses knob, $\omega$, but we can choose to update this at each step\\
+\textbf{Definition: }With $A = M - N$, $G = M^{-1}N$, and $\omega_k \in \mathbb{R}$, the iterative method is
+\begin{align*}
+    x_{k+1} &= x_k + \omega_k((M^{-1}b + Gx_k) - x_k) = x_k + \omega_kM^{-1}(b - Ax_k)\\
+    \textrm{With } e_k &= (I - \omega_{k-1}M^{-1}A)e_{k-1} = \left(\prod_{i=0}^{k-1}(I - \omega_{i}M^{-1}A)\right)e_0
+\end{align*}
+We can minimize error $e_k$ with $\norm{q_k(M^{-1}A)e_0}{2}$, where $q_k(x) = (1 - \omega_{k-1}x)\dots(1 - \omega_0x)$. 
+\begin{align*}
+    \norm{e_0}{2} =& \norm{q_k(M^{-1}A)e_0}{2} \leq \max_\lambda q_k(\lambda)\norm{e_0}{2}\\
+    &\textrm{Recalling } q_k(M^{-1}A) = Xq_k(\Lambda)X^{-1} \textrm{ for } M^{-1}A = X\Lambda X^{-1} \textrm{ with each diagonal element in } q_k(\Lambda) = q_k(\lambda_i)\\
+    \norm{e_k}{2} \leq& \max_\lambda q_k(\lambda)\norm{e_0}{2} \leq \frac{\norm{e_0}{2}}{T_k\left(\frac{\beta + \alpha}{\beta - \alpha}\right)} \textrm{, where } \abs{q_k(x)} \leq \frac{1}{T_k\left(\frac{\beta + \alpha}{\beta - \alpha}\right)}
+\end{align*}
+
+\section{Iterative Krylov methods for solving linear systems}
+Unrolling splitting methods, we see $x_k$ is a linear combination of $\{b, Ab, \dots, A^{k-1}b\}$, a Krylov Subspace of $A$. We can write 
+\begin{itemize}
+    \item $x_k = Q_ky$ for $Q_k$ the orthonormal basis of $\mathcal{K}_k(A, b, k)$ \bspace $r_k = b - Ax_k = b - AQ_ky$ \bspace Minimizing $r_k \Longleftrightarrow r_k \perp \mathcal{K}(A, b, k)$. 
+\end{itemize}
+
+
+\subsection{Conjugate Gradient}
+Krylov method for SPD matrices. Error, $x - Q_ky$ minimized in $A$ norm. Residual, $r_k$, minimized in $A^{-1}$ norm. O(n) per iteration.\\\\
+\textbf{Naive approach to CG}
+\begin{align*}
+    \textrm{Minimize } \norm{r_k}{{A^{-1}}}^2 = (b - AQ_ky)^TA^{-1}(b - AQ_ky) = b^Tx - 2y^TQ_k^Tb + y^TQ_k^TAQ_ky\\
+    \frac{d}{dy}\left(b^Tx - 2y^TQ_k^Tb + y^TQ_k^TAQ_ky\right) = 0 \Longrightarrow Q^T_kAQ_ky = Q^T_kb \textrm{, minimizes y}
+\end{align*}
+And the iterative process becomes: \bspace Construct $Q_k$ from Lanczos process (O(n)) \bspace Compute $y$ from $Q^T_kAQ_ky = Q^T_kb = \norm{b}{2}e_1$ (O(k), since $H_k$ assembled in Lanczos) \bspace Compute $x_k = Q_ky$ (O(kn), the expensive step we'll try to simplify)\\\\
+\textbf{Efficient approach to CG}: We increase efficiency by working with search directions, $\Delta x_k = x_{k+1} - x_k$, instead of $x_{k+1}$ directly. Search directions, $\Delta x_k, \Delta x_l$ are $A$-conjugate: $(\Delta x_k)^TA\Delta x_l = 0$ for $k \neq l$. \textbf{Proof:}
+\begin{align*}
+    r_k - r_{k+1} = (b - Ax_k) - (b - Ax_{k+1}) = Ax_{k+1} - Ax_k &= A \Delta x_k \; \bullet \; \textrm{Since } r_k, r_{k+1} \perp Q_k \Longrightarrow A \Delta x_k \perp Q_k\\
+    \Delta x_l = x_{l+1} - x_l \in \mathcal{K}_{l+1} \textrm{ and } \Delta x_k = x_{k+1} - x_k \in \mathcal{K}_{k+1} &\Longrightarrow \textrm{For } l < k, A\Delta x_k\perp \Delta x_l \Rightarrow \Delta x_l^TA\Delta x_k = 0\\
+    \Delta x_l^TA\Delta x_k = (\Delta x_l^TA^T)\Delta x_k &\Longrightarrow A\Delta x_l\perp \Delta x_k \textrm{, since $A$ SPD}\\
+    &\therefore (\Delta x_k)^TA\Delta x_l = 0 \textrm{ for } k \neq l
+\end{align*}
+We can work with search directions directly using $\Delta x_k = \mu_{k+1}p_{k+1} \;\;\;\;\; p_{k+1} = r_k + \sum_{l=1}^k\tau_{lk}p_l$. Determined by
+\begin{align*}
+    p_{k+1}' &\in span\{r_0, \dots, r_k\} = span\{p_1, \dots, p_k, r_k\} \Longrightarrow p_{k+1}' = \alpha_kr_k + \sum_{l=1}^k \tau_{lk}'p_l' \textrm{ for some } \alpha_k, \tau_{lk}'\\
+    p_{k+1} &= r_k + \sum_{l=1}^k \tau_{lk}p_l \textrm{, setting } \alpha_k = \mu_{k+1}, \;\;  p_{k+1} = \frac{1}{\mu_{k+1}}p_{k+1}' \textrm{, and } \tau_{lk} = \frac{\mu_l}{\mu_k}\tau_{lk}'
+\end{align*}
+Let $p_k' = \Delta x_{k-1}$. We rely on several properties to achieve the above\\
+\begin{itemize}
+    \item \textbf{Property:} when $x_{k+1} = x_k \Rightarrow r_{k+1} = r_k \Rightarrow r_k = 0$ since $r_k \in \mathcal{K}_{k+1} \perp r_{k+1}$
+    \item \textbf{Property:} $span\{p_1', \dots, p_l'\} = \mathcal{K}_l$
+    \begin{itemize}
+        \item $x_k, x_{k-1} \in \mathcal{K}_k \rightarrow p_k' \in \mathcal{K}_k \Longleftrightarrow x_k \neq x_{k-1} \rightarrow \Delta x_{k-1} \neq 0 \rightarrow p_k' \notin \mathcal{K}_{k-1}$
+        \item $p_k' \in \mathcal{K}_k$ and $p_k' \notin \mathcal{K}_l$ for $l < k \Longrightarrow span\{p_1', \dots, p_l'\} = \mathcal{K}_l$
+    \end{itemize}
+    \item \textbf{Property:} $span\{r_0, \dots, r_{l-1}\} = \mathcal{K}_l$
+    \begin{itemize}
+        \item $b, Ax_{k-1} \in \mathcal{K}_k \Longrightarrow r_{k-1} = b-Ax_{k-1} \in \mathcal{K}_k \Longleftrightarrow r_{k+1} \neq r_k \Longrightarrow r_{k-1} \notin \mathcal{K}_{k-1}$
+        \item $r_{k-1} \in \mathcal{K}_k$ and $r_{k-1} \notin \mathcal{K}_{l}$ for $l < k \Longrightarrow span\{r_0, \dots, r_{l-1}\} = \mathcal{K}_l$
+    \end{itemize}
+    \item \textbf{Property:} $span\{r_0, \dots, r_{l-1}\} = \mathcal{K}_l = span\{p_1', \dots, p_l'\}$
+    \item \textbf{Property:} $\mu_{k+1} = \frac{r_k^Tr_k}{p_{k+1}^TAp_{k+1}}$
+    \begin{align*}
+        &r_k - r_{k+1} = A\Delta x_{k+1} = \mu_{k+1}Ap_{k+1} \Longleftrightarrow p_{k+1}^Tr_k = \mu_{k+1}p_{k+1}^TAp_{k+1} \textrm{, since } - p_{k+1}^Tr_{k+1} =0\\
+        &\mu_{k+1} = \frac{p_{k+1}^Tr_k}{p_{k+1}^TAp_{k+1}} = \frac{r_k^Tr_k}{p_{k+1}^TAp_{k+1}} \textrm{, since } p_{k+1} = r_k + \tau_kp_k \Longleftrightarrow r_k^Tp_{k+1} = r_k^Tr_k
+    \end{align*}
+    \item \textbf{Property:} $\tau_k = \frac{r_k^Tr_k}{r_{k-1}^Tr_{k-1}}$
+    \begin{align*}
+        &p_{k+1} = r_k + \sum_{l=1}^k \tau_{lk}p_l \Longleftrightarrow p_k^TAp_{k+1} = p_k^TAr_k + \sum_{l=1}^k \tau_{lk}p_k^TAp_l \Longleftrightarrow 0 = p_k^TAr_k + \tau_{kk}p_k^TAp_k\\
+        &\tau_k = \frac{-p_k^TAr_k}{p_k^TAp_k} = \frac{r_k^Tr_k}{r_{k-1}^Tr_{k-1}} \textrm{, since } Ap_k = \frac{1}{\mu_k}(r_{k+1} - r_k) \Longleftrightarrow r_k^TAp_k = \frac{r_k^Tr_k}{\mu_k} \textrm{ with } \mu_k = \frac{r_{k-1}^Tr_{k-1}}{p_k^TAp_k}
+    \end{align*}
+\end{itemize}
+
+\subsubsection{Key orthogonality results}
+\begin{itemize}
+    \item $r_k \perp Q_k$, by construction of $r_k$ to minimize $\norm{r_k}{{A^{-1}}}$
+    \item $r_k \perp r_l$ for $l \neq k$, since $span\{r_0, \dots, r_{l-1}\} = \mathcal{K}_l$
+    \item $p_k \perp Ap_l$ for $l \neq k$, since $r_k, r_{k-1} \perp \mathcal{K}_{k-1}$ and $Ap_k = \frac{1}{\mu_k}A\Delta x_k = \frac{1}{\mu_k}A(r_k - r_{k-1})$ then $Ap_k \perp \mathcal{K}_{k-1}$, but for $l < k$, $p_l = \frac{1}{\mu_l}(x_l - x_{l-1}) \in \mathcal{K}_{k-1}$ so $p_l \perp Ap_k$. We can get same result for $l>k$ using $A$ SPD properties.
+    \item $r_k \perp p_l$ for $l \leq k$, TODO
+    \item $r_k \perp Ap_l$ for $l < k$ since $p_l^TAr_k = (Ap_l)^Tr_k$ with $Ap_l = \frac{1}{\mu_l}(x_l - x_{l-1}) \in \mathcal{K}_{l+1}$ and $r_k \perp \mathcal{K}_{l+1}$ for $l+1 < k+1 \Leftrightarrow l < k$
+\end{itemize}
+\textbf{Congugate Gradient algorithm}
+\begin{align*}
+    (i) & \;\textrm{Choose some } x_0 \textrm{ (could be $x_0 = 0$)} \; \bullet \; (ii) \; r_0 = b-Ax_0, \; p_0 = 0, \; k = 1 \; \bullet \; (iv) \; \textrm{Return } x_{k-1}\\
+    (iii) & \; \textrm{While } r_{k-1} \neq 0\\
+    &\tau_{k-1} = \frac{\norm{r_{k-1}}{2}^2}{\norm{r_{k-1}}{2}^2}\; \bullet \; p_k = r_{k-1} + \tau_{k-1}p_{k-1}\; \bullet \; \mu_k = \frac{\norm{r_{k-1}}{2}^2}{p_k^TAp_k}\; \bullet \; x_k = x_{k-1} + \mu_kp_k\; \bullet \;r_k = r_{k-1} - \mu_kAp_k\; \bullet \; k \leftarrow k+1
+\end{align*}
+
+\subsection{GMRES}
+Krylov method for general matrices, Generalized Minimal Residual Method (GMRES). Error, $x-x_k = x - Q_ky$ minimized in $A^TA$ norm. Residual, $r_k$, minimized in 2-norm. O(kn) per iteration.
+\begin{align*}
+    \norm{x - x_k}{{A^TA}}^2 = (x - x_k)^TA^TA(x - x_k) = (b - Ax_k)^T(b - Ax_k) = \norm{b - Ax_k}{2}^2 = \norm{r_k}{2}^2
+\end{align*}
+We can use least squares methods to minimize $y$ in $\norm{r_k}{2}^2$:
+\begin{align*}
+    \norm{r_k}{2}^2 &= \norm{b - Ax_k}{2}^2 = \norm{Q_{k+1}Q_{k+1}^Tb - Q_{k+1}Q_{k+1}^TAQ_ky}{2}\\
+    &=\norm{Q_{k+1}(Q_{k+1}^Tb - Q_{k+1}^TAQ_ky)}{2} =\norm{Q_{k+1}^Tb - Q_{k+1}^TAQ_ky}{2} =\norm{\norm{b}{2}e_1 - H_ky}{2}
+\end{align*}
+Lastly, use givens rotations to make $H_k$ upper triangular, and then find solution $y_k$.
+
+\subsection{Preconditioning}
+\textbf{CG predonditioning:} Choose $M$ SPD and define $C^2 = M$. CG preconditioning follows symmetric preconditioning, solving $CACy = Cb$ and $Cy=x$, but with tricks that only require computing $MA$.
+\begin{itemize}
+    \item $MA$ is similar to $CAC$ (suffice to show $\lambda(MA) = \lambda(CAC)$)
+    \begin{align*}
+        MAx = \lambda x &\Leftrightarrow CCACz = \lambda Cx \Leftrightarrow CACz = \lambda z \textrm{, for } x = Cz\\
+        CACy = \lambda y &\Leftrightarrow MACy = \lambda Cy \Leftrightarrow MAx = \lambda x \textrm{, for x = Cy}
+    \end{align*}
+    \item $MAx = Mb \Longleftrightarrow CCAx = CCb \Leftrightarrow CACC^{-1}x = Cb$
+    \item $C^{-1}x \in \mathcal{K}(CAC, Cb, k) \Longleftrightarrow x \in \mathcal{K}(MA, Mb, k)$
+    \begin{align*}
+        C^{-1}x \in \mathcal{K}(CAC, Cb, k) &\Longleftrightarrow C^{-1}x = \alpha_0Cb + \sum_{i=1}^k\alpha_i(CAC)^iCb = \alpha_0Cb + \sum_{i=1}^k\alpha_iCA(MA)^{i-1}CCb\\
+        &\Longleftrightarrow x = \alpha_0Mb + \sum_{i=1}^k\alpha_iMA(MA)^{i-1}Mb = \sum_{i=1}^k\alpha_i(MA)^iMb \Longleftrightarrow x \in \mathcal{K}(MA, Mb, k)
+    \end{align*}
+\end{itemize}
+
+\section{Direct methods}
+\textbf{Matrix storage: } $A = \begin{bmatrix}
+        4.1 & 0 & 2.9  & 0\\
+        1.2&-0.3 & 0 & -0.1\\
+        0 & 7.2 & 9.2 & 0\\
+        0 & 0 & 0 & 1.0
+    \end{bmatrix}$\\
+\textbf{Coordinate format (COO):} $(i, j, a_{ij})$, e.g. $COO(A) = (1, 1, 4.1), (1, 3, 2.9), \dots, (4, 4, 1.0)$\\
+\textbf{Compressed Sparse Row (CSR):} $\{nzval, colval, rowptr\}$, e.g., 
+\begin{equation*}
+    CSR(A) = \begin{cases}
+        nzval &= [4.1, 2.9, \dots, 1.0] \textrm{ (nonzero values)}\\
+        colval &= [1, 3, \dots, 4]\textrm{ (column values)}\\
+        rowptr &= [1, 3, 6, 8, 9] \textrm{ (index of nzval that starts each row)}
+    \end{cases}
+\end{equation*}
+\textbf{Compressed Sparse Column (CSC):} $\{nzval, rowval, colptr\}$\\
+\textbf{Conceptualizing the graph of $A, G_A$:} Edge $j \rightarrow i$ exists if $a_{ij} \neq 0$
+\subsection{Solving triangular sparse systems}
+\textbf{Dense $b$:} For $Lx=b$ with sparse lower triangular matrix, $L$, and dense vector, $b$: $x_i = \frac{1}{l_{ii}}\left(b_i - \sum_{j=1}^{i-1}l_{ij}x_j\right)$\\
+\textbf{Sparse $b$:} We can improve on this code when $b$ sparse by first determining the nonzero pattern of $x$ (nontrivial).
+\begin{equation*}
+    \textrm{Rules for the nonzero pattern in $x$: } x_i = \frac{1}{l_{ii}}\left(b_i - \sum_{j=1}^{i-1}l_{ij}x_j\right) \Longrightarrow 
+    \begin{cases}
+        b_i \neq 0 & \Rightarrow x_i \neq 0\\
+        \exists j<i \textrm{ s.t. } l_{ij} \neq 0 \textrm{ and } x_j \neq 0 & \Rightarrow x_i \neq 0
+    \end{cases}
+\end{equation*}
+Using \textbf{graph theory}, the statements above are equivalent to saying \bspace $X$ is the set of nodes reachable from $B$, the set of nodes for which $b_i \neq 0$, on $G_L$ \bspace The reach of node $j$ is  all $i$ for which there is a path $j \rightsquigarrow i$ \bspace Use recursive backtracking ("depth-first search") to determine set $X$.
+
+\subsection{Cholesky factorization}
+\textbf{Up-looking Cholesky factorization:} Starting with known $L'$, an upper $k \times k$ block of $L$, we can determine the $(k+1)^{st}$ row/column of $L$
+\begin{align*}
+    (i) \;& \textrm{For $A$ SPD, initialize } L' = \sqrt{a_{11}}\\
+    (ii) \;& \textrm{For } k=2, \dots, n, \textrm{write top $k\times k$ block as } \begin{bmatrix} L' & 0\\x^T & w \end{bmatrix} \begin{bmatrix} L'^T & x\\0 & w \end{bmatrix} = \begin{bmatrix} A' & b\\b^T & a \end{bmatrix}\\
+    &\textrm{Solve } L'x=b \textrm{ for $x$, compute } w = \sqrt{a-x^Tx} \textrm{, and update/return } L' = \begin{bmatrix} L' & 0\\x^T & w \end{bmatrix}
+\end{align*}
+\textbf{Notice } $L'_{k-1}l_k^T = a_k^T$, so we can leverage the same nonzero pattern relationship as above:
+\begin{equation*}
+    l_{ij} = \frac{1}{l_{ii}}\left(a_{ij} - \sum_{k=1}^{j-1}l_{jk}l_{ik}\right) \Longrightarrow \textrm{For } j < i
+    \begin{cases}
+        a_{ij} \neq 0 & \Rightarrow l_{ij} \neq 0\\
+        \exists k<j \textrm{ s.t. } l_{jk} \neq 0 \textrm{ and } l_{ik} \neq 0 & \Rightarrow l_{ij} \neq 0
+    \end{cases}
+\end{equation*}
+
+\subsubsection{Elimination trees}
+\textbf{Elimination Tree}, $E_T$, is a graph of the first nonzero off-diagonal element in each column of $L$.\\\\
+\textbf{The elimination tree has the same reach as $G_L$:}  For any $j$, let $i'$ be the smallest row index s.t., $L_{i'j}  \neq 0$. We show removing $j\rightarrow i$ from $G_L$, with $i > i'$ does not change the reach of $G_L$\\
+\textbf{Proof:} Consider $k \in Reach(j)$ and how/if it changes after we remove edge $j \rightarrow i$: \bspace If $i$ wasn't in the path of $j \rightsquigarrow k$, then the reach is unchanged \bspace If $i$ was in path of $j \rightarrow i \rightsquigarrow k$, the reach is still unchanged because $l_{ij}\neq 0$ and $l_{i'j} \neq 0 \Longrightarrow l_{i'i} \neq 0$, so a path, $j \rightsquigarrow k$, can still be constructed: $j \rightarrow i' \rightarrow i \rightsquigarrow k$
+
+\subsubsection{Worked example of $A \longrightarrow E_T \longrightarrow G_L$:}
+\begin{align*}
+    A = \begin{bmatrix}
+        X &- &X &X &X\\
+        - &X &- &- &X\\
+        X &- &X &- &-\\
+        X &- & -& X &-\\
+        X &X &- &- &X
+    \end{bmatrix}
+    \longrightarrow E_T = \begin{cases}
+        i=1: & a_{11}\neq 0 \Rightarrow \circled{1} \textrm{ (only looking at or below the diagonal } \forall i)\\
+        i=2: & \circled{1}\; \mid \; a_{22}\neq 0 \Rightarrow \circled{2}\\
+        i=3: & a_{31}\neq 0 \Rightarrow \circled{1} \rightarrow \circled{3} \; \mid \; \circled{2}\\
+        i=4: & a_{41} \neq 0 \Rightarrow \circled{1} \rightarrow \circled{3} \rightarrow \circled{4} \; \mid \; \circled{2}\\
+        i=5: & a_{51} \neq 0 \Rightarrow \circled{1} \rightarrow \circled{3} \rightarrow \circled{4} \rightarrow \circled{5} \leftarrow \circled{2} \Leftarrow a_{52}\neq 0 \textrm{ (final $E_T$)}
+    \end{cases}
+\end{align*}
+\begin{align*}
+    E_T \longrightarrow G_L: \begin{cases}
+        i=1: l_{11}l_{21} = a_{12} \Longleftrightarrow [X][l_{21}] = [-]& a_{12} = 0 \Rightarrow l_{21} = 0 \\
+        i=2: \begin{bmatrix} X & -\\ - & X \end{bmatrix} \begin{bmatrix} l_{31} \\ l_{32} \end{bmatrix} = \begin{bmatrix} a_{13}\\a_{23} \end{bmatrix} = \begin{bmatrix} X\\- \end{bmatrix}& a_{13}\neq 0 \Rightarrow l_{31} \neq 0\\
+        i=3: \begin{bmatrix} X & - & -\\ - & X & -\\X & - & X \end{bmatrix} \begin{bmatrix} l_{41} \\ l_{42} \\ l_{43} \end{bmatrix} = \begin{bmatrix} a_{14}\\a_{24} \\a_{34}\end{bmatrix} = \begin{bmatrix} X\\-\\- \end{bmatrix} & \begin{matrix}
+            a_{14}\neq 0 \Rightarrow l_{41} \neq 0 \Longrightarrow l_{31}\neq 0 \Rightarrow l_{43}\neq 0 \\ \textrm{(since $3$ in reach of $1 \in G_L$)}
+        \end{matrix} \\
+        i=4: \dots
+    \end{cases}\\
+\end{align*}
+
+\end{document}

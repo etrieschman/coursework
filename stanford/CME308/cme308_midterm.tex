@@ -1,0 +1,180 @@
+\documentclass[9pt]{extarticle}
+\usepackage{extsizes}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{CME308: Stochastic Methods in Engineering}
+\author{Erich Trieschman}
+\date{2022 Spring quarter}
+
+\newcommand{\userMarginInMm}{5}
+\geometry{
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=-1mm}
+
+\newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+\newcommand*\bspace{$\; \bullet \;$}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+
+\begin{document}
+% \maketitle
+
+% \section{Probability}
+\subsection{Calculus cheat sheet}
+\textbf{Logs:} $log_b(M * N) = log_bM + log_bN$ \bspace $log_b(\frac{M}{N}) = log_bM - log_bN$\bspace $log_b(M^k) = klog_bM$\bspace $e^ne^m = e^{n+m}$\\
+\textbf{Derivatives:} $(x^n)' = nx^{n-1}$\bspace $(e^x)' = e^x$ \bspace $(e^{u(x)})' = u'(x)e^x$ \bspace $(log_e(x))' = (lnx)' = \frac{1}{x}$\bspace $(f(g(x)))' = f'(g(x))g'(x)$\\
+\textbf{Integrals: } $\int_a^b f(x)dx = \int_{g(a)}^{g(b)}f(g(u))g'(u)du$ where $g(u) = x$\bspace $\int_a^b u(x)v'(x)dx = u(b)v(b) - u(a)v(a) - \int_a^b u'(x)v(x)dx$\\
+\textbf{Infinite series and sums:} $e^x = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \dots = \sum_{n=0}^\infty \frac{x^n}{n!}$\bspace $(1 + \frac{a}{n})^n \longrightarrow e^a$\\
+\bspace $ln(1 + x) = 1 - x + \frac{x^2}{2} - \frac{x^3}{3} + \dots = \sum_{n=0}^\infty (-1)^n\frac{x^n}{n}$\bspace $\frac{1}{1-x} = 1 + x + x^2 + x^3 + \dots = \sum_{n=0}^\infty a^x$ for $\abs{x} < 1$\\
+\textbf{L'Hopitale:} $\lim_{n\rightarrow c} f(x) / g(x) = \lim_{n\rightarrow c} f'(x)/g'(x)$ if $\lim_{n\rightarrow c} f(x) = \lim_{n\rightarrow c} g(x) = 0/\infty/-\infty$
+
+\subsection{Expectation}
+\textbf{Conditional expectation: } $p_{X|Y}(x|y) = \frac{p_{x,y}(x,y)}{p_y(y)}$\\
+\textbf{Bayes theorem: } $P(E_i \mid B) = \frac{P(B \mid E_i)P(E_i)}{\sum_{j=1}^\infty P(B \mid E_j)P(E_j)} = \frac{P(B \mid E_i)P(E_i)}{P(B)}$, where $E_1, E_2, \dots$ form a partition of the sample space.\\
+\textbf{Expectation:} $E(X) = \sum_x xP(X=x)$, also written $E(X) = \sum_{x \in S} X(s)p(s)$, where $p(s)$ is the probability that element $s \in S$\\
+\bspace $E(g(X)) = \sum_i g(x_i)p_X(x_i)$ \bspace $E(aX + b) = aE(X) + b$ \bspace $E(X + Y) = E(X) + E(Y)$\\
+\bspace $P_{Y,X}(Y > X) = E_{Y,X}\mathbb{I}\{Y>X\} = E_XE_Y[\mathbb{I}\{Y>X\} \mid X] = E_XP_Y(Y > X \mid X) = \int_\mathbb{R}P_Y(Y > x \mid X = x)F_X(dx)$\\
+\textbf{Variance: } $Var(X) = E((X - E(X)))^2) = \sigma^2$\\
+\bspace $Var(X) = E(X^2) - \mu^2$ \bspace $Var(aX+b) = a^2Var(X)$ \bspace  \bspace $Var(X + Y) = Var(X) + Var(Y) + 2Cov(X, Y)$\\
+\textbf{Covariance: } $Cov(X, Y) = E((X - E(X)(Y - E(Y)) = E(XY) - E(X)E(Y)$\\
+\bspace $Cov(X, X) = Var(X)$ \bspace $Cov(aX, bY) = abCov(X, Y)$ \bspace $Cov(X, Y+Z) = Cov(X, Y) + Cov(X, Z)$\\
+\textbf{Law of iterated expectation: } $E(E(Y\mid X)) = E(Y)$\\
+\textbf{Proof: }$E(Y\mid X) = \sum_y y\frac{f_{X, Y}(X, y)}{f_X(X)}, \; \; E(E(Y\mid X)) = \sum_x \sum_y \left ( y\frac{f_{X, Y}(x, y)}{f_X(x)} \right ) f_X(x) = \sum_x \sum_y y f_{X, Y}(x, y) = \sum_y y f_{Y}(y) = E(Y)$\\
+\textbf{Law of total probability}: $P(E) = \sum_{i=-\infty}^\infty P(E \mid X = x)P(X) \textrm{ and } P(E) = \int_{-\infty}^\infty P(E \mid X=x)f(x)dx$\\
+\textbf{Variance decomposition formula: } $Var(Y) = E(Var(Y\mid X)) + Var(E(Y \mid X))$\\
+\textbf{Cauchy-Schwartz inequality: }$E(UV)^2 \leq E(U^2)E(V^2) \textrm{, with equality if } P(cU=U) = 1 \textrm{ for some constant, } c$\\
+\textbf{Transformations of random variables: } For $X$ with density $f_X$ and $Y = g(X)$\\
+$F_Y(y) = P(g(X)\leq y) = P(X \leq g^{-1}(y)) = F_X(g^{-1}(y))$ \bspace $f_Y(y) = \frac{d}{dy}F_X(g^{-1}(y)) = f_X(g^{-1}(y))\abs{\frac{d}{dy}g^{-1}(y)}$\\
+\textbf{Stationarity:} $\{X_1, \dots, X_n\} \overset{d}{=} \{X_{m+1}, \dots, X_{m+n}\}$ \bspace $EX_1 = EX_n$ \bspace $Cov(X_1, X_n) = Cov(X_{m+1}, X_{m+n})$, called $c(n)$ where $n$ is lag. We can prove $c(n) \overset{p}{\longrightarrow} 0$ using Chebychev and solving for $Var \overline{X}_n$ as a function of $c(n)$: $P(\abs{\overline{X}_n - EX_1} > \epsilon) \leq \frac{2}{n}\sum_i c(i) \longrightarrow 0$
+ 
+\subsection{Inequalities}
+\textbf{Jensen inequality: } $E(g(x)) \geq g(E(x))$ for $g(x)$ convex\\
+\textbf{Markov inequality: } For $X\geq 0 \;, \;P(X \geq t) \leq \frac{E(X)}{t} \; \; \forall t>0$. \textbf{Proof: }\\
+$\textrm{Let } Y = \begin{cases}
+        1 & X \geq t\\
+        0 & \textrm{else}
+    \end{cases} \textrm{, then } tY \leq X \textrm{ since } \begin{cases}
+        X \geq t & t1 \leq X \\
+        X < t & t0 < X
+    \end{cases} \Longrightarrow E(tY) \leq E(X) \Longrightarrow tP(X \geq t) \leq E(X)) \Longrightarrow P(X \geq t) \leq \frac{E(X)}{t}
+$\\\\
+\textbf{Chebyshev inequality: } $P(\abs{X - E(X)} \geq t) \leq \frac{Var(X)}{t^2} \; \; \forall t > 0$.\\
+\textbf{Proof: } $P(\abs{X - E(X)} \geq t) = P((X - E(X))^2 \geq t^2) \leq \frac{E((X - E(X))^2)}{t^2} = \frac{Var(X)}{t^2} \textrm{, by Markov inequality}$\\\\
+\textbf{Exponential inequality: } $P(X > a) \leq e^{-\theta a} E(e^{\theta X})$ for all $\theta > 0$.\\
+\textbf{Proof:} $P(X > a) = P(\theta X > \theta a) \textrm{ for } \theta > 0 \Longrightarrow P(e^{\theta X} > e^{\theta a}) \leq e^{-\theta a} E(e^{\theta X}) \textrm{, by Markov inequality}$\\
+\textbf{(Corrolary) Upper bound on large deviations: } $P(S_n < na) \leq e^{-nI(x)}$.\\
+\textbf{Proof: } $P(S_n > a) \leq e^{-\theta a} E(e^{\theta S_n}) = e^{-\theta a} \prod_i E(e^{\theta X_i}) = e^{-\theta a} E(e^{\theta X_1})^n = e^{-\theta a + n \psi(\theta)} \textrm{, by exponential inequality, iid, where } \psi(\theta) = \log{Ee^{\theta X_1}}$\\
+$P(S_n > na) = e^{-n(\theta(x) a - n \psi(\theta(x))} \textrm{; minimizing RHS w.r.t } \theta \Longrightarrow e^{-nI(x)} \textrm{ where } I(x) = \theta(x) a - n \psi(\theta(x))$
+
+\subsection{Generative functions}
+\bspace $\phi_X(t) = E \exp(itX)$ \bspace $N(\mu, \sigma^2): \exp(it\mu - \frac{1}{2}\sigma^2t^2)$ \bspace $Exp(\lambda): (1 - it\lambda ^{-1})^{-1}$ \bspace $Poisson(\lambda): \exp{\lambda(e^{it} - 1)}$ \bspace $E[X^k] = i^{-k}E[X^k]$ \bspace $\phi_{a_1X_1 + \dots + a_nX_n}(t) = \phi_{X_1}(a_1t) \dots \phi_{X_n}(A_nt)$ for $X_i$ independent \bspace $M_X(t) = E\exp(tX)$
+
+
+\subsection{Weak law of large numbers}
+For $X_1, X_2, \dots, X_n$ i.i.d. with $E(X_i) = \mu$,  $Var(X_i) = \sigma^2$, $\overline{X}_n = \frac{1}{n}\sum_{i = 1}^n X_i$, then for any $\epsilon > 0$
+\begin{align*}
+	P(\abs{\overline{X}_n - \mu} > \epsilon) \leq \frac{Var(\overline{X}_n)}{\epsilon^2} = \frac{\sigma^2}{n\epsilon^2} \rightarrow 0 \textrm{ as } n \rightarrow \infty \textrm{, by Chebyshev inequality}, \; \; \; X_1 + \dots + X_n = S_n\approx E S_n \textrm{, the "meta result"}
+\end{align*}
+
+\subsubsection{Convergence in probability}
+\textbf{Convergence in probability: } $X_n \overset{p}{\longrightarrow} X$ when $P(\abs{X_n - X} > \epsilon) \longrightarrow 0 \textrm{ as } n \longrightarrow \infty$\\
+\textbf{Continuous mapping theorem: } if $X_n \overset{p}{\longrightarrow} X$ and $g$ a continuous function then $g(X_n) \overset{p}{\longrightarrow} g(X)$\\
+\textbf{Consistent estimator:} $T_n = T_n(X_1, \dots, X_n)$ converges in probability to $g(\theta)$, a function of the model parameter\\
+\textbf{Bounded convergence theorem:} $Z_n \overset{p}{\longrightarrow} Z_\infty, \abs{Z_n} \leq c < \infty \Longrightarrow EZ_n \overset{p}{\longrightarrow} EZ_\infty$\\
+Proof starts with $\abs{E(Z_n - Z_\infty)}$ and uses i) triangle inequality, ii) indicator functions for the case when difference is $>\epsilon, <\epsilon$\\
+\textbf{Dominated convergence theorem:} $Z_n \overset{p}{\longrightarrow} Z_\infty, E\beta < \infty, \abs{Z_n(\omega)} \leq \beta(\omega) \forall \omega \Longrightarrow EZ_n \overset{p}{\longrightarrow} EZ_\infty$\\
+\textbf{Fatous Lemma: } for $Z_n > 0$, $E\lim_{n \rightarrow \infty} Z_n \leq \lim_{n \rightarrow \infty} E Z_n$\\
+\textbf{Almost sure convergence:} $P(\omega : \lim_{n\rightarrow \infty}X_n(\omega) \overset{p}{\rightarrow} X_\infty(\omega)) = 1$ where $\omega$ is element in set of all sequences \bspace P($\limsup_{n \rightarrow \infty}\{\abs{X_n - X_\infty}\} > \epsilon) = 0$
+
+
+\subsection{Central limit theorem}
+\begin{align*}
+	&\sqrt{n}\frac{(\overline{X}_n - \mu)}{\sigma} \longrightarrow N(0, 1) \Longleftrightarrow \sqrt{n}(\overline{X}_n - \mu) \longrightarrow N(0, \sigma^2) = \sigma N(0, 1), \; \; X_i + \dots + X_n = S_n \approx N(E S_n, Var S_n) \textrm{, the "meta result"}\\
+    &\lim_{n \rightarrow \infty}P(\frac{S_n}{\sigma \sqrt{n}} \leq x) = \Phi(x) \textrm{, for } S_n = \sum_{i=1}^nX_i, \; \; X_1, X_2, \dots, X_n \textrm{i.i.d. with } E(X_i) = 0 \textrm{ (WLOG), } Var(X_i) = \sigma^2
+\end{align*}
+\textbf{Proof sketch:} Start with $M_{S_n}(t)$, plug in $t / (\sigma\sqrt(n))$, use Taylor expansion to show convergence to MGF of a normal, $e^{\frac{t^2}{2}}$\\
+\textbf{Monte Carlo: }\bspace Sample $Y \in \mathbb{R}^d$ \bspace Compute $X = g(Y)$ \bspace Repeat $n$ times \bspace form $\overline{X}_n$ and use CLT for asymptotic behavior.\\
+\textbf{Generating random data:} with $X = F_X^{-1}(U)$ since $P(F_X^{-1}(U) \leq x) = P(F_X(F_X^{-1}(U)) \leq F_X(x)) = P(U \leq F_X(x)) = F_x(x)$
+
+\subsubsection{Delta method}
+If $g$ is a differentiable function at $\mu$, $\sqrt{n}(g(\bar{X}_n) - g(\mu)) \overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma^2) = g'(\mu)\sigma N(0,1)$. \textbf{Proof sketch:} Start with Taylor expansion $g(\bar{X}_n) \approx g(\mu) + g'(\mu)(\bar{X}_n - \mu)$, rearrange to get $ \sqrt{n}(g(\bar{X}_n) - g(\mu)) \approx g'(\mu)\sqrt{n}(\bar{X}_n - \mu) \overset{d}{\longrightarrow} N(0, g'(\mu)^2\sigma(2))$. 
+\textbf{Note:} if we find $g'(\mu) = 0$, then repeat this process with the second derivative, $g''(\mu)$.
+
+\subsubsection{Convergence in distribution (a.k.a. weak convergence)}
+\textbf{Convergence in distribution: } $X_n \overset{d}{\longrightarrow} X$ when $\lim_{n\longrightarrow \infty} F_{X_n}(x) = F_X(x)$ at all continuity points in $F_X$\\
+\textbf{Equalities: } $X_n \overset{d}{\longrightarrow} X \Longleftrightarrow Eh(Z_n) \overset{p}{\longrightarrow} Eh(Z_\infty) \forall h$, bounded/continuous $\Longleftrightarrow \phi_{Z_n}(t) \overset{p}{\longrightarrow} \phi_{Z_\infty}(t) \forall t$\\
+\textbf{Confidence intervals: } $P(Z_{\alpha / 2} \leq Z \leq Z_{1-\alpha / 2}) = P(\frac{\hat{\sigma}}{\sqrt{n}}Z_{\alpha/ 2} \leq \bar{X}_n - \mu \leq \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha / 2}) = P(\mu \in \left[\bar{X}_n \pm \frac{\hat{\sigma}}{\sqrt{n}}Z_{1-\alpha/2}\right]) = 1-\alpha$ for $\hat{\sigma}\overset{p}{\longrightarrow} \sigma$\\
+\textbf{Slutsky's lemma}
+$A_nX_n + B_n \overset{d}{\rightarrow} aX + b$ if $\{X_n\}$ sequence, $X_n \overset{d}{\rightarrow} X$,  $\{A_n\}$ sequence, $A_n \overset{d}{\rightarrow} A$, $\{B_n\}$ sequence, $B_n \overset{p}{\rightarrow} b$
+
+
+
+\subsection{Theory of large deviations}
+\textbf{Variance reduction: } $E_ph(X)$ where $X \sim P = \int_{-\infty}^\infty h(x) p(x)dx = \int_{-\infty}^\infty h(x) p(x) q(x) / q(x) = E_q[h(x)p(x)/q(x)]$ where $X \sim Q$.\\
+$\sqrt{n}(\overline{X} - E_pX) \overset{d}{\longrightarrow} N(0, Var_p(X))$, $\sqrt{n}(\overline{\hat{X}} - E_q\hat{X}) \overset{d}{\longrightarrow} N(0, Var_q(\hat{X}))$ where $\hat{X} = Xp(x)/q(X)$\\
+\textbf{Importance sampling:} Choose $h(x)$ to minimize variance. Minimal $H(dx)$ turns out to be the conditional probability of the event happening on event happening: $H^*(dx) = \mathbb{I}\{A\}(x)F(dx)/F(A)$\\
+\textbf{Exponential tilting:} $Ef(X_1, \dots, X_n) = E_\theta \exp(-\theta S_n + n \psi(\theta))f(X_1, \dots, X_n)$, where $\psi(\theta) = \log{M_x(\theta)}$\\
+\textbf{Large deviations:} \bspace Use exponential tilting with $f(X_1, \dots, X_n) = \mathbb{I}(S_n > an)$: $E\mathbb{I}(S_n > an) = E_\theta[ \exp(-\theta S_n + n \psi(\theta))\mathbb{I}(S_n > an)]$ \bspace Choose optimal $\theta^* = \theta(a)$ which satisfies $\psi'(\theta(a)) = a$, which guarantees $E_{\theta(a)}X_i = a$ \bspace E.g., Gaussian: $M_X(\theta) = \exp(\mu\theta + \sigma^2\theta^2/2) \Longleftrightarrow \psi(\theta) = \mu\theta + \sigma^2\theta^2/2 \Longleftrightarrow \psi'(\theta) = \mu + \sigma^2\theta \leftarrow$ evaluate at $\psi'(\theta) = a$
+
+% \section{Statistics}
+\subsection{Method of moments estimator}
+\bspace $E(X^k) = g(\theta)$: Calculate moment with MGF, lower moments typically lead to estimators with lower asymptotic variance \bspace {$g^{-1}(E(X^k)) = \theta$: Invert this expression to create an expression for the parameter(s) in terms of the moment \bspace $\hat{\theta} = g^{-1}(\frac{1}{n}\sum X_i^k)$: Insert the sample moment into this expression, thus obtaining estimates of the parameters in terms of data \bspace $\sqrt{n}(g^{-1}(\frac{1}{n}\sum X_i^k) - \theta) \overset{d}{\longrightarrow}  N(0, f'(E(X_i^k))^2Var(X_i^k)^2)$: Use the delta method \bspace If multiple parameters characterize the distribution, use multiple moments and a system of equations
+
+\subsection{Maximum likelihood estimator}
+\bspace $L(\theta) = \prod_{i=1}^nf(X_i, \theta)$: Construct the likelihood function \bspace $log(L(\theta)) = l(\theta) = \sum_{i=1}^nlog(f(X_i, \theta))$: Take the log of the likelihood \bspace Find critical points of this function (e.g., $0 = \sum_{i=1}^n\frac{d}{d\theta}log(f(X_i, \hat{\theta}))$) and determine that one is a maximum \\
+\textbf{Approach to constructing MLE when indicators, $\mathbb{I}\{U\}$, are present:} Logs of indicators and derivatives of indicators are very difficult to work with \bspace Simplify likelihood function (splitting indicators when possible) \bspace Make an argument for why the function is increasing or decreasing \bspace Determine the value at the bounds of the function\\
+\textbf{Estimating equations:} $E_{\theta_1} g(\theta_2, X_1) = 0 \Longleftrightarrow \theta_1 = \theta_2$
+\subsection{Fisher Information}
+\textbf{Fisher information: } $I(\theta) = E_\theta \left [ \left (\frac{d}{d\theta}log(\mathcal{L}(X_1, \theta)) \right )^2 \right ]$\\
+\textbf{Properties:} $E_\theta \left [ \left (\frac{d}{d\theta}log(\mathcal{L}(X_1, \theta)) \right ) \right ] = 0$ \bspace $I(\theta) = Var \left ( \frac{d}{d\theta}log(\mathcal{L}(X_1, \theta)) \right )$ \bspace $I(\theta) = - E_\theta \left [\frac{d^2}{d\theta^2}log(\mathcal{L}(X_1, \theta)) \right ]$ \bspace $I_{X_1, X_2}(\theta) = I_{X_1}(\theta) + I_{X_2}(\theta)$ for $X_1, X_2$ independent (Information increases with larger sample!)\\
+\textbf{Cramer-Rau bound:} $Var(\hat{\theta}) = Var(T(X_1, \dots, X_n)) \geq 1/I_{X_1, \dots, X_n}(\theta)$ where $I_{X_1, \dots, X_n}(\theta) = nE_\theta[(\frac{d}{d\theta} \log \mathcal{L}(X_1, \theta))^2]$ for $E(\hat{\theta}) = g(\theta)$
+
+
+\subsection{Examples}
+\textbf{Newsvendor problem:} [Setup] $D \sim Exp(\lambda)$, price $p$, cost $c$, buy-back price $b$, order quantity $q$, earnings $W$; [Solution] $W = pq\min(q, D) - cq + b(q - min(q, D)) \Longrightarrow EW = (p-b)E(min(q, D)) - (c - b)q = (p-b)(xP(D>q) + \int_0^Dyf_d(y)dy) - (c-b)q \Longrightarrow \frac{\partial}{\partial q}E(W) |_{q = q^*}$\\
+\textbf{Cramer-Rao bound:} [Setup] $X \sim Exp(\lambda)$, MLE $= 1/\overline{X}_n$, does $1/\hat{\lambda}_{MLE}$ achieve lower bound?; [Solution] i) Unbiased: $E(1/\hat{\lambda}) = E(\overline{X}_n) = 1/\lambda$, ii) $Var(1/\hat{\lambda}) = Var(\overline{X}_n) = (1/n^2)nVar(X_1) = 1/(\lambda^2n)$, iii) $I(1/\lambda) = I(\theta) = -E_X(\frac{d^2}{d\theta^2} log \mathcal{L}(\theta)): \mathcal{L}(\theta) = 1/\theta\exp(-x/\theta)\Rightarrow \log \mathcal{L}(\theta) = -\log\theta - x/\theta \Rightarrow \frac{d^2}{d\theta^2}log \mathcal{L}(\theta) = 1/\theta^2 - 2X/\theta^3 \Rightarrow -E_X(\frac{d^2}{d\theta^2}log \mathcal{L}(\theta)) = 1/\theta^2$
+
+
+
+\end{document}

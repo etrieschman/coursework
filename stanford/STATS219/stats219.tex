@@ -1,0 +1,195 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{STATS219: Stochastic Processes}
+\author{Erich Trieschman}
+\date{2022 Fall quarter class notes}
+
+
+\newcommand{\userMarginInMm}{8}
+\geometry{
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=5mm}
+
+\newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+\newcommand*\bspace{$\; \bullet \;$}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+\begin{document}
+\maketitle
+
+% \tableofcontents
+
+\section{Measure theory}
+\subsection{Definitions of measure theory}
+\subsubsection{Powerset ($2^\Omega$)}
+Set of all possible subsets of $\Omega$
+
+\subsubsection{$\sigma$-algebra ($\mathcal{F}$)}
+\begin{flalign*}
+  (a)&\; \Omega \in \mathcal{F} &\\
+  (b)&\; A \in \mathcal{F} \Rightarrow A^C \in \mathcal{F} \\
+  (c)&\; A_1, \dots, A_\infty \in \mathcal{F} \Rightarrow \cup_i^\infty A_i \in \mathcal{F}
+\end{flalign*}
+
+\subsubsection{Probability space ($(\Omega, \mathcal{F}, P)$)}
+$P: \mathcal{F} \longrightarrow [0,1]$ such that
+\begin{flalign*}
+  (a)&\; 0 \leq P(A) \leq 1 \; \forall A\in \mathcal{F}  &\\
+  (b)&\; P(\Omega) = 1 \\ 
+  (c)&\; P(A) = \cup_i^\infty P(A_i) \textrm{ whenever } A = \cup_i^\infty A_i \textrm{ and } A_n\cap A_m = \emptyset \textrm{ for } n \neq m
+\end{flalign*}
+
+\section{Random variables}
+\subsection{Definitions of random variables}
+\subsubsection{Random varible ($X$, "$\mathcal{F}$-measurable function")}
+$X: \Omega \longrightarrow \mathbb{R}$ such that
+\begin{flalign*}
+  \{ \omega : X(\omega) \leq \alpha \} \in \mathcal{F}, \; \forall \alpha \in \mathbb{R}
+\end{flalign*}
+
+\subsubsection{Indicator function ($\mathbb{I_A}$)}
+A rv $\forall A \in \mathcal{F}$ such that
+\begin{align*}
+  I_A(\omega) = \begin{cases}
+    1 &if \; \omega \in A\\
+    0 &else
+  \end{cases}
+\end{align*}
+
+\subsubsection{Borel function}
+$g: \mathbb{R} \longrightarrow \mathbb{R} \Longrightarrow g \textrm{ is an rv on } (\mathbb{R}, \mathcal{B})$
+
+\subsubsection{$\sigma$-algebra generator ($\sigma(\{A_\alpha\})$)}
+\begin{align*}
+  \sigma(\{A_\alpha\}) =& \cap \{\mathcal{G} : \mathcal{G} \subseteq 2^\Omega \; a \sigma-field, \; A_\alpha \in \mathcal{G}, \; \forall \alpha \in \Gamma \textrm{, a countable or uncountable index}\} \\
+  \sigma(X) =& \mathcal{F}_x = \sigma(\{\omega : X(\omega) \leq \alpha\} \forall \alpha)
+\end{align*}
+
+\subsubsection{Expectation of an rv ($E[X]$)}
+\begin{align*}
+  E[X] = \lim_{n\rightarrow \infty} \left[ \sum_{k=0}^\infty x_{k,n} * P(\left\{\omega: X(\omega) \in I_{k,n}\right\}) \right] \textrm{for } x_{k,n} = k2^{-n}, I_{k,n} = (x_{k,n}, x_{k+1,n}]
+\end{align*}
+
+\subsubsection{Independence}
+\begin{align*}
+  \textrm{events }A, B \textrm{ independent} &\Longrightarrow P(A \cap B) = P(A)P(B) \textrm{ for } A, B \in \mathcal{F}\\
+  \sigma\textrm{-fields } \mathcal{H}, \mathcal{G} \subseteq \mathcal{F} \textrm{ independent} &\Longrightarrow P(G \cap H) = P(G)P(H), \forall G\in\mathcal{G}, \forall H\in\mathcal{H}
+\end{align*}
+
+\subsubsection{Uncorrelated}
+$E(XY) = E(X)E(Y)$, for $X,Y \in L^2$ 
+
+\subsubsection{$L^q$ spaces ($L^q(\Omega, \mathcal{F}, P)$)}
+The collection of all rv $X$ on $(\Omega, \mathcal{F})$ where $E(\abs{X}^q) < \infty$
+
+\subsubsection{Law of an rv ($\mathcal{P}_x$)}
+Probability measure on $(\mathbb{R}, \mathcal{B})$ such that $\mathcal{P}_x(B) = P(\left\{\omega: X(\omega) \in B\right\})$ for all $B \in \mathcal{B}$
+
+\subsubsection{Distribution function of an rv ($F_X$)}
+$F_X(\alpha) = P(\left\{\omega: X(\omega) \leq \alpha \right\}) = \mathcal{P}_X((-\infty, \alpha])$ $\forall \alpha \in \mathbb{R}$
+
+\subsubsection{Convergence and equality almost surely ($a.s.$)}
+\begin{align*}
+  & X \overset{a.s.}{=} Y \Longleftrightarrow P(\{\omega : X(\omega) \neq Y(\omega)\}) = 0 \\
+  & X \overset{a.s.}{\leq} 0 \Longleftrightarrow P(\{\omega : X(\omega) > 0\}) = 0\\
+  & X_n \overset{a.s.}{\rightarrow} X \Longleftrightarrow X_n(\omega) \rightarrow X(\omega) \textrm{ as } n\rightarrow \infty \; \forall \omega \in A \in \mathcal{F} \textrm{ with } P(A) = 1
+\end{align*}
+
+\subsubsection{Convergence in probability ($p$)}
+\begin{align*}
+  X_n \overset{p}{\longrightarrow} X \Longleftrightarrow P(\left\{\omega: \abs{X_n(\omega) - X(\omega)} > \epsilon \right\}) \longrightarrow 0 \textrm{ as } n\rightarrow \infty \; \forall \epsilon \in \mathbb{R}
+\end{align*}
+
+\subsubsection{Convergence in $L^q$ (or in q-mean)}
+\begin{align*}
+  X_n \overset{q.m}{\longrightarrow} X \Longleftrightarrow \norm{X_n - X}{q} = [E(\abs{X_n - X}^q)]^\frac{1}{q} \longrightarrow 0 \textrm{ as } n\rightarrow 0 \textrm{, for } X_n, X \in L^q
+\end{align*}
+
+\subsubsection{Convergence in law (or weak convergence or in distribution)}
+\begin{align*}
+  X_n \overset{d}{\longrightarrow} X \Longleftrightarrow F_{X_n}(\alpha) \longrightarrow F_{X}(\alpha) \textrm{ as } n \rightarrow \infty \; \forall \alpha \textrm{ continuity points of } F_X
+\end{align*}
+
+\section{Conditional expectation}
+\subsection{Definitions of conditional expectation}
+\subsubsection{In discrete space}
+\begin{align*}
+  f(y) := E(X | Y=y) = \frac{E(X * I\{Y = y\})}{P(Y = y)} \forall y \textrm{ requiring } P(Y = y) >0
+\end{align*}
+\subsubsection{In $L^2$ space (Hilbert space)}
+\begin{align*}
+  Z = E(X|Y)& \textrm{ unique random variable satisfying}:\\
+  &Z \in H_Y = L^2(\Omega, \sigma(Y), P)\\
+  &E[(X - Z)V] = 0\; \forall V \in H_Y\\
+  &\min_Z\{E[(X - Z)^2] : Z \in H_Y\} \textrm{ (interchangeable with line above it b/c of $L^2$ properties)}
+\end{align*}
+\subsubsection{In $L^1$ space}
+\begin{align*}
+  Z = E(X|Y)& \textrm{ such that}:\\
+  & E[(X - Z)I\{Y = y\}] = 0, \forall y \in \mathbb{R}\\
+  & E[(X - Z)I\{Y \in B\}] = 0, \forall B \in \mathcal{B}
+\end{align*}
+
+\subsection{Properties of conditional expectation}
+For $X, Y \in L^1$, $\sigma$-fields $\mathcal{H} \subseteq \mathcal{G} \subseteq \mathcal{F}$
+\begin{itemize}
+  \item $X \geq 0 \Longrightarrow E(X | \mathcal{G}) \overset{a.s.}{\geq} 0$
+  \item If $\mathcal{G}, \sigma(X)$ independent $\Longrightarrow E(X|\mathcal{G}) = E(X)$
+  \item If $X$ is $\mathcal{G}$-measurable $\Longrightarrow E(X|\mathcal{G}) = X$
+  \item $E[\alpha X + \beta Y | \mathcal{G}] = \alpha E(X|\mathcal{G}) + \beta E(Y | \mathcal{G})\; \forall \alpha, \beta \in \mathbb{R}$
+  \item $E[E(X|\mathcal{G})|\mathcal{H}] = E(X|\mathcal{H})$
+  \item $E[E(X | \mathcal{G})] = E(X)$
+  \item If $Y$ is $\mathcal{G}$-measurable and $X, XY \in L^1 \Longrightarrow E[XY | \mathcal{G}] = YE[X | \mathcal{G}]$
+\end{itemize}
+For $Var(Y|\mathcal{G}) := E(Y^2 | \mathcal{G}) + E(Y | \mathcal{G})^2$, $Y \in L^2$
+\begin{itemize}
+  \item If $Y \in L^2(\Omega, \mathcal{G}, P) \Longrightarrow Var(Y|\mathcal{G}) = 0$
+  \item $Var(Y) = E[Var(Y | \mathcal{G})] + Var[E(Y | \mathcal{G})]$
+  \item If $E(Y|\mathcal{G}) = X$ and $E(X^2) = E(Y^2) < \infty \Longrightarrow X \overset{a.s.}{=} Y$
+  \item If $\mathcal{H} \subseteq \mathcal{G}$ and $X \in L^2(\Omega, \mathcal{F}, P) \Longrightarrow E[(X - E(X | \mathcal{G}))^2] \leq E[(X - E(X|\mathcal{H}))^2]$
+\end{itemize}
+
+
+\end{document}

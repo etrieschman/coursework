@@ -1,0 +1,580 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{hyperref}
+\usepackage{layout}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{pdfpages}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{STATS 315A: Statistical Learning}
+\author{Erich Trieschman}
+\date{2022Q1 class notes}
+
+
+\newcommand{\userMarginInMm}{8}
+\geometry{
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=5mm}
+
+\newcommand*\circled[1]{\raisebox{.5pt}{\textcircled{\raisebox{-.9pt} {#1}}}}
+\newcommand*\bspace{$\; \bullet \;$}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdfpagemode=FullScreen,
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+    
+\lstset{frame=tb, language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Supervised learning overview}
+Regression problems are of the form $f(X) = E(y \mid X)$\\\\
+A large subset of the most popular techniques use variants of linear regression and nearest neighbors. 
+
+\subsection{Nearest neighbors}
+The k-nearest neighbor fit for $\hat{y}$ is 
+\begin{align*}
+  \hat{y} = f(x_0) = \frac{1}{k}\sum_{x_i \in N_{k(x_0)}}y_i
+\end{align*}
+Degrees of freedom is $N/k$
+\subsubsection{Curse of dimensionality}
+Any method that attemps to produce locally varying functions in small neighborhoods will have issues in high dimensions because of the \textbf{curse of dimensionality}. All sample points are close to an edge of the sample in high dimensions\\\\
+For point $p$ sampled uniformly within a p-dimensional sphere, the probability that $p$ is within $\epsilon$ of the boundary goes to 1
+\begin{align*}
+  V_{p,r} =& \frac{\pi^{p/2}}{\Gamma(p/2 + 1)}r^p\\
+  P(p \textrm{ within } \epsilon \textrm{ of bound.}) =& 1 - \frac{V_{p, 1-\epsilon}}{V_{p, 1}}\\
+  & 1 - (1-\epsilon)^p\\
+  \lim_{p\rightarrow \infty} 1 - (1 - \epsilon)^p =& 1
+\end{align*}
+Extension: The angle between two points sampled uniformly on a unit ball tends to 90 degrees
+
+
+\subsection{Statistical decision theory}
+The components of statistical decision theory are
+\begin{itemize}
+  \item A loss function, $L(y, f(X))$
+  \item The expected prediction error $EPE(f) = E[L(y, f(X))]$
+\end{itemize}
+
+\subsubsection{Quantitative output $y$}
+For quantitative outputs we focus on regression models. 
+\begin{align*}
+  \textrm{Often, } L(y, f(X)) =& (y - f(X))^2\\
+  \textrm{So } EPE(f) =& E[(y - f(X))^2]\\
+  =& E_X[E_{y\mid x}[(y - f(x))^2 \mid X]]\\
+  \textrm{Minimizing EPE leads to } \hat{f}(x) =& E(y \mid X=x) \textrm{, the regression function}
+\end{align*}
+Note EPE can be rewritten as the sum of irreducible error of the predicted value plus the MSE of the predicted value. 
+
+\subsubsection{Categorical output $G$}
+For categorical outputs, we focus on classification models. Our prediction rule, $\hat{G}(X)$ takes values in $\mathcal{G}$ with $card(\mathcal{G}) = K$\\
+The loss function for a categorical output is the cost of misclassifying category $\mathcal{G}_k$ as category $\mathcal{G}_l$, $L(k, l)$. Most common is the 0-1 loss function where all misclassifications are charged 1. 
+\begin{align*}
+  EPE =& E[L(G, \hat{G}(X))]\\
+  \textrm{With solution } \hat{G}(x) =& argmin_{g\in\mathcal{G}}\sum_{k=1}^KL(\mathcal{G}_k, g)P(\mathcal{G}_k \mid X = x) 
+\end{align*}
+
+
+
+\subsection{Bias-Variance tradeoff}
+Minimizing training error can lead to overfitting, especially as we increase the number of parameters in the model. Overfit models are unlikely to predict future data well.\\\\
+The expected prediction error, EPE, of test data, $x_0$ is composed of three components
+\begin{itemize}
+  \item $\sigma^2$, the irriducible error, representing the variance of the new test target
+  \item $Bias^2(\hat{f}(x_0))$, which is $(E[\hat{f}(x_0)] - f(x_0))^2$
+  \item $Var(\hat{f}(x_0))$, which is $E[(\hat{f}(x_0))^2] - (E[\hat{f}(x_0)])^2$
+\end{itemize}
+In general as model complexity increases (e.g., fewer nearest neighbors), variance of the predicted value tends to increase and squared bias of the predicted value tends to decrease\\\\
+Test error is a good metric to evaluate the bias-variance tradeoff. Training error is not because it does not properly account for model complexity (i.e., training error tends to decrease with model complexity).
+
+
+\subsection{Cross validation}
+Cross validation is used to select the tuning parameters of a particular model, not the variables themselves. For example with subset selection, we use cross validaiton to select $s$, the subset size, \textbf{not} the actual predictors to use in the model\\
+It would be ideal to have both a test set and a cross validation set. Running the CV and tuning parameters can bias the results. A separate test set provides convincing independent assessment
+
+\subsubsection{K-fold cross validation}
+\begin{itemize}
+  \item For each k, fit the model with parameter $\lambda$ to the other K-1 parts, getting $\hat{\beta}^{-k}(\lambda)$
+  \item Compute error, $RSS_{-k} = \sum_{i \in k}(y_i - x_i\hat{\beta}^{-k}(\lambda))^2$
+  \item Cross validation error, $CV(\lambda) = \frac{1}{K}\sum_{k=1}^KRSS_{-k}(\lambda)$
+\end{itemize}
+
+\subsubsection{We expect test error to be greater than training error}
+Here we show that the test error is bounded from below by the training error, $E[R_{te}(\hat{\beta}))] \geq E[R_{tr}(\hat{\beta})]$
+\begin{align*}
+  \textrm{Known: } E(R_{tr}(\beta)) =& \frac{1}{n}\sum_{i=1}^nE[(y_i - x_i^T\beta)^2] = E[(y_1 - x_1^T\beta)^2]\\
+  \textrm{Known: } E(R_{te}(\beta)) =& \frac{1}{m}\sum_{i=1}^mE[(\tilde{y}_i - \tilde{x}_i^T\beta)^2] = E[(\tilde{y}_i - \tilde{x}_i^T\beta)^2]\\
+  \textrm{Known: } \norm{y - X\hat{\beta}}{2} \leq& \norm{y - X\beta}{2} \forall \beta \neq \hat{\beta} \Longrightarrow nR_{tr}(\hat{\beta}) \leq nR_{tr}(\beta) \Rightarrow E[R_{tr}(\hat{\beta})] \leq E[R_{tr}(\beta)] = E[R_{te}(\beta))]\\
+  E[R_{te}(\hat{\beta}))] =& E[E[R_{te}(\hat{\beta}))\mid \hat{\beta}]] = E[E[R_{te}(\hat{\beta})]] \geq E[E[R_{tr}(\hat{\beta})]] \geq E[R_{tr}(\hat{\beta})]
+\end{align*}
+
+\subsection{Bootstrap}
+\begin{itemize}
+  \item Sample N times with replacement from teh training set to form a bootstrap data set
+  \item Estimate model on bootstrap data, with predictions made from the original training data
+  \item Repeat process many times and average results
+  \item \textbf{Poor estimate of prediction error.} The reason is that the bootstrap datasets are acting as the training samples, while the original training set is acting as the test sample, and these two samples have observations in common. This overlap can make overfit predictions look unrealistically good, and is the reason that cross- validation explicitly uses non-overlapping data for the training and test samples
+  \item Good estimate for standard errors of predictions and confidence intervals for parameters
+\end{itemize}
+
+
+\section{Linear methods for regression}
+Functions in the real world are rarely linear, but linear approximations are a good heuristic for the biance-variance tradeoff.
+
+\subsection{Linear regression and least squares}
+Assuming $X$ full rank. Geometrically, the point, $\hat{\beta}$ which solves $argmin_x\norm{X\hat{\beta} - y}{2}$ is one where $X\hat{\beta} - y$ is orthogonal to the range of $X$. To solve for this:
+\begin{align*}
+    \textrm{Want: } (X\hat{\beta} - y) &\perp \{z \vert z = X\hat{\beta}\} \longleftrightarrow (X\hat{\beta} - y) \perp range(A) \longleftrightarrow (X\hat{\beta} - y) \perp x_i, \forall i \in X\\
+    x_i^T(X\hat{\beta} - y) &= 0, \; \forall i \in X \longleftrightarrow X^T(X\hat{\beta} - y) = 0 \longleftrightarrow \hat{\beta} = (X^TX)^{-1}X^Ty
+\end{align*}
+\textbf{Properties:}
+\begin{itemize}
+  \item Regression coefficient $\hat{\beta}_i$ estimates the expected change in $y$ per unit change in $x_i$ \textit{holding all other predictors fixed}
+  \item For $X_1, X_2$, mutually orthogonal matrices or vectors, the joint regression coefficients for $X = (X_1, X_2)$ on $y$, can be found from separate regressions. (Proof: $X_1^T(y - X\hat{\beta}) = X_1^T(y - X_1\hat{\beta}_1) = 0$)
+  \item The multiple regression coefficient of $x_p$, the last column of $X$, is the same as the univariate coefficient in the regression of $y \sim z_p$. Here, $z_p = x_p - X_p^T\alpha$ (the part of $x_p$ orthogonal to $X_p$, all but column $x_p$ of $X$). Variance also comes from the univariate regression.
+  \begin{itemize}
+    \item $\hat{\beta_p} = (z_p^Tz_p)^{-1}z_p^Ty = z_p^Ty / z_p^Tz_p$
+    \item $Var(\hat{\beta_p}) = \sigma^2 / z_p^Tz_p$
+  \end{itemize}
+\end{itemize}
+\textbf{Assumptions:}
+\begin{itemize}
+  \item Errors, $\epsilon_i \sim N(0, \sigma^2)$ assumed to be \textit{independent} of the $x_i$'s
+  \item $X$ considered fixed, not random. 
+  \item $X$ is full rank. When not (because multiple variables are perfectly correlated), $X^TX$ is singular and the coefficients, $\hat{\beta}$, are not uniquely defined. In these cases, features can be reduced by filtering or with a regularization.
+  \item Conditional expectation of $y$ is linear in $X$, $y = E(y \mid X) + \epsilon$. With this assumption, we can show $\hat{\beta} \sim N(\beta, (X^TX)^{-1}\sigma^2)$
+\end{itemize}
+
+\subsubsection{Standard error and confidence intervals}
+We often assume $y_i = \hat{\beta}x_i + \epsilon_i$ with $E(\epsilon_i) = 0$ and $Var(\epsilon_i) = \sigma^2$. Then
+\begin{align*}
+  se(\hat{\beta}) = \biggl[ \frac{\sigma^2}{\sum(x_i - \bar{x})^2}\biggr]^{\frac{1}{2}} \textrm{, approximating with } \hat{se}(\hat{\beta}) = \biggl[ \frac{\hat{\sigma}^2}{\sum(x_i - \bar{x})^2}\biggr]^{\frac{1}{2}} \textrm{ where } \hat{\sigma}^2 = \frac{\sum(y_ - \hat{y_i})^2}{N-2}
+\end{align*}
+
+\subsubsection{Expectation of $\hat{\beta}$}
+\begin{align*}
+  Var(\hat{\beta} \mid X) =& (X^TX)^{-1}\sigma^2\\
+  E(\hat{\beta}) =& E[(X^TX)^{-1}X^Ty] = E[(X^TX)^{-1}X^T(X\beta + \epsilon)]\\
+  =& E[(X^TX)^{-1}X^TX\beta + (X^TX)^{-1}X^T\epsilon)] = E(\beta) + E[(X^TX)^{-1}X^T]E(\epsilon)\\
+  =& E(\beta) + E[(X^TX)^{-1}X^T]*0 = E(\beta) \textrm{ for } y = X\beta + \epsilon\\
+  E(\hat{\beta}\mid X) =& E[(X^TX)^{-1}X^Ty \mid X)] = (X^TX)^{-1}X^TE[f(x) + \epsilon \mid X]\\
+  =& (X^TX)^{-1}X^T[f(x) + E(\epsilon \mid X)] = (X^TX)^{-1}X^Tf(x) \textrm{ for } y=f(x) + \epsilon\\
+  \hat{\sigma}^2 =& \frac{1}{N - p - 1}\sum(y_i - \hat{y}_i)^2 \textrm{, the $N-p-1$ denominator makes $\hat{\sigma}$ unbiased } (E(\hat{\sigma}^2) = \sigma^2)\\
+\end{align*}
+
+\subsection{Subset selection}
+Subset methods help us tradeoff an increase in bias with lower variance. Here we retain a subset of predictor variables for the final regression.
+\textbf{Approaches:}
+\begin{itemize}
+  \item All subsets regression: finds the best subset of size $s \in \{1, \dots, p\}$ that minimizes the residual sum of squares. Limited use in high dimensions ($>30$) because of the computational complexity. 
+  \item Forward stepwise selection: beginning with a model of the intercept only, sequentially add to the model the predictor that most reduces the residual sum of squares
+  \item Backward stepwise selection: beginning with the full OLS model, sequentially remove from the model the predictor to most reduce residual sum of squares
+\end{itemize}
+\textbf{Note:} The tuning parameter, $s$ of each subset selection approach should be determined through cross validation
+
+\subsection{Shrinkage methods}
+\begin{itemize}
+  \item Shrinkage methods often help us tradeoff an increase in bias with lower variance
+  \item It is important to standardize (mean=0, variance=1) the predictors before running shrinkage methods to make the pentalty meaningful; centering also eliminates the need for an intercept
+\end{itemize}
+\subsubsection{Ridge regression}
+Ridge regression is a linear regression with a square penalty on the size of the model parameters:
+\begin{align*}
+  \hat{\beta}^{ridge} &= argmin(y - X\beta)^T(y - X\beta) + \lambda\beta^T\beta\\
+  \hat{\beta}^{ridge} &= (X^TX + \lambda I)^{-1}X^Ty\\
+  \hat{\beta}^{ridge} &= X^T(XX^T + \lambda I)^{-1}y
+\end{align*}
+\begin{itemize}
+  \item See the "kernel trick" for derivation of the last equation
+  \item Ridge regression is a biased estimator for $y$ that may reduce MSE. Note when $\lambda = 0$, this is the same as OLS
+  \item The ridge regression solution can be derived as the posterior distribution of the bayes equation as well, assuming $f(y \mid \beta) \sim N(X\beta, \sigma^2I)$ and $\beta \sim N(0, \tau I)$. Here, $\lambda = \frac{\sigma^2}{\tau}$
+\end{itemize}
+Ridge regression shrinks the coefficients of the principal components ($Xv_j$), with relatively more shrinkage on the smaller components. Proof:
+\begin{align*}
+  X\hat{\beta} &= X(X^TX + \lambda I)^{-1}X^Ty\\
+  X\hat{\beta} &= UDV^T(VD^2V^T + \lambda I)^{-1}VDU^Ty\\
+  &= UD(D^2 + \lambda I)^{-1}DU^Ty\\
+  &= \sum_{j=1}^pu_j \frac{d_j^2}{d_j^2 + \lambda}u_j^Ty
+\end{align*}
+
+\subsubsection{The Lasso}
+The lasso is a shrinkage method for linear regressions like ridge, but uses the 1-norm as a penalty instead of the 2-norm. 
+\begin{align*}
+  \hat{\beta}^{lasso} = argmin(y - X\beta)^T(y - X\beta) + \lambda \norm{\beta}{1}
+\end{align*}
+There is no analytical solution to this objective, but the lasso is a convex problem when stated below (meaning it can be minimized)
+\begin{align*}
+  \textrm{min. } & argmin(y - X\beta)^T(y - X\beta)\\
+  \textrm{subject to } & \lambda \norm{\beta}{1} \leq t
+\end{align*}
+We find with the lasso that the parameter vector often inclues zeros for specific parameters. Inuitively this makes sense since the pointed 1-norm ball is likely to be maximized at one of its corners.\\\\
+\textbf{Elastic net} combines the ridge and lasso penalties through tuning parameter $\alpha$. It can be effective for sparse models with correlated predictors.
+\begin{align*}
+  \hat{\beta}^{enet} = argmin(y - X\beta)^T(y - X\beta) + (1-\alpha) \norm{\beta}{2} + \alpha \norm{\beta}{1}
+\end{align*}
+
+\subsection{Methods using derived input directions}
+Here we choose a set of linear combinations of $x_i \in X$, and run a regression on these combinations
+\subsubsection{Principal component regression}
+Linear combinations are selected to maximize variance. These maximal-variance combinations are called the \textbf{principal components}. For standardized $X$, the principal components, $z_i$, are
+\begin{align*}
+  z_1 &= Xv \textrm{ such that $v$ maximizes } Var(Xv) = \frac{1}{N}v^TX^TXv \textrm{ subject to } \norm{v}{2} = 1\\
+  z_i &= Xv_i \textrm{ where $v_i$ is the ith column of the SVD; singular values determine the ordering}
+\end{align*}
+The principal component analysis is highly connected to the singular value decomposition of standardized $X$. Since the SVD can help us construct the eigendecomposition of $X^TX$
+\begin{align*}
+  \frac{1}{N}X^TX = \frac{1}{N}VD^2V^T \Longleftrightarrow \frac{1}{N}V^TX^TXV = D^2
+\end{align*}
+Principal Component Analysis regression then generates a linear regression using a subset $s \leq p$ of the principal compoents. Since these principal components are orthogonal, the regression is a sum of univariate regressions
+
+\subsubsection{Partial least squares}
+Linear combinations are constructed using both $y$ and $X$, both standardized. 
+\begin{itemize}
+  \item Compute univariate regression coefficients, $\hat{\gamma}_l$ of $y$ on eacy $x_l$
+  \item Construct $z_1 = \sum_l\hat{\gamma}_lx_l$
+  \item Get $\hat{\beta}_1$ from $y \sim z_1$
+  \item Orthogonalize $y, x_1, \dots, x_p$ with respect to $z_1$
+  \begin{itemize}
+    \item $y^* = y - \hat{\beta}_1z_1$
+    \item $x^*_l = x_l - \frac{z_1^Tx_l}{z_1^Tz_1}z_1$
+  \end{itemize}
+  \item Repeat until $s \leq p$ directions have been obtained (we get back OLS if $s = p$)
+\end{itemize}
+
+\subsection{Degrees of freedom}
+Degrees of freedom for linear regressions is the number of free parameters that determines the model. 
+\begin{align*}
+  \textrm{For } \hat{y} &= Hy \textrm{, } df = tr(H)\\
+  \textrm{Note } \hat{y} &= X\hat{\beta} = X(X^TX)^{-1}X^Ty \textrm{ so } H = X(X^TX)^{-1}X^T \textrm{ in OLS}\\
+  \hat{y} &= X\hat{\beta} = X(X^TX + \lambda I)^{-1}X^Ty \textrm{ so } H = X(X^TX + \lambda I)^{-1}X^T \textrm{ in Ridge regression}
+\end{align*}
+The lasso is not a linear regression. Its degrees of freedom are defined as
+\begin{align*}
+  df = \sum_i cov(y_i, \hat{y_i}) / \sigma^2
+\end{align*}
+
+
+\section{Linear methods for classification}
+For classification, the input space can be divided into regions of constant classification, with decision boundaries
+\begin{align*}
+  \{ x \mid \hat{\beta}_kx = \hat{\beta}_lx \}
+\end{align*}
+In general, linear methods for classification model \textit{discriminant functions}, $\delta_k(x)$, or \textit{posterior probabilities}, $P(G=k \mid X=x)$, for each class, classifying $x$ to the class with the largest discriminant or probability.\\
+For this theory, we require that these functions have some monotone transformation to a linear function; it turns out that both linear discriminant analysis and linear logistic regression result in linear log-odds (logits).
+\subsection{Linear regression of indicator matrix}
+Categorical $y \in \mathbb{R}^{n \times 1}$ is one-hot-encoded into a series of boolean vectors in $Y \in \mathbb{R}^{n\times k}$, and model parameters, $\hat{\beta} \in \mathbb{R}^{p \times k}$ are estimated in the same way
+\begin{align*}
+  \hat{\beta} &= (X^TX)^{-1}X^TY\\
+  \hat{Y} &= X\hat{\beta} = X(X^TX)^{-1}X^TY\\
+  \hat{G} &= argmax_{k\in \mathcal{G}} x^T\hat{\beta} \textrm{ for new observation } x
+\end{align*}
+\textbf{Notes}
+\begin{itemize}
+  \item Rigid nature of regression model, classes can be masked by other classes for $K > 2$
+  \item A loose, but general rule is that if $K \geq 3$ classes are lined up in one direction, polynomial terms of degree $K - 1$ might be needed to resolve the classes. 
+  \item Bias has less of an effect in classification than in regression
+\end{itemize}
+
+
+\subsection{Linear discriminant analysis (LDA)}
+Category of backward selection models, meaning we use $y$ to generate boundaries of $X$. Suppose $f(x \mid k)$ is the density of $X$ conditional on class $G=k$, and $\pi_k$ is the prior probability for class $G=k$. Bayes rule says
+\begin{align*}
+  P(G=k \mid X=x) = \frac{f(x\mid k) \pi_k}{\sum_{l=1}^Kf(x \mid l)\pi_l}
+\end{align*}
+\textbf{Linear discriminant analysis} and its relatives are based on the assumption that $f(x \mid k)$ is multivariate Gaussian
+\begin{align*}
+  f(x \mid k) = \frac{1}{(2\pi)^{p/2}\abs{\Sigma_k}^{1/2}}\exp(-\frac{1}{2}(x - \mu_k)^T \Sigma_k^{-1}(x - \mu_k))
+\end{align*}
+\subsubsection{Linear discriminant analysis}
+LDA specifically arises out of the special case when we assume all classes have a common variance, i.e., $\Sigma_k = \Sigma \forall k$. This results in sufficient cancelations when comparing classes, leading to an equation linear in $x$
+\begin{align*}
+  \log\frac{P(G=k \mid X=x)}{P(G=k \mid X=x)} &= \log\frac{f(x \mid k)}{f(x \mid l)} + \log\frac{\pi_k}{\pi_l}\\
+  &= \log\frac{\pi_k}{\pi_l} - \frac{1}{2}(\mu_k + \mu_l)^T\Sigma^{-1}(\mu_k - \mu_l) + x^T\Sigma^{-1}(\mu_k - \mu_l)
+\end{align*}
+\textbf{Notes}
+\begin{itemize}
+  \item This implies the decision boundary between classes is linear in $x$
+  \item These decision boundaries are \textit{not} perpendicular bisectors to the line segments joining centroids (this would be the case if $\Sigma = \sigma^2\mathbf{I})$ and the priors, $\pi_i$ were equal)
+  \item In practice we don't know the parameters of the Gaussian distributions and we estimate with
+  \begin{itemize}
+    \item $\hat{\pi}_k = n_k / N$
+    \item $\hat{\mu}_k = \sum_{g_i = k}x_i/n_k$
+    \item $\hat{\Sigma}_k = \sum_{k=1}^K\sum_{g_i=k}(x_i - \hat{\mu}_k)^T(x_i - \hat{\mu}_k)/(N - K)$
+  \end{itemize}
+  \item In the case of a binary $y$, LDA and linear regression have a direct correspondence
+\end{itemize}
+
+
+\subsubsection{Quadratic discriminant analysis (QDA)}
+If we tighten our assumption about $\Sigma_k$ so that the covariance matrices are not even across groups, we get a \textbf{Quadratic discriminant analysis} that is quadratic in $x$:
+\begin{align*}
+  \delta_k(x) = \frac{1}{2}\log\abs{\Sigma_k} - \frac{1}{2}(x - \mu_k)^T\Sigma_k^{-1}(x - \mu_k) + log\pi_k
+\end{align*}
+\textbf{Notes}
+\begin{itemize}
+  \item Decision boundaries between classes are described by a quadratic equation: $\{x \mid \delta_k(x) = \delta_l(x) \}$
+  \item We can produce quadratic boundaries with LDA as well by enlarging the parameter space to include quadratics ($(x_1, x_2) \Longrightarrow (x_1, x_2, x_1x_2, x_1^2, x_2^2))$. In general, QDA is the preferred approach
+\end{itemize}
+
+\subsubsection{Regularized discriminant analysis (RDA)}
+Suposing we want to compromise between LDA and QDA, \textbf{regularized discriminant analysis} allows us to tune in between our assumptions of common across-class covariance (LDA) and unique within-class covariance (QDA) with a tuning parameter, $\alpha$. Regularized covariance matrices have the form
+\begin{align*}
+  \hat{\Sigma}_k(\alpha) = \alpha\hat{\Sigma}_k + (1 - \alpha)\hat{\Sigma}
+\end{align*}
+We can also consider a regularization approach to tune a caommon across-class covariance to an assumption about independence with tuning parameter, $\gamma$
+\begin{align*}
+  \hat{\Sigma}(\gamma) = \gamma\hat{\Sigma} + (1 - \gamma)\hat{\sigma}^2\mathbf{I} 
+\end{align*}
+
+\subsubsection{Additional LDA notes}
+We can reduce the computational complexity of LDA by taking advantage of the eigendecomposition of the covariance matrix: $\hat{\Sigma} = UDU^T$, noticing
+\begin{align*}
+  (x - \hat{\mu}_k)^T \Sigma^{-1}(x - \hat{\mu}_k) &= [U^T(x - \hat{\mu}_k)]^T D^{-1}[U^T(x - \hat{\mu}_k)]\\
+  \log\abs{\hat{\Sigma}} &= \sum_l\log d_{ll}
+\end{align*}
+With these relations, $X$ can be classified through two steps
+\begin{itemize}
+  \item Sphere data: $X^* = D^{-1/2}U^TX$ where $\hat{\Sigma} = UDU^T$ (note now that the common covariance matrix is $\mathbf{I}$)
+  \item Classify the closest class centroid in the transformed space, modulo the effect of class probabilities, $\pi_k$
+\end{itemize}
+
+\subsection{Logistic Regression}
+Logistic regression models the posterior probabilities of $K$ classes through a linear function in $x$. Logistic regressions also ensure that the probabilities sum to one and remain in $[0,1]$. The model form is (with intercept)
+\begin{align*}
+  \log\frac{P(G=1 \mid X=x)}{P(G=K \mid X=x)} &= \beta_1^Tx\\
+  \log\frac{P(G=2 \mid X=x)}{P(G=K \mid X=x)} &= \beta_2^Tx\\
+  \vdots\\
+  \log\frac{P(G=K-1 \mid X=x)}{P(G=K \mid X=x)} &= \beta_{K-1}^Tx
+\end{align*}
+Where probabilities can be calculated as
+\begin{align*}
+  P(G=k \mid X=x) &= \frac{\exp(\beta_k^Tx)}{1 + \sum_{l=1}^{K-1}\exp(\beta_l^Tx)} \textrm{, } k \in \{1, \dots, K-1\}\\
+  P(G=K \mid X=x) &= \frac{1}{1 + \sum_{l=1}^{K-1}\exp(\beta_l^Tx)}\\
+  P(G=k \mid X=x) &= p_k(x; \theta)
+\end{align*}
+Logistic regressions are fit by maximizing the likelihood function
+\begin{align*}
+  max_\theta \left\{\sum_{i=1}^n\log p_i(x_i;\theta)\right\}
+\end{align*}
+
+\subsubsection{Additional logistic regression notes}
+We can add regularization terms to increase the robustness of our estimations
+\begin{align*}
+  \max_\theta \left\{\sum_{i=1}^n\log p_i(x_i;\theta) - \lambda \sum_{j=1}^p\abs{\beta_j}\right\}
+\end{align*}
+\textbf{Notes}
+\begin{itemize}
+  \item If two classes in a logistic regression are linearly separable, then the solution is undefined (MLE tries to achieve probabilities of 0 and 1, leading to $\hat{\beta} \rightarrow \pm\infty)$
+  \item It turns out logistic regression and LDA both model log-posterior odds between classes as a linear function of $x$. The difference lies in the way the linear coefficients are estimated. 
+  \item Logistic regression makes fewer assumptions: it leaves the marginal density of $X$, $f(x\mid k)$ as an arbitrary density function, $f(x)$ and maximizes the conditional likelihood with $f(x)$ implicitly
+  \item LDA relies on additional model assumptions, which gives us more information about parameters (lower variance). If normality of the underlying data holds, LDA is more effective
+\end{itemize}
+
+
+\subsubsection{Pivot classes}
+The loinear logistic regression model without a regularization term requires a pivot class. This is because the parameters, $\beta$ are not uniquely defined without one:
+\begin{align*}
+  p_i(x) = P(G=i \mid x) = \frac{e^{\beta_ix}}{\sum_{j=1}^ke^{\beta_jx}} = \frac{e^{\beta_ix}e^{Cx}}{\sum_{j=1}^ke^{\beta_jx}e^{Cx}} = \frac{e^{(\beta_i + C)x}}{\sum_{j=1}^ke^{(\beta_j + C)x}}
+\end{align*}
+However, fixing $\beta_K = 0$ (or any one class) as the pivot allows us to uniquely define our $\beta$. Note that when we include a ridge penalty in the linear logistic regression model, this additional requirement on $\beta$ allows us to uniquely define $\beta$ without a pivot class
+
+\subsection{Naive Bayes models}
+Naive Bayes gives us a very simple model that assumes within-class independence. Even when this assumption isn't accurate, it can give us a good estimator with a simple implementation
+\begin{align*}
+  \textrm{Assume: } f(X\mid j) \approx \prod_{m=1}^p f_m(X_m\mid j)\\
+  P(G=k \mid X) = \frac{f(X\mid k)\pi_k}{\sum_{l=1}^Kf(X\mid l)\pi_l}
+\end{align*}
+\textbf{Notes}
+\begin{itemize}
+  \item Each component density $f_m$ is estimated separately within each class
+  \item The nearest shrunken centroid model has this structure
+  \item More general models have less bias, but are typically hard to estimate in high dimensions, so independence assumption may not hurt too much
+\end{itemize}
+
+
+\subsection{Receiver operating characteristics (ROC)}
+Consider a binary classifier. To classify a new observation, $x_0$ we can threshold $P(Y=1\mid X=x_0)$ at $0.5$. Other thresholds can change the sensitivity and specificity.
+\begin{itemize}
+  \item \textit{Sensitivity}: $P(\hat{G}=1 \mid Y=1)$, the true positive rate
+  \item \textit{Specificity}: $P(\hat{G}=1 \mid Y=0)$, the true negative rate (or 1 - false positive rate)
+\end{itemize}
+We can construct a \textbf{Receiver operating characteristics (ROC)} curve by plotting the false positive rate against the true positive rate for a variety of thresholds
+
+
+\section{Basis expansions and regularizations}
+Core concept of basis expansions is to expand beyond linear models to linear basis expansions in $X$:
+\begin{align*}
+  f(X) = \sum_{m=1}^M\beta_mh_m(X) \textrm{ where }h_m(X): \mathbb{R}^p \rightarrow \mathbb{R}
+\end{align*}
+Examples include
+\begin{itemize}
+  \item $h_m(X) = X_m$, the original linear model
+  \item $h_m(X) = X_j^2$ or $X_jX_k$, polynomial terms to achieve higher-order Taylor expansions
+  \item $h_m(X) = log(X_m)$, $\sqrt{X_m}$, or $\norm{X}{2}$, nonlinear transformations
+  \item $h_m(X) = I(L_m \leq X_m < U_m)$, indicator functions
+\end{itemize}
+
+\subsection{Piecewise polynomials and regression splines}
+\textbf{This section assumes $X$ is one-dimensional}\\\\
+Polynomials are limited by their global nature (changes in a far end of the data can impact the entire model). \textbf{Piecewise polynomials} divide the domain of $X$ into contiguous intervals, representing $f$ separately in each interval. In order of complexity we have
+\begin{itemize}
+  \item Piecewise constant, defined with three basis functions
+  \begin{itemize}
+    \item $h_1(X) = I(X < \xi_1)$
+    \item $h_2(X) = I(\xi_1 \leq X < \xi_2)$
+    \item $h_3(X) = I(X \geq \xi_3)$
+  \end{itemize}
+  \item Piecewise linear, defined with 4 basis functions include the above, plus three additional basis functions, $h_{m+1} = h_m(X)X$
+  \item Piecewise cubic, adding basis functions for the quadratic and cubic terms
+  \item Piecewise linear continuous, defined with 4 basis functions (e.g., incorporating constraints that $f(\xi_1^-) = f(\xi_1^+)$)
+  \begin{itemize}
+    \item $h_1(X) = 1$
+    \item $h_2(X) = X$
+    \item $h_3(X) = (X - \xi_1)_+$ where $t_+$ denotes the positive part
+    \item $h_4(X) = (X - \xi_2)_+$
+  \end{itemize}
+  \item Piecewise cubic continuous
+  \item Piecewise cubic first-derivative continuous
+  \item Piecewise cubic second-derivative continuous (cubic spline). There is seldom a reason to go beyond cubic splines unless one is interested in smooth derivatives
+  \begin{itemize}
+    \item $h_1(X) = 1$
+    \item $h_2(X) = X$
+    \item $h_3(X) = X^2$
+    \item $h_4(X) = X^3$
+    \item $h_5(X) = (X - \xi_1)^3_+$
+    \item $h_6(X) = (X - \xi_2)^3_+$
+  \end{itemize}
+  \item Piecewise order-M spline with knots $\xi_j, j=1, \dots, K$
+  \begin{itemize}
+    \item $h_j(X) = X^{j-1}, j=1, \dots M$
+    \item $h_{m+l}(X) = (X - \xi_l)^{M-1}_+, l=1, \dots K$
+  \end{itemize}
+\end{itemize}
+\subsubsection{Additional notes}
+\begin{itemize}
+  \item Fixed-knot splines are known as \textbf{regression splines}. One needs to select the order of the spline, number of knots, and location of knots
+  \item Behavior of polynomal fits tends to be erratic near boundaries. This is exacerbated with regression splines. A \textbf{Natural cubic spline} adds additional constraints that the function is linear beyond the boundary knots, which can alleviate this issue, but may increase boundaries at the edge of the data
+\end{itemize}
+
+\subsection{Smoothing splines}
+\textbf{Smoothing splines} are a spline basis method that avoids the knot-selection problem by using a maximal set of knots (i.e., every point is a knot). The complexity of fit is controlled by regularization. It seeks a function $f(x)$ to minimize 
+\begin{align*}
+  RSS(f, \lambda) = \sum_{i=1}^n(y_i - f(x_i))^2 + \lambda \int f''(t)^2dt
+\end{align*}
+\begin{itemize}
+  \item The first term measures closeness to the data, while the second term penalizes curvature in the function. 
+  \item Note for $\lambda = \infty$ we get back least squares line. For $\lambda = 0$ the data interpolates every point
+  \item Even though this objective is for an infinite class of functions, it can be shown to have an explicit, finite dimensional minimizer: a natural cubic spline with knots at the values of $x_i$
+\end{itemize}
+The solution can be rewritten as $f(x) = \sum_{j=1}^NN_j(x)\theta_j$ where $N_j(X)$ are an N-dimensional set of basis functions representing this family of natural splines. The criterion reduces to
+\begin{align*}
+  RSS(\theta, \lambda) =& (y - N\theta)^T(y-N\theta) + \lambda \theta^T\Omega_N\theta\\
+  & \textrm{ where } \{N\}_{ij} = N_j(x_i) \textrm{ and } \{\Omega_N\}_{jk} = \int N_j''(t)N_k''(t)dt\\
+  \hat{\theta} =& (N^TN + \lambda\Omega_N)^{-1}N^Ty\\
+  \hat{f}(x) &= \sum_{j=1}^NN_j(x)\hat{\theta}_j
+\end{align*}
+
+\subsubsection{Smoothing matrices}
+A smoothing spline is a linear smoother (i.e., linear operator) because the estimated parameters are a linear combination of the $y_i$
+\begin{align*}
+  \hat{y} = N(N^TN + \lambda \Omega)^{-1}N^Ty = S_\lambda y
+\end{align*}
+$S_\lambda y$ is known as the \textit{smoother matrix} that takes a weighted average of y near the target window
+\begin{itemize}
+  \item $S_\lambda$ only depends on $X$ and $\lambda$
+  \item Analogous to least squares hat matrix, $H = X(X^TX)^{-1}X^T$ (OLS), $H = X(X^TX + \lambda I)^{-1}X^T$ (Ridge regression)
+  \item $S_\lambda$ is a symmetric positive semidefinite matrix
+  \item While $H^TH = HH = H$ (idempotent), $S_\lambda^TS_\lambda = S_\lambda S_\lambda \preceq S_\lambda$
+  \item While $H$ has rank $p$, $S_\lambda$ has rank $N$
+  \item $df_\lambda = trace(S_\lambda)$
+\end{itemize}
+
+\subsubsection{LOO cross validation for smoothing splines}
+The leave-one-out CV curve for smoothing splines is approximately unbiased as an estimate of the EPE curve
+\begin{align*}
+  CV(\hat{f}_\lambda) &= \sum_{i=1}^N(y_i - \hat{f}^{(-i)}_\lambda(x_i))^2\\
+  &= \sum_{i=1}^N\frac{(y_i - \hat{f}_\lambda(x_i))^2}{(1 - S_\lambda(i, i))^2}
+\end{align*}
+
+\subsubsection{Smoothing spline logistic regression}
+For a binary class variable, $y$
+\begin{align*}
+  p(x) &= P(y=1 \mid x) = \frac{e^f(x)}{1 + e^f(x)}\\
+  l(f;\lambda) &= \sum_{i=1}^n[y_i \log(p(x_i)) + (1-y_i)\log(1-p(x_i))] - \frac{1}{2}\lambda \int f''(t)^2dt
+\end{align*}
+Similar argument as before, the optimal function, $f$ can be shown to be a natural cubic spline with knots at the unique values of $x_i$. This leads to a \textbf{nonparametric} logistic regression
+
+
+\subsection{Multidimentional splines}
+Extension of smoothing splines into more than a single dimension. Suppose $X \in \mathbb{R}^2$ with basis functions $h_{1k}(X_1)$ representing functions of parameter $X_1$ and $h_{2l}(X_2)$ representing functions of parameter $X_2$. The $M_1 \times M_2$ dimensional tensor product basis (inner product of functions for each parameter matrices) can be ued for representing a two-dimensional function
+\begin{align*}
+  g(X) = \sum_{j=1}^{M_1}\sum_{k=1}^{M_2}\theta_{jk}h_{1j}(X_1)h_{2k}(X_2)
+\end{align*}
+
+
+\subsection{Regularization and reproducing kernel Hilbert spaces}
+\subsubsection{The kernel trick}
+The \textit{kernel trick} is useful in scenarios when $M \gg N$. It allows us to write a ridge solution for $\hat{y}$ that only requires inversion of an $N \times N$ matrix (as opposed to an $M \times M$ matrix normally)
+\begin{align*}
+  \textrm{Objective: }& R(\beta) = (y - H\beta)^T(y - H\beta) + \lambda \beta^T \beta \textrm{ for } f(x) = h(x)^T\beta, H = \{h_j(x_i)\}_{N\times M}\\
+  \textrm{Solution: }& \hat{y} = H(H^TH + \lambda I)^{-1}H^Ty \textrm{ requiring inverse of MxM matrix}\\
+  \textrm{Rewritten solution: }& \hat{y} = HH^T(HH^T + \lambda I)^{-1}Hy \textrm{ requiring inverse of NxN matrix}
+\end{align*}
+Proof: Starting with the derivative condition
+\begin{align*}
+  \frac{\partial R}{\partial \beta} = 0 \Longleftrightarrow& -2H^T(y - H\beta) + 2\lambda \beta = 0\\
+  \hat{\beta} =& H^T(y - H\hat{\beta}) = H^T\alpha\\
+  HH^T(y - HH^T\alpha) =& \lambda HH^T\alpha \textrm{, plugging in and left multiplying by } H\\
+  \alpha =& (HH^T + \lambda I)^{-1}y\\
+  \hat{\beta} =& H^T\alpha = H^T(HH^T + \lambda I)^{-1}y
+\end{align*}
+Note that $HH^T$ is $N\times N$ and the inner product of all $h(x_i)^Th(x_j)$. For a function $K(x, x') = h(x)^Th(x')$, we can let $K=HH^T$ and get 
+\begin{align*}
+  \hat{y} &= h(x)^T\beta = \sum_{i=1}^N\hat{\alpha}_iK(x, x_i)\\
+  \hat{\alpha} &= (K + \lambda I)^{-1}y\\
+  \hat{\beta}^T\hat{\beta} &= \hat{\alpha}^TK\hat{\alpha}
+\end{align*}
+
+\subsubsection{Kernel examples}
+\begin{itemize}
+  \item Polynomial kernel: $K(x, x') = (1 + x^Tx')^d$
+  \item Radial kernel: $K(x, x') = \exp(-\gamma\norm{x-x'}{p}^2)$; $\gamma$ controls the width of the kernel
+\end{itemize}
+$f(x)$ in turn is a weighting of all these kernels at each point $x$.
+
+
+\end{document}
