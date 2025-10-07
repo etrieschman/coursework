@@ -10,6 +10,9 @@
 !.gitignore
 !*.gitkeep
 
+# Ignore embedded Overleaf repos
+**/.git
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
