@@ -8,7 +8,7 @@ w_h = cp.Variable()
 w_m = cp.Variable()
 w_f = cp.Variable()
 g_h, g_m = 98, 69
-target = 90
+target = 85
 
 def get_lp_final_grade(g_f):
     # constraints
@@ -40,7 +40,7 @@ plt.show()
 
 
 # %%
-g_h, g_l, g_n, g_m, __, g_p = 9.8, 10.0, 9.8, 7.92, 0.0, 9.9
+g_h, g_l, g_n, g_m, __, g_p = 9.8, 9.75, 9.5, 7.92, 0.0, 9.9
 w_h, w_l, w_n, w_m, w_f, w_p = 0.15, .15, .05, .23, .37, .05
 def get_g_f(target):
     return (target - g_h*w_h - g_l*w_l - g_n*w_n - g_m*w_m - g_p*w_p) / w_f
