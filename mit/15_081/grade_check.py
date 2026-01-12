@@ -8,7 +8,7 @@ w_h = cp.Variable()
 w_m = cp.Variable()
 w_f = cp.Variable()
 g_h, g_m = 98, 69
-target = 90
+target = 93
 
 
 def get_lp_final_grade(g_f):
@@ -23,7 +23,9 @@ def get_lp_final_grade(g_f):
         w_m + w_f >= 0.5,
     ]
     # objective
-    obj = cp.Maximize(w_h * g_h + w_m * g_m + w_f * g_f + (1 - w_h - w_m - w_f) * 100)
+    obj = cp.Maximize(
+        w_h * g_h + w_m * g_m + w_f * g_f + (1 - w_h - w_m - w_f) * 100 + 4
+    )
     # solve
     problem = cp.Problem(obj, constraints)
     problem.solve()
