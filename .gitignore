@@ -9,6 +9,7 @@
 .*
 !.gitignore
 !*.gitkeep
+!.python-version
 
 # Ignore embedded Overleaf repos
 **/.git

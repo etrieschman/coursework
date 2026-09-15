@@ -1,0 +1,34 @@
+[project]
+name = "coursework"
+version = "0.1.0"
+description = "One shared environment for all coursework / homework"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    # numerics / data
+    "numpy",
+    "scipy",
+    "pandas",
+    "polars",
+    "pyarrow",
+    "sympy",
+    "networkx",
+    # stats / ml / optimization
+    "statsmodels",
+    "scikit-learn",
+    "cvxpy",
+    # plotting
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    # jupyter: kernel, lab, widgets, exporting (# %% .py -> .ipynb -> pdf/html)
+    "ipykernel",
+    "ipywidgets",
+    "jupyterlab",
+    "nbconvert",
+    "jupytext",
+    # utilities
+    "loguru",
+    "tqdm",
+    "ruff",
+]
