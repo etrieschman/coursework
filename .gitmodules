@@ -1,3 +1,6 @@
 [submodule "mit/15_081/overleaf"]
 	path = mit/15_081/overleaf
 	url = https://github.com/etrieschman/overleaf_mit_15_081.git
+[submodule "mit/6_S974/overleaf"]
+	path = mit/6_S974/overleaf
+	url = https://github.com/etrieschman/overleaf_mit_6_S974.git
