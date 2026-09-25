@@ -32,3 +32,8 @@ dependencies = [
     "tqdm",
     "ruff",
 ]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+]

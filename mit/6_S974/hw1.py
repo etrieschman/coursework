@@ -94,3 +94,46 @@ print("Unused supply (D1, D2):", np.round(b_c[3:] - inj[3:].value, 2))
 
 
 # %%
+# =======================
+# Problem 2 Part (d)
+# =======================
+# Constants
+U = np.array([[[1, 1], [6, 3]], [[3, 6], [5, 5]]])
+A, B = 0, 1
+O, L = 0, 1
+
+# variable
+pi = cp.Variable((2, 2))
+
+# constraints
+constraints = [pi >= 0, cp.sum(pi) == 1]
+constraints += [
+    cp.sum([pi[s_i, s_mi] * (U[s_i, s_mi, A] - U[sp_i, s_mi, A]) for s_mi in [O, L]])
+    >= 0
+    for sp_i in [O, L]
+    for s_i in [O, L]
+]
+constraints += [
+    cp.sum([pi[s_mi, s_i] * (U[s_mi, s_i, B] - U[s_mi, sp_i, B]) for s_mi in [O, L]])
+    >= 0
+    for sp_i in [O, L]
+    for s_i in [O, L]
+]
+
+# solve problem
+objective = cp.Maximize(cp.sum(cp.multiply(pi, U[:, :, A] + U[:, :, B])))
+problem = cp.Problem(objective, constraints)
+problem.solve()
+
+# report
+print("\n~~~ PROBLEM 2 PART (D) ~~~")
+print("Joint distribution (pi):\n", np.round(pi.value, 2))
+ep_A = cp.sum(cp.multiply(pi, U[:, :, A])).value
+ep_B = cp.sum(cp.multiply(pi, U[:, :, B])).value
+print(f"Expected payoffs (A, B): ({ep_A:0.2f}, {ep_B:0.2f})")
+print("Total expected welfare:", np.round(ep_A + ep_B, 2))
+
+# %%
+
+
+# %%
