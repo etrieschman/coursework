@@ -132,8 +132,3 @@ ep_A = cp.sum(cp.multiply(pi, U[:, :, A])).value
 ep_B = cp.sum(cp.multiply(pi, U[:, :, B])).value
 print(f"Expected payoffs (A, B): ({ep_A:0.2f}, {ep_B:0.2f})")
 print("Total expected welfare:", np.round(ep_A + ep_B, 2))
-
-# %%
-
-
-# %%
