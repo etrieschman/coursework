@@ -1,0 +1,649 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools,amssymb}
+\usepackage{lipsum}
+\usepackage{layout}
+\usepackage{geometry}
+\newcommand*{\vertbar}[1][10ex]{\rule[-1ex]{0.5pt}{#1}}
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
+\newcommand{\norm}[2]{\left\lVert#1\right\rVert_#2}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\title{CME302 class notes}
+\author{Erich Trieschman}
+\date{2021 Fall quarter}
+
+\newcommand{\userMarginInMm}{6}
+\geometry{
+%  legal,
+ left=\userMarginInMm mm,
+ right=\userMarginInMm mm,
+ top=\userMarginInMm mm,
+ bottom=\userMarginInMm mm,
+ footskip=5mm}
+
+
+%HEADERS
+% https://web.mit.edu/texsrc/source/latex/layouts/layman.pdf
+% \textheight=650pt
+% \textwidth=450pt
+% \headheight=-25pt
+% \oddsidemargin=5pt
+% \footskip=25
+
+\begin{document}
+\maketitle
+
+\section{Linear algebra review}
+
+\subsection{Vector products}
+The \textbf{inner product}, also known as the dot product, results in a scalar
+\begin{itemize}
+    \item $x^Ty = \sum x_i*y_i$; $x^Ty = \norm{x}{2}\norm{y}{2}\cos\theta$; $x^Ty = 0 \Leftrightarrow x \perp y$
+\end{itemize}
+The \textbf{outer product} results in a matrix. It is the outer sum of the two vectors, which can be of different lengths.
+
+\subsection{Norms}
+All norms, matrix or vector, satisfy
+\begin{itemize}
+    \item Only zero vector has zero norm: $\norm{x}{x} = 0 \Leftrightarrow x = 0$
+    \item $\norm{\alpha x}{x} = \abs{\alpha}\norm{x}{x}$
+    \item $\norm{x+y}{x} \leq \norm{x}{x} + \norm{y}{x}$ (Triangle inequality I), $\norm{x-y}{x} \geq \norm{x}{x} - \norm{y}{x}$ (Triangle inequality II)
+\end{itemize}
+
+\subsubsection{Vector norms}
+Types of \textbf{vector norms}, $x \in \mathbb{R}^{n}$ (norm selection can give you solutions with different properties)
+\begin{itemize}
+    \item $\norm{x}{1} = \sum_{i=1}^n \abs{x_i}$; $\norm{x}{2} = \sqrt{\sum_{i=1}^n (x_i)^2}$; $\norm{x}{\infty} = \max_{i \in i,\dots, n} \abs{x_i}$; $\norm{x}{p} = (\sum_{i=1}^n \abs{x_i}^p)^{\frac{1}{p}}$
+\end{itemize}
+\textbf{Cauchy-Schwarts Inequality:} $\abs{x^Ty}\leq \norm{x}{2}\norm{y}{2}$ (note equality when $x^Ty = 0$)\\ \\
+\textbf{Holder's Inequality:} $\abs{x^Ty} \leq \norm{x}{p}\norm{y}{q}$, for $p, q$ , s.t. $\frac{1}{p} + \frac{1}{q} = 1$
+
+\subsubsection{Matrix norms}
+\noindent Types of \textbf{matrix norms}, $A \in \mathbb{R}^{n \times m}$
+\begin{itemize}
+    \item $\norm{A}{\infty} = \sup_{x\neq 0}\frac{\norm{Ax}{\infty}}{\norm{x}{\infty}} = \max_{\norm{x}{\infty}=1}\norm{Ax}{\infty} = \max_i\norm{a_i^T}{1}$
+    \item $\norm{A}{p} = \sup_{x\neq 0}\frac{\norm{Ax}{p}}{\norm{x}{p}} = \max_{\norm{x}{p}=1}\norm{Ax}{p}$
+    \item $\norm{A}{F} = \sqrt{\sum_{i,j} a_{ij}^2} = \sqrt{tr(AA^T)} = \sqrt{tr(A^TA)} = \sqrt{\sum_{k=1}^{min(m,n)}\sigma_k^2} $
+\end{itemize}
+\textbf{Submultiplicative inverse:} $\norm{AB}{p} \leq \norm{A}{p}\norm{B}{p}$. Note: this is not always true for Frobenius norms.\\ \\
+\textbf{Induced p-norm: } $\norm{Ay}{p} \leq \norm{A}{p}\norm{y}{p}$\\ \\
+\textbf{Orthogonally invariant:} Orthogonal matrices do not change the norms of vectors or matrices:
+\begin{itemize}
+    \item $\norm{Qx}{x} = \norm{x}{x}$; $\norm{QA}{x} = \norm{A}{x}, x \in \{p, F\}$
+\end{itemize}
+\textbf{Other norm properties:}
+\begin{itemize}
+    \item $\norm{x}{\infty} \leq \norm{x}{2} \leq \sqrt{n}\norm{x}{\infty}$; $\norm{A}{2} \leq \sqrt{m}\norm{A}{\infty}$; $\norm{A}{\infty} \leq \sqrt{n}\norm{A}{2}$
+\end{itemize}
+
+\subsection{Matrix properties}
+\subsubsection{Determinant}
+The \textbf{determinant} represents how the volume of a hypercube is transformed by the matrix.
+\begin{itemize}
+    \item For square matrix, $det(\alpha A) = \alpha^ndet(A)$; $det(AB) = det(A)det(B)$
+    \item $det(A) = det(A^T)$; $det(A^{-1}) = \frac{1}{det(A)}$
+    \item For square matrix, $A$ singular $\Leftrightarrow det(A) = 0 \Leftrightarrow$ columns of $A$ are not linearly independent
+\end{itemize}
+
+\subsubsection{Trace}
+The trace of a matrix $A \in \mathbb{R}^{mxn}, tr(A)$, is equal to the sum of the entries in its diagonal, $tr(A) = \sum_{i = 1}^n a_{ii}$. And a few properties of the trace:
+\begin{itemize}
+    \item $tr(A) = tr(A^T)$; $tr(A + \alpha B) = tr(A) + \alpha tr(B)$; For two vectors, $u, v \in \mathbb{R}, tr(uv^T) = v^Tu$
+    \item Trace is invariant under cyclic permutations, that is $tr(ABCD) = tr(BCDA) = tr(CDAB) = tr(DABC)$
+\end{itemize}
+
+\subsubsection{Inverses and transposes}
+The inverse of the transpose is the transpose of the inverse:
+\begin{itemize}
+    \item $A^T(A^{-1})^T = (A^{-1}A)^T = I^T = I$
+    \item $(A^{-1})^TA^T = (AA^{-1})^T = I^T = I$
+\end{itemize}
+\subsubsection{Sherman-Morrison-Woodbury formula} 
+for $A\in \mathbb{R}^{n\times n}, U,V \in \mathbb{R}^{n\times k}$
+\begin{equation*}
+    (A+UV^T)^{-1} = A^{-1} - A^{-1}U(I+V^TA^{-1}U)^{-1}V^TA^{-1} 
+\end{equation*}
+\textbf{Proof:} begin with the inverse of the $LHS$ multiplied by the $RHS$: $(A+UV^T) (A^{-1} - A^{-1}U(I+V^TA^{-1}U)^{-1}V^TA^{-1})$. Next perform matrix multiplication. The end result will be $I$, implying that the $RHS$ is an inverse of $(A+UV^T)$
+
+\subsection{Orthogonal matrices}
+An orthogonal matrix, $Q$ is a matrix whose columns are orthonormal. That is, $q_i^Tq_j = 1$ for $i=j$, and $q_i^Tq_j = 0$ for $i\neq j$. Equivalently, $Q^TQ = I$. For square matrices, $Q^TQ = QQ^T = I$
+
+\subsection{Projections, reflections, and rotations}
+\subsubsection{Projections}
+A projection, $v$, of vector $x$ onto vector $y$ can be written in the form $v = \frac{y^Tx}{y^Ty}y$. \textbf{Projection matrices} are square matrices, $P$, s.t., $P^2 = P$. 
+
+\subsubsection{Reflection}
+\begin{itemize}
+    \item $P$ is a reflection matrix $\Leftrightarrow P^2 = I$
+    \item $P$ can be written in the form $P = I - \beta vv^T$, with $\beta = \frac{2}{v^Tv}$, and $v$ the vector orthogonal to the line/plane of reflection
+    \item It can be shown that $Px = x \Leftrightarrow v^Tx = 0$. These x are called the "fixed points" of $P$
+\end{itemize}
+
+% SYMMETRIC POSITIVE DEFINITE
+\subsection{Symmetric Positive Definite (SPD) Matrices}
+For \textbf{$A$, SPD,} i) $A = A^T$, ii) $x^TAx > 0$  $\forall x \neq 0$, iii) $a_{ii} > 0$, iv) $\lambda(A) \geq 0$, v) for $B$ nonsingular, $B^TAB$ is also SPD.\\ \\
+When proving properties of SPDs, use the \textbf{following tricks:} i) Multiply by $e_i$ since $e_i \neq 0$, ii) Use matrix transpose property, $x^TA^T = (Ax)^T$ to rearrange formulas
+
+\subsubsection{$B^TAB$ is also SPD} 
+If $A$ SPD $\Rightarrow B^TAB$ SPD for $B$ nonsingular:
+\begin{equation*}
+    x^TB^TABx = (Bx)^TA(Bx) > 0, \textrm{(since $B$ nonsingular $\Rightarrow Bx \neq 0$)}
+\end{equation*}
+
+% EIGENVALUES
+\subsection{Eigenvalues}
+Observe by definition $Ax= \lambda x \longleftrightarrow Ax - \lambda x = 0 \longleftrightarrow (A - \lambda I)x = 0$. To find lambda, we solve for the system of equations to satisfy $(A - \lambda I)x = 0$\\ \\
+The \textbf{algebraic multiplicity} of an eigenvalue, $\lambda_i$, is the number of times that $\lambda_1$ appears in $\lambda(A)$\\
+The \textbf{geometric multiplicity} of an eigenvalue, $\lambda_i$, is the dimension of the space spanned by the eigenvectors of $\lambda_i$\\ \\
+Other \textbf{eigenvalue properties:} $\lambda(A) = \lambda(A^T)$; Courant-Fischer minmax theorem: $\lambda_1 = \max_{x \neq 0}\frac{x^TAx}{\norm{x}{2}^2}$
+
+% DETERMINANTS/TRACE
+\subsubsection{Determinants and trace}
+\begin{align*}
+    det(A) = \prod_{i=1}^n \lambda_i & & tr(A) = \sum_{i=1}^n \lambda_i
+\end{align*}
+
+
+% TRIANGULAR MATRICES
+\subsubsection{Triangular matrices}
+For $T$ triangular, the eigenvalues appear on the diagonal: $t_{ii} = \lambda_i, \forall i \in \{1,\dots, n\}$\\
+\textbf{Corollary:} $T$ nonsingular $\Leftrightarrow$ all $t_{ii} \neq 0$
+
+% GERSHGORIN DISC
+\subsubsection{Gershgorin disc theorem}
+Gershgorin disc, $\mathbb{D}_i$, defined
+\begin{equation*}
+    \mathbb{D}_i = \{z \in \mathbb{C} \mid \lvert z - a_{ii}\rvert \leq \sum_{j \neq i} \lvert a_{ij}\rvert\}
+\end{equation*}
+All eigenvalues of $A$, $\lambda(A) \in \mathbb{C}$ are located in one of its Gershgorin discs. \textbf{Proof:}
+
+\begin{align*}
+    Ax = \lambda x \longleftrightarrow (A - \lambda I)x = 0 &\longleftrightarrow \sum_{j \neq i} a_{ij}x_j + (a_{ii} - \lambda)x_i = 0, \; \forall \space i \in \{1, \dots, n\}\\
+    \textrm{Choose } i \; s.t. \lvert x_i\rvert  = \max_{i} \lvert x_i \rvert  \\
+    \lvert (a_{ii} - \lambda) \rvert &= \lvert \sum_{j \neq i} \frac{a_{ij}x_j}{x_i}\rvert
+    \leq \sum_{j \neq i} \lvert \frac{a_{ij}x_j}{x_i}\rvert \; \textrm{, by triangle inequality}\\
+    \lvert (\lambda - a_{ii}) \rvert &\leq \sum_{j \neq i} \lvert a_{ij}\rvert 
+    \textrm{, since $\lvert \frac{x_j}{x_i} \rvert \leq 1$}
+\end{align*}
+
+% DECOMPOSITIONS
+\section{Matrix Decompositions}
+% SCHUR DECOMP
+\subsection{Schur Decomposition}
+For any $A \in \mathbb{C}^{n \times n}$, $A = QTQ^H$, where $Q$ unitary $(Q^HQ = I), Q \in \mathbb{C}^{n \times n}$, $T$ upper triangular\\ \\
+When $A \in \mathbb{R}^{n \times n}$, $A = QTQ^T$, where $Q$ orthogonal $(Q^TQ = I), Q \in \mathbb{R}^{n \times n}$, $T$ upper triangular\\ \\
+Note: If $T$ is relaxed from strict upper triangular to block upper triangular (blocks of $2\times 2$ or $1 \times 1$ on the diagonal), then $Q$ can be selected to be in $\mathbb{R}^{n\times n}$.
+
+
+% EIGENVALUE DECOMP
+\subsection{Eigenvalue Decomposition}
+For $A$ diagonalizable ($A\in \mathbb{R}^{n\times n}$ with $n$ linearly independent eigenvectors), it can be decomposed as
+\begin{equation*}
+    A = X \Lambda X^{-1} \textrm{, where $\Lambda$ a diagonal matrix of the eigenvalues of $A$}
+\end{equation*}
+For $A$ real symmetric, $A$ can be decomposed as $A = Q\Lambda Q^T, Q$ orthogonal\\ \\
+For $A$ unitarily diagonalizable ($\Leftrightarrow$ normal: $A^HA = AA^H$), $A= Q\Lambda Q^H, Q$ unitary. When $A$ complex Hermitian ($A = A^H$), $\Lambda \in \mathbb{R}$
+
+
+% SINGULAR VALUE DECOMP
+\subsection{Singular Value Decomposition}
+\textbf{Definition:} For any $A \in \mathbb{C}^{m\times n}$ there exist two unitary matrices, $U \in \mathbb{C}^{m \times m}$ and $V \in \mathbb{C}^{n \times n}$, and a diagonal matrix $\Sigma \in \mathbb{R}^{m \times n}$ such that $A = U\Sigma V^H$. When $A \in \mathbb{R}^{m \times n}$, $A = U\Sigma V^T$ with $U, V, \Sigma \in \mathbb{R}$ \\ \\
+The singular values, $\sigma_i$ of $\Sigma$ are always $\geq0$. And by convention, they're ordered in decreasing order, so $\sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_n$\\ \\ 
+\textbf{Derivation:} Observe $A^TA$ symmetric: $(A^TA)^T = A^TA$
+\begin{align*}
+    A^TA \textrm{ symmetric} &\Rightarrow \exists \; Q \textrm{ orthogonal and } \Lambda \textrm{ diagonal matrix of $\lambda_i$ s.t., }\\
+    A^TA & = Q\Lambda Q^T\\
+    Q^TA^TAQ & = Q^TQ\Lambda Q^TQ\\
+    (AQ)^T(AQ) & = \Lambda \textrm{, note $AQ$ is orthogonal, but not scaled to 1. Instead, each row is} \\
+    &\textrm{scaled to the eigenvalue in that row: }\lambda_i  = \norm{Aq_i}{2}^2\\
+    \\
+    \textrm{When $A$ is full rank,}&\\
+    A &= AQQ^T\\
+    &= (AQ) Q^T\\
+    &= AQD^{-1}DQ^T \textrm{, where } D = \begin{bmatrix} \sqrt{\lambda_1} & \dots & 0\\ 
+        \vdots & & \vdots\\ 0 & \dots & \sqrt{\lambda_n} \end{bmatrix} \textrm{ and } D^{-1} = \begin{bmatrix} \frac{1}{\sqrt{\lambda_1}} & \dots & 0\\ 
+        \vdots & & \vdots\\ 0 & \dots & \frac{1}{\sqrt{\lambda_n}} \end{bmatrix}\\
+    A &= U\Sigma V^T \textrm{, where } U  = AQD^{-1}, \Sigma = D, V^T = Q^T\\
+    \\
+    \textrm{When $A$ is not full rank,}&\textrm{ make the tall/thin SVD}
+\end{align*}
+And a few properties and remarks of $A \in \mathbb{R}^{n\times m}$ SVD
+\begin{itemize}
+    \item $\norm{A}{2} = \sigma_1$; $\norm{A^{-1}}{2} = \frac{1}{\sigma_n}$ when $A$ nonsingular; $\norm{A}{F} = \sqrt{\sum_i^{min\{n,m\}}\sigma_i^2}$; \textbf{Condition number}, $\kappa(A) = \norm{A}{2}\norm{A^{-1}}{2} = \frac{\sigma_1}{\sigma_n}$
+    \item When $A$ symmetric, $\sigma_i = \abs{\lambda_i}$; When $A$ orthogonal, $\sigma_1 = \dots = \sigma_n = 1$
+    \item The eigenvalues of $A^TA$ and $AA^T$ are the squares of the singular values of A, $\sigma_1^2, \dots, \sigma_n^2$
+    \item By construction, $V$ contains the eigenvectors of $A^TA$ and $U$ contains the eigenvectors of $AA^T$, so $A^TAv_i = \sigma_i^2v_i$ and $AA^Tu_i = \sigma_i^2u_i$
+\end{itemize}
+
+% ERROR ANALYSIS
+\section{Error analysis}
+\subsection{Floating point arithmetic}
+\begin{equation*}
+    \pm (\sum_{i=1}^{t-1} d_i\beta^{-i})\beta^e
+\end{equation*}
+Where $\beta$ is the base (in floating point computation, $\beta=2$), $d_0\geq1$, and $d_i\leq \beta - 1$, $e$ is called the \textbf{exponent}, this is the location of the decimal place, $t-1$ in the summand is called the \textbf{precision} and indicates the number of digits (in base $\beta$) that can be stored with the number.
+
+
+% UNIT ROUNDOFF
+\subsection{Unit roundoff}
+The \textbf{unit roundoff} for a floating-point number is 
+\begin{equation*}
+    u = \frac{1}{2} \times \beta^{-(t-1)} \textrm{ (distance between the smallest digits stored in a floating-point number)}
+\end{equation*}
+For double precision floating point numbers (64 bits), $u \approx 10^{-16}$. The relative sensitivity of a problem is often called the \textbf{conditioning} of the problem
+\begin{itemize}
+    \item Sensitivity: $\frac{\norm{\Tilde{f}(x) - f(x)}{p}}{\norm{\Tilde{x} - x}{p}}$; Relative sensitivity: $\frac{\norm{\Tilde{f}(x) - f(x)}{p}\norm{x}{p}}{\norm{\Tilde{x} - x}{p}\norm{f(x)}{p}}$
+\end{itemize}
+
+
+% LU FACTORIZATIONS
+\section{LU Factorization}
+The LU factorization makes it computationally easier to solve linear equations If we can decompose a matrix, $A$, into a product of a lower triangular matrix, $L$, and an upper triangular matrix, $U$, then to solve $Ax=b$, we can start by solving $Lz=b$, and then $Ux=z$. $x$, here, is the solution!
+
+% BASIC ALGORITHM FOR LU FACTORIZATION
+\subsection{Basic algorithm}
+\begin{itemize}
+    \item Construct $u_1^T$ equal to the first row of $A, a_1^T$
+    \item Construct $l_1$ equal to each of the elements in the first column of $A, a_1$, divided by $a_{11}$, the "pivot"
+    \item Calculate $A' \leftarrow A - l_1u_1^T$. In practice (and somewhat confusingly), $A'$ is now referred to as $A$
+    \item Repeat the algorithm with the updated $A$, and the next row/column. Observe each $l_i, u_i^T$ constructed are the rows/columns of the lower and upper triangular matrices of $L, U$ respectively.
+\end{itemize}
+
+% GAUSS TRANSFORMATIONS
+\subsubsection{Gauss transforms}
+To compute $A=LU$, consider $L^{-1}A = U$, with $L^{-1}$ that "zeros-out" the columns of $A$ to get $U$. Call $L^{-1}, G$. As with the iterative algorithm above, we can multiply $A$ by iterative $G_i$'s to get $U$:
+\begin{align*}
+    L^{-1}A &= G_nG_{n-1}\dots G_2G_1A = U  \longrightarrow A = G_1^{-1}\dots G_n^{-1}U = LU
+\end{align*}
+
+
+% PIVOTING
+\subsection{Pivoting}
+\subsubsection{When pivoting is needed}
+Notice that this algorithm relies on the pivots, $a_{kk}$, being nonzero. It turns out this will occur if none of the $k \times k$ blocks of $A, \; A[1:k, 1:k],$ have a determinant of 0. \textbf{Proof by induction}:\\
+\textit{Case k=1:} 
+\begin{align*}
+    A_1 &= L_1U_1 \longleftrightarrow det(A_1) = det(L_1U_1) \longleftrightarrow det(A_1) = det(L_1)det(U_1) \textrm{, by property of determinants}\\
+    det(A_1) &= det(U_1) \textrm{, since determinant of a triangular matrix is a product of the diagonals and the diagonal of $L_1$ are 1's}\\
+    det(A_1) &= a_{11} = u_{11} \rightarrow \textrm{so when determinant is not zero, we have a nonzero pivot}
+\end{align*}
+
+% CHOLESKY FACTORIZATION
+\subsection{Cholesky factorization}
+The Cholesky factorization is an LU factorization for Symmetric Positive Definite (SPD) matrices, where SPD matrix, $A = GG^T$, with $G$ lower triangular.
+
+% SCHUR COMPLEMENT
+\subsection{Schur complement}
+A useful way to think about the LU factorization is with the \textbf{Schur complement} matrix structure. First observe $A$ can be written in the following form
+\begin{equation*}
+    A = \begin{bmatrix} A_{11} & A_{12}\\ A_{21} & A_{22}\end{bmatrix}
+\end{equation*}
+If we run the LU factorization algorithm for $k$ steps, the resulting $A' = A$ is equal to 
+\begin{equation*}
+    A = \begin{bmatrix} I & 0\\ A_{21}A_{11}^{-1} & I\end{bmatrix}
+    \begin{bmatrix} A_{11} & 0\\ 0 & A_{22} - A_{21}A_{11}^{-1}A_{12}\end{bmatrix}
+    \begin{bmatrix} I & A_{21}A_{11}^{-1}\\ 0 & I\end{bmatrix}
+\end{equation*}
+The bottom-right block of $A'=A, A_{22}' = A_{22}$ is equal to $A_{22} - A_{21}A_{11}^{-1}A_{12}$ from the original matrix. This is called the \textbf{Schur complement} of $A$
+
+\subsubsection{Schur complement derivation}
+At any step in the LU factorization, $A$ can be written in the form
+\begin{equation*}
+    A = \begin{bmatrix} A_{11} & A_{12}\\ A_{21} & A_{22}\end{bmatrix} = \begin{bmatrix} L_{11} & 0\\ L_{21} & L_{22}\end{bmatrix}
+    \begin{bmatrix} U_{11} & U_{12}\\ 0 & U_{22}\end{bmatrix}
+\end{equation*}
+From this equality, we can create a system of equations and derive the Schur complement
+
+% QR FACTORIZATION
+\section{QR factorization}
+The QR factorization decomposes a matrix, $A \in \mathbb{R}^{m \times n}, m \geq n$ into an orthogonal (orthonormal) matrix, $Q$, and an upper triangular matrix, $R$. When $A \in \mathbb{C}^{m \times n}$, $Q$ is unitary.\\ \\
+Recall for $Q \in \mathbb{R}$, orthogonal, $Q^TQ = I$; for $Q \in \mathbb{C}$, unitary, $Q^HQ = I$; $\norm{Qx}{2} = \norm{x}{2}$\\ \\
+If $A$ is skinny (i.e., $n << m$), $QR$ can take two different forms. $Q \in \mathbb{R}^{m \times m}$ can be square and $R \in \mathbb{R}^{m \times n}$ can be skinny. Or $Q \in \mathbb{R}^{m \times n}$ can be skinny and $R \in \mathbb{R}^{n \times n}$ can be square.
+
+% UNIQUENESS
+\subsection{The QR factorization is unique}
+\textbf{Proof} that the QR factorization is unique for full rank matrix, $A$:
+\begin{align*}
+    A &= QR \longleftrightarrow Q^TA = R \longleftrightarrow ^TQ^TA = R^TR \longleftrightarrow (QR)^TA = R^TR \longleftrightarrow A^TA = R^TR
+\end{align*}
+We now have a matrix, $A^TA$ that can be written of the form $R^TR$, which is the structure of the Cholesky factorization. Suffice to show that $A^TA$ is Symmetric and Positive Definite (SPD) to prove the uniqueness of R.
+
+% HOUSEHOLDER REFLECTION
+\subsection{Householder reflection}
+\begin{itemize}
+    \item Construct $Q^T$ for each column in $A$ that projects it onto a corresponding column of an upper right triangular matrix, $R$.
+    \item E.g., for first column $a_1$: Want $Q_1^T$ such that $Q_1^Ta_1 = r_1$, where $r_1 = \pm \norm{a_1}{2}e_1$ (since $Q^T$ is orthogonal). This equates to finding $Q_1^T$ that reflects $a_1$ onto $e_1$
+    \item \textbf{The key} to the iterative part of the algorithm is to construct $Q_i^T, i > 1$ with an identity matrix in the upper-left $i-1 \times i-1$ quadrant, and a smaller $Q_i^{*T}$ in the lower right $n-i \times n-i$ quadrant, filling the remaining sections of the matrix with $0$'s.
+\end{itemize}
+\noindent The \textbf{Householder reflection} maps $a \rightarrow \norm{a}{2}e_1$ with
+\begin{equation*}
+    P = I - \beta vv^T \textrm{, where $v = a - \norm{a}{2}e_1$, and $\beta = 2/v^Tv$}
+\end{equation*}
+\textbf{Aside:} The fixed points of a reflection, $P$, remain unchanged when multiplied by the reflection, $Px=x$. Geometrically, these are the points that are \textit{orthogonal} to the vector $v$ defining the reflection (i.e., $v^Tx=0$)
+
+
+% GIVENS TRANSFORMATION
+\subsection{Givens transformation}
+\subsubsection{Givens transformation algorithm}
+A \textbf{Givens rotation} rotates $u = (u_1, u_2)^T$ to $\norm{u}{2}e_1$. The matrix that does this, $G^T$, is defined by
+\begin{equation*}
+    G^T = \begin{bmatrix} c & -s \\ s & c \end{bmatrix}, c = \frac{u_1}{\norm{u}{2}}, s = -\frac{u_2}{\norm{u}{2}}
+\end{equation*}
+Sequentially, the $P_i$'s can multiply $A$ to arrive at $R$
+
+% GRAM-SCHMIDT TRANSFORMATION
+\subsection{Gram-Schmidt transformation}
+Construction of $r_{kk}, q_k, r_{kj}$
+\begin{align*}
+    a_k &= \sum_{i=1}^kr_{ik}q_i = r_{kk}q_k + \sum_{i=1}^{k-1}r_{ik}q_i\\
+    1. \; &r_{ik} = q_i^Ta_k \textrm{ for each $r_{ik}, i < k$, since $Q$ orthonormal and $q_{k-1}$ known}\\
+    2. \; &z = r_{kk}q_k = q_k - \sum_{i=1}^{k-1}r_{ik}q_i\\
+    3. \; & r_{kk} = \norm{z}{2}, \; q_k = \frac{z}{r_{kk}}
+\end{align*}
+
+
+% LEAST SQUARES
+\subsection{QR factorization to solve least-squares problems}
+When $A$ is tall and thin, it is unlikely that we get a solution to $Ax = b$. Instead, we choose to solve the least-squares problem, $argmin_x\norm{Ax - b}{2}$. 
+
+% NORMAL EQUATIONS
+\subsubsection{Method of normal equations}
+\begin{align*}
+    \textrm{Want: } (b-Ax) &\perp \{z \vert z = Ay\} \longleftrightarrow (b-Ax) \perp range(A) \longleftrightarrow (b-Ax) \perp a_i, \forall i \in A\\
+    a_1^T(b-Ax) &= 0, \forall i \in A \longleftrightarrow A^T(b-Ax) = 0 \longleftrightarrow x = (A^TA)^{-1}A^Tb
+\end{align*}
+
+% QR METHOD FOR LEAST SQUARES
+\subsubsection{QR method for least squares}
+\begin{align*}
+    A^T(Ax-b) &= 0 \longleftrightarrow R^TQ^T(Ax-b) = 0\\
+    Q^T(Ax-b) &= 0 \textrm{, since we assume $A, R$ full rank (multiply both sides by $R^{-T}$})\\
+    Q^TQRx-Q^Tb &= 0 \longleftrightarrow Rx = Q^Tb \longleftrightarrow x = R^{-1}Q^Tb
+\end{align*}
+
+% SVD FOR RANK-DEFICIENT A
+\subsubsection{SVD for rank-deficient A}
+When $A$ not full rank, we add constraint $\min_x \norm{x}{2}$. We can use the "thin" version of the Singular Value Decomposition to solve this
+\begin{align*}
+    (Ax-b) &\perp range(A) \longleftrightarrow (Ax-b) \perp range(U) \textrm{, since $R(A) = R(U)$ for $A=U\Sigma V^T$}\\
+    U^T(Ax-b) &= 0 \longleftrightarrow U^T(U\Sigma V^Tx - b) = 0 \longleftrightarrow \Sigma V^Tx = U^Tb\\ 
+    x &= V\Sigma^{-1}U^Tb \textrm{ (the "thin" SVD here provides a nonsingular $\Sigma\in \mathbb{R}^{r \times r}$, so we can take the inverse}
+\end{align*}
+Observe for $\min_x \norm{x}{2}$ that the $x \perp N(A)$ is the shortest vector between $N(A)$ and the vector/plane of solutions to $argmin_x\norm{Ax - b}{2}$. This value must be in $R(V)$ since $R(V) = N(A)^\perp$
+
+
+% ITERATIVE METHODS FOR EIGENVALUES
+\section{Iterative methods to find eigenvalues}
+\subsection{Power iteration}
+Given $\lambda_1 > \lambda_2 \geq \dots \geq \lambda_n \in \lambda(A)$, the \textbf{Power iteration} finds $\lambda_1$. This process assumes $A$ is diagonalizable
+\begin{align*}
+    A^k &= \sum_{i = 1}^n \lambda_i^k x_i y_i^T \textrm{ where $Y = X^{-1}$}\\
+    A^k &\approx \lambda_1^kx_1y_1^T \textrm{ since } \lambda_1 > \lambda_2\\
+    A^kq &\approx \lambda_1^kx_1y_1^Tq = \lambda_1^k(y_1^Tq)x_1 \textrm{, since $y_1^Tq$ is a scalar. Observe } A^kq \parallel x_1
+\end{align*}
+This theory is implemented in practice with the following formula
+\begin{align*}
+    1. \;& q_0 \textrm{, vector chosen at random}\\
+    2. \;& z_k = Aq_k = A^kq_0 \textrm{, evaluating for convergence if } z_k \parallel q_k \rightarrow z_k^Tx_k = \norm{z}{2}\norm{x}{2}\\
+    3. \;& q_{k+1} = \frac{z_k}{\norm{z_k}{2}} = \frac{A^kq_0}{\norm{A^kq_0}{2}} \approx (\frac{\lambda_2}{\abs{\lambda_1}})^kx_1
+\end{align*}
+Since $A^{k}q_0 = Aq_{k} \approx \lambda_1 x_1$, where $\norm{x_1}{2} = 1 \; (WLOG)$ and $q_k \parallel x_1$, we can solve for $\lambda$:
+
+\begin{align*}
+    Aq_k \approx \lambda_1 x_1 &\Longrightarrow Ax_1 \approx \lambda_1x_1 \Rightarrow x_1^HAx_1 \approx \lambda_1\\
+    \textrm{Convergence: } &O(\abs{\frac{\lambda_1}{\lambda_2}})^K) \textrm{, since}\\
+    A^kq_0 &= \sum_i \alpha_i A^k x_i = \sum_1 \alpha_i \lambda_i^k x_i = \alpha_1\lambda_1^k(x_i + \frac{\alpha_2}{\alpha_1}(\frac{\lambda_2}{\lambda_1})^k + \dots + \frac{\alpha_n}{\alpha_1}(\frac{\lambda_n}{\lambda_1})^k) \Longrightarrow \norm{A^kq_0}{2} = \abs{\alpha_1\lambda_1^k}(1 + O(\frac{\lambda_2}{\lambda_1})^k) 
+\end{align*}
+
+\subsection{Inverse iteration}
+Get the eigenvector for the eigenvalue closest to $\mu$. Observe $(A - \mu I)^{-1}$ has the same eigenvectors of $A$:
+\begin{align*}
+    (A - \mu I)^{-1}x &= \lambda x \longleftrightarrow x = (A - \mu I)x = \lambda Ax - \lambda \mu x \longleftrightarrow \lambda Ax = x + \lambda \mu x \longleftrightarrow Ax = \frac{(1 + \lambda \mu)}{\lambda}x
+\end{align*}
+Performing the power iteration on $(A - \mu I)^{-1}$, the largest eigenvalue to emerge will be of the form $\frac{1}{\lambda_i - \mu}$, and we get
+\begin{align*}
+    (A - \mu I)^{-1k}q_0 &= (A - \mu I)^{-1}q_{k} \approx \lambda_i x_i \textrm{, where } \norm{x_i}{2} = 1 \; (WLOG) \textrm{ and } q_k \parallel x_i
+\end{align*}
+Since $x_i$ is also an eigenvalue of $A$, we can solve $x_i^HAx_i = \lambda_i$ for the $\lambda_i$ closest in magnitude to $\mu$. \\
+\textbf{Convergence: } $O(\abs{\frac{\lambda_i - \mu}{\lambda_j - \mu}})^k)$, where $\lambda_j$ is the next closest eigenvalue to $\mu$
+
+\subsection{Eigenvalues of similar matrices}
+\textbf{Theorem:} For $S$ nonsingular and $A = S^{-1}BS$, then i) $\lambda(A) = \lambda(B)$ and ii) $x$ eigenvector of $A$ $\Leftrightarrow S^{-1}x$ eigenvector of $B$.
+
+\subsection{Eigenvalues from invariant subspaces}
+\textbf{Theorem:} $X \in \mathbb{R}^{n \times m}$ is an invariant subspace of $A \in \mathbb{R}^{n \times n} \Leftrightarrow$ there is a $B \in \mathbb{R}^{n \times m}$ such that $AX = XB$. \textbf{Proof:}
+
+\begin{align*}
+    \Rightarrow: \;& X \textrm{ invariant} \longrightarrow Ax_i \in X \longrightarrow Ax_i = \sum_{j=1}^mx_jb_{ji} \longrightarrow AX = XB
+\end{align*}
+Furthermore, when $AX = XB$, the $m$ eigenvalues of $B$ are also eigenvalues of $A$: $By = \lambda y \longrightarrow XBy = \lambda Xy \longrightarrow AXy = \lambda Xy$
+
+\subsection{Orthogonal iteration}
+First, consider how to construct orthogonal columns to reveal subsequent eigenvalues. Assume we use power iteration to compute $q_1$
+\begin{align*}
+    A^k &= \lambda_1x_1y_1^T + \lambda_2x_2y_2^T + \dots\\
+    PA^k &= \lambda_1Px_1y_1^T + \lambda_2Px_2y_2^T + \dots \textrm{, where } P = I - x_1x_1^T\\
+    PA^k &= 0 + \lambda_2Px_2y_2^T + \dots \textrm{, since } Px_1 = Ix_1 - x_1x_1^Tx_1 = x_1 - x_1 = 0\\
+    PA &\textrm{ can now be used to apply the power iteration to to reveal $\lambda_2$ and } (I - x_1^Tx_1)x_2
+\end{align*}
+The general process is: build $P_r$, orthogonal projector onto  $\{q_1, \dots, q_{r-1}\}^\perp$, use power iteration to reveal ($\lambda_r, q_r$)\\
+Now consider the QR decomposition of $X$, observing its connection to the Schur Decomposition:
+\begin{align*}
+    A &= X\Lambda X^{-1} = QR \Lambda R^{-1} Q^H = QTQ^H \textrm{, where upper triangular } T = R\Lambda R^{-1}
+\end{align*}
+\begin{itemize}
+    \item The eigenvalues of $A$ are on the diagonal of $T$
+    \item By construction, each column of $Q$ is projecting the corresponding column of $X$ onto a vector orthogonal to the preceding ones
+    \item The span of the columns of $Q, span\{q_1, \dots, q_n\}$ will be equal to the span of the columns of $X, span\{x_1, \dots, x_n\}$.
+\end{itemize}
+The process for the \textbf{orthogonal iteration} is:
+\begin{align*}
+    1. \;& AQ_k \rightarrow Z \textrm{, where $k$ is the iteration and } Q_0 = I\\
+    2. \;& Z \rightarrow Q_{k+1}R_{k+1} \textrm{, the QR factorization of $Z$}\\
+    3. \;& \textrm{Repeat } AQ_{k+1} \rightarrow Z \textrm{ and eventually } Q_k \rightarrow Q
+\end{align*}
+Note in each iteration we are calculating $Q_{k+1}^HAQ_k = R_{k+1}$
+
+\subsubsection{Reveal eigenvectors of $A$ from $T$}
+Motivation: $A = X\Lambda X^{-1}$ can be hard to calculate.
+\begin{align*}
+    A &= X\Lambda X^{-1} = QR \Lambda R^{-1}Q^H = QTQ^H \textrm{, where } T = R\Lambda R^{-1}\\
+    A &= QY\Lambda Y^{-1}Q^H \textrm{, where $T = Y \Lambda Y^{-1}$ is easier to compute}
+\end{align*}
+Focusing on $T = Y \Lambda Y^{-1}$, choose some $\lambda_i$ (we could get from power or QR iteration). 
+\begin{align*}
+    Tx &= \lambda_i x \longleftrightarrow (T - \lambda_i I)x = 0 \longleftrightarrow (T - \lambda_i I)x  = \begin{bmatrix} T_{11} - \lambda_i I & T_{12} & T_{13}\\ 0 & 0 & T_{23}\\
+            0 & 0 & T_{33} - \lambda_i I \end{bmatrix} \begin{bmatrix} X_1 \\ X_2 \\ X_3 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \textrm{, where one diagonal element is 0}\\
+    &\textrm{And solve with back substitution:}\\
+            X_3 &= 0: (T_{33} - \lambda_i I) X_3 = 0\\
+            X_2 &\textrm{ is a free parameter} \in \mathbb{R}: 0X_2 + T_{33}X_3 = 0 \Longrightarrow 0X_2 = 0\\
+            X_1 &= -(T_{11}-\lambda_i I)^{-1}T_{12}X_2: (T_{11}-\lambda_i I)X_1 + T_{12}X_2 + T_{13}X_3 = 0
+\end{align*}
+It follows the eigenvectors of $A$ are $Qy_i$. Note, $(T_{11} - \lambda_i I)$ nonsingular as long as the algebraic multiplicity of $\lambda_i$ is 1.
+
+
+\subsubsection{Rate of convergence in orthogonal (and QR) iteration}
+\textbf{Property:} the angle between two subspaces, $U$ and $V$, is defined as $\norm{UU^T - VV^T}{2}$\\
+\noindent In orthogonal interation, $span\{q_1, \cdots, q_i\} \longrightarrow X, span \{x_1, \cdots, x_i\}$. Convergence is dictated by how quickly these spans converge. The rate of convergence is $O(\abs{\frac{\lambda_{i+1}}{\lambda_i}}^k)$.
+
+% QR ITERATION
+\subsection{QR iteration}
+In the QR iteration, we ask if we can go from $T_k$ to $T_{k+1}$ directly. Observe
+\begin{align*}
+    A &= Q_k T_k Q_k^H \Longrightarrow T_k = Q_k^HAQ_k\\
+    AQ_k &= Q_{k+1}R_{k+1} \Longrightarrow Q_{k+1}^HA = R_{k+1}Q_k^H\\
+    T_k &= Q_k^H(Q_{k+1}R_{k+1}) \longrightarrow T_k = U_{k+1} R_{k+1} \textrm{ for } U_{k+1} = Q_k^HQ_{k+1}\\
+    T_{k+1} &= (R_{k+1}Q_k^H)Q_{k+1} \longrightarrow T_{k+1} = R_{k+1}U_{k+1} \textrm{ for } U_{k+1} = Q_k^HQ_{k+1}
+\end{align*} 
+So we have an algorithm for $T_k \rightarrow T_{k+1}$, this process is the \textbf{QR iteration}:
+\begin{align*}
+    1. \;& T_k \longrightarrow U_{k+1}R_{k+1} \textrm{, the QR factorization of } T_k\\
+    2. \;&R_{k+1}U_{k+1} \longrightarrow T_{k+1}\\
+    3. \;&\textrm{Repeat with } T_{k+1}
+\end{align*}
+\textbf{Proof by induction:} $R_{k+1}$ is the same in both QR factorization of $A = Q_{k+1}R_{k+1}$ and $T_k = U_{k+1}R_{k+1}$
+\begin{align*}
+    case \; 1: &A = AQ_0 = Q_1R_1, A = T_0 =U_1R_1^* \textrm{, and } T_1 = Q_k^HAQ_1\\
+    &U_1R_1^* = Q_0^TQ_1R_1 = Q_1R_1 \; \Longrightarrow R_1^* = R_1 \textrm{ and } U_1 = Q_0^TQ_1\\
+    case \; k: & \textrm{ Assume } R_k^* = R_k, U_k = Q_{k-1}^TQ_k \textrm{, and } T_k = Q_k^HAQ_k
+\end{align*}
+
+\subsection{QR iteration on upper Hessenberg}
+Each QR iteration step of a dense matrix is $O(n^3)$. If we run for $O(k)$ iterations, then this algorithm is $O(kn^3)$. To reduce flops, we can first convert $A$ to upper Hessenberg ($H = Q^HAQ$) with $O(n^3)$, and proceed with QR iteration on $H$ using Givens rotations with complexity $O(n^2)$ (so overall complexity is reduced to $O(n^3 + kn^2)$):
+\begin{align*}
+    \textrm{Choose } Q_1^T &= \begin{bmatrix} 1 & 0 \\ 0 & \tilde{P_1} \end{bmatrix} \textrm{ to perform a Householder rotation onto the first two entries of } a_1 \in A\\
+    \textrm{Observe }Q_1^T A Q_1 &= \begin{bmatrix} 1 & 0 \\ 0 & \tilde{P_1} \end{bmatrix} A \begin{bmatrix} 1 & 0 \\ 0 & \tilde{P_1^T} \end{bmatrix} = \begin{bmatrix} x & x & \cdots & \\
+        x & x & \cdots \\ 0 & x &\cdots \\ \vdots & \vdots & \ddots \end{bmatrix} \textrm{ where $a_{11}$ is never changed, the rest of $a_1$}\\
+        &\textrm{is only operated on by $\tilde{P_1}$, and the rest of $a_1^T$ is only operated on by $\tilde{P_1^T}$}\\
+    \textrm{Continuing on, } & Q_n^T \dots Q_2^TQ_1^T A Q_1Q_2 \dots Q_n = H = Q^HAQ \textrm{ where } Q_k^T = \begin{bmatrix} I_k & 0 \\ 0 & \tilde{P_k} \end{bmatrix}
+\end{align*}
+\textbf{$H$ remains upper Hessenberg in QR iteration:} This follows since in the first step of QR iteration, $H_k$ is transformed to $R_k$ with givens rotations, $U_k^HH_k = R_k$. And in the second step of QR iteration, $H_{k+1}$ is created as $R_kU_k = H_{k+1} = U_k^HH_kU_k$. Since $U_k$ is a series of givens rotations, these rotations can be constructed/ordered so that $H_{k+1}$ preserves upper Hessenberg.
+
+\subsection{QR iteration with shift}
+\textbf{QR iteration with shift} accelerates convergence. First observe for $\lambda_i \in \lambda(A) \rightarrow (\lambda_i - \mu) \in \lambda(A - \mu I)$. The resulting converence is $\abs{[(\lambda_{i+1} - \mu) / (\lambda_i - \mu)]}^k$. Shift does not require that $\abs{\lambda_1} > \abs{\lambda_2} \geq \dots \geq \abs{\lambda_n}$.\\ \\
+\textbf{QR iteration with shift} process:
+\begin{align*}
+    1. \;& \mu_k = T_k[n, n]\\
+    2. \;& (T_k - \mu_k I) \longrightarrow U_{k+1}R_{k+1} \textrm{, QR factorization of the shifted } T_k\\
+    3. \;& R_kU_k + \mu_k I \longrightarrow T_{k+1} \textrm{, and repeat!}
+\end{align*}
+Observe, this shift preserves the original QR iteration:
+\begin{align*}
+    (T_k - \mu_ I) &= U_{k+1}R_{k+1} \Longrightarrow U_{k+1}^HT_k - \mu_k U_{k+1}^H = R_{k+1}\\
+    T_{k+1} &= R_{k+1}U_{k+1} + \mu_k I \Longrightarrow T_{k+1} = (U_{k+1}^HT_k - \mu_k U_{k+1}^H)U_{k+1} + \mu_k I\\
+    T_{k+1} &= U_{k+1}^HT_kU_{k+1} - \mu_k I + \mu_k I = U_{k+1}^HT_kU_{k+1}
+\end{align*}
+
+
+\subsubsection{Implicit Q theorem}
+The \textbf{implicit Q theorem} tells us that if i) we get any upper Hessneberg, $H_{k+1}$ from a transformation of $H_k \rightarrow H_{k+1}$ of the form $U^TH_kU$ ii) $We_1 = Qe_1$ for two such transformations, then the columns of $W$ and $Q$ are equal, up to a sign.\\ \\
+\textbf{Proof:} We show for $A = QHQ^T$, $Q$ orthogonal and $H$ upper Hessenberg, that $Q$, $H$ are determined by $A$ and $Qe_1$:
+\begin{align*}
+    AQ & = QH \textrm{, assume we know } q_1, \dots, q_k \textrm{ of } Q \\
+    A \begin{bmatrix} Q_k & X \end{bmatrix} &= 
+        \begin{bmatrix} Q_k & X \end{bmatrix} 
+        \begin{bmatrix} H_k & X \\ 0 & X \end{bmatrix} \textrm{, $X$ unknown and } H_k \in \mathbb{R}^{k \times k}\\
+    Aq_k &= \sum_{i=1}^kh_{i,k}q_i + k_{k+1,k}q_{k+1} \textrm{, the kth column of $AQ$, where } q_j^TAq_k = h_{j,k}\\
+    k_{k+1,k}q_{k+1} &= Aq_k - \sum_{i=1}^kh_{i,k}q_i \textrm{, the RHS of which is known}\\
+    &\Rightarrow \abs{h_{k+1,k}} = \norm{Aq_k - \sum_{i=1}^kh_{i,k}q_i}{2} \textrm{ and } q_{k+1} = \frac{Aq_k - \sum_{i=1}^kh_{i,k}q_i}{h_{k+1,k}}
+\end{align*}
+
+\subsubsection{Fracis shift}
+The \textbf{Francis shift} is a way of selecting shifts based on the bottom-right $2\times 2$ block in a way that maintains a real-valued matrix. In effect, we double-shift using complex conjugates, $\mu, \overline{\mu}$:
+\begin{align*}
+    H_{k-1} - \mu I &= U_kR_k\\
+    H_k &= R_kU_k + \mu I\\
+    H_k - \overline{\mu}I &= U_{k+1}R_{k+1}\\
+    H_{k+1} &= R_{k+1}U_{k+1} + \overline{\mu}I\\
+    H_{k+1} &= U^H_{k+1}H_kU_{k+1} = U^H_{k+1}U^H_kH_{k-1}U_k1U_{k+1} = (U_kU_{k+1})^HH_{k-1}(U_kU_{k+1})
+\end{align*}
+\textbf{Proof} Consider QR factorization to show $(U_1U_2)$ is real
+\begin{align*}
+    (U_kU_{k+1})(R_{k+1}R_k) = H_{k-1}^2 - (\mu + \overline{\mu})H_{k-1} + \abs{\mu}^2I \textrm{, where each component of the polynomial is} \in \mathbb{R}
+\end{align*}
+From uniqueness of QR factorization, $(U_1U_2)$ must be real as well. So at any step of the Francis shift, we want $H_{k+1} = Q^TH_{k-1}Q$
+
+\subsection{QR iteration with deflation}
+If any sub-diagonal element of an upper Hessenberg matrix, $H$, is 0, it can be written as $H = \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} &\end{bmatrix}$ with $H_{11}$ and $H_{22}$ upper Hessenberg and $\lambda(H) = \lambda(H_{11})\cup \lambda(H_{22})$\\
+\textbf{Theorem:} $\lambda(H) = \lambda(H_{11})\cup \lambda(H_{22})$ for $H$ block upper triangular. \textbf{Proof:}
+\begin{align*}
+    \Longrightarrow& Hx = \lambda x \longrightarrow \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix}
+     = \begin{bmatrix} H_{11}x_1 + H_{12}x_2 \\ H_{22}x_2 \end{bmatrix} = \begin{bmatrix} \lambda x_1 \\ \lambda x_2 \end{bmatrix}\\
+     &\textrm{and either $x_2=0$ and $\lambda \in \lambda(H_{11})$ or not and $\lambda \in \lambda(H_{22})$}\\
+     \Longleftarrow& H_{11}p_1 = \lambda p_1 \longrightarrow \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} \end{bmatrix} \begin{bmatrix} p_1 \\ 0 \end{bmatrix}
+     = \begin{bmatrix} H_{11}p_1 \\ 0 \end{bmatrix} = \begin{bmatrix} \lambda p_1 \\ 0 \end{bmatrix}\\
+     \Longleftarrow& H_{22}p_2 = \lambda p_2 \longrightarrow \begin{bmatrix} H_{11} & H_{12} \\ 0 & H_{22} \end{bmatrix} \begin{bmatrix} x \\ p_2 \end{bmatrix}
+     = \begin{bmatrix} H_{11}x + H_{12}p_2 \\ H_{22}p_2 \end{bmatrix} = \begin{bmatrix} \lambda x_1 \\ 0 \end{bmatrix}\\
+     &\textrm{where } H_{11}x + H_{12}p_2 = \lambda x \textrm{ for } x = -(H_{11} - \lambda I)^{-1}H_{12}p_2 \textrm{, making } \lambda \in \lambda(H)
+\end{align*}
+\textbf{Theorem:} If $H$ is singular unreduced upper Hessenberg, then in QR factorization, $H=QR$, the last row of $R$ is zero.\\
+\textbf{Explanation:} When constructing QR iteration, each column of $R$ can be linearly independent from the previous ones (since we're adding a dimension) except for the last one (since $H$ and $R$ must be singluar):
+\begin{align*}
+    h_1 &= h_{11}e_1 + h_{21}e_2 & h_2 = h_{12}e_1 + h_{22}e_2 + h_{32}e_3 && h_{n-1} = \sum_{i=1}^n h_{n-1,i}e_i
+\end{align*}
+
+\subsection{QR iteration on symmetric matrices}
+Upper Hessenberg symmetric matrices are tri-diagonal matrices
+\begin{itemize}
+    \item Unsymmetric case complexity: Transform to upper Hessenberg: $O(n^3)$; QR iteration step: $O(n^2)$; overall QR iteration: $O(pn^3)$, where $p$ is the number of iterations per eval (assume quadratic convergence)
+    \item Symmetric case complexity: Transform to upper Hessenberg: $O(n^3)$; QR iteration step: $O(n)$; overall QR iteration: $O(pn^2)$, where $p$ is the number of iterations per eval (assume cubic convergence) 
+\end{itemize}
+
+
+\section{Finding eigenvalues of sparse matrices}
+\subsection{Arnoldi process}
+The \textbf{Arnoldi process} reveals first $k$ eigenvalues of a sparse matrix as follows:
+\begin{align*}
+    1. \; & \textrm{Begin with random } q_1 \in Q \textrm{, such that } \norm{q_1}{2} = 1\\
+    \textrm{Iterate through each of the first } & k \textrm{ columns of $Q$ with }\\
+    2. \; & Aq_j = \sum_{k = 1}^{j+1} h_{kj}q_k \textrm{, observing we can recover all $h_{ij}$ for $i \leq j$ since } q_i^TAq_j = h_{ij}\\
+    3. \; & Aq_j = \sum_{k = 1}^{j} h_{kj}q_k + h_{j+1, j}q_{j+1}\\
+    4. \; & r = Aq_j - \sum_{k = 1}^{j} h_{kj}q_k = h_{j+1, j}q_{j+1} \textrm{, where only $r$ is unknown}\\
+    5. \;& \norm{q_{j+1}}{2} = 1 \Longrightarrow h_{j+1, j} = \norm{r}{2} \textrm{ and } q_{j+1} = \frac{r}{h_{j+1, j}}
+\end{align*}
+\textbf{Output:} $k$ columns of $Q$ and the upper $k \times k$ block of $H$, which can be used in the QR iteration to reveal $k$ eigenvalues close to $\lambda(A)$:
+\begin{align*}
+    AQ &= QH \Longrightarrow AQ_k = Q_kH_k + h_{k+1,k}q_{k+1}e_k^T \textrm{, where } Q_k = Q[:, 1:k], H_k = [1:k, 1:k]\\
+    AQ_k &= Q_kX_k\Lambda_k X_k^{-1} + h_{k+1,k}q_{k+1}e_k^T \textrm{, where } H_k = X_k\Lambda_k X_k^{-1} \textrm{ through QR iteration}\\
+    A(Q_kX_k) &= (Q_kX_k)\Lambda_k + h_{k+1,k}q_{k+1}x_k^T \textrm{, where } x_k^T \textrm{ is the $k^{th}$ column of } X
+\end{align*}
+And we get an equation where i) $AQ_k \approx Q_kH_k$, ii) $\Lambda_k$ contains $k$ eigenvalues close to $\lambda_i \in \lambda(A)$, iii) $(Q_kX_k)$ serve as eigenvectors for those eigenvalues, and iv) $h_{k+1,k}q_{k+1}x_k^T$ represents something like an error term.
+
+% KRYLOV SUBSPACES
+\subsection{Krylov spaces}
+A space of sparse Matrix-vector products: $K(A, q, k) = span\{q_1, Aq_1, A^2q_1, \dots, A^kq_1 \}$
+\subsubsection{QR factorization of Krylov subspace contains $Q_k$ from Arnoldi}
+\textbf{Proof:} We show for $K_k = Q_kR_k$, that $R_k$ is upper triangular.
+\begin{align*}
+    \textrm{Start with } Q^TK_k &= R \textrm{ upper triangular for } K_k = \begin{bmatrix}
+        \vline & \vline & & \vline \\ q_1 & Aq_1& \dots & A^kq_1 \\ \vline & \vline & & \vline \end{bmatrix}\\
+        Q^Tk_j &= Q^TA^{j-1}q_1 = Q^T Q H^{j-1} Q^T q_1 \textrm{, since } A^k = Q^T H^k Q\\
+        &= H^{j-1} Q^T q_1 = H^{j-1} e_1 \textrm{, since $Q$ orthogonal}\\
+        \Rightarrow r_j \in R &= h_1 \in H^{j-1} \textrm{, which has top $j$ rows nonzero}
+\end{align*}
+The last statement can be checked by iteratively checking the first column of $H^i$. This result indicates that $Q_kK_k$, produces an upper right triangular matrix since $Q_k$ is the first $k$ columns of $Q$. This also means $Q_k$ forms a basis for $K(A, q_1, k)$.
+
+
+\subsubsection{Arnoldi process generates a minimal polynomial}
+\textbf{Polynomial properties}
+\begin{itemize}
+    \item If A is diagonalizable, i.e., $A = X\Lambda X^{-1}$, then polynomial $f(A) = Xf(\Lambda)X^{-1}$
+    \item \textbf{Characteristic polynomial} of A is $p_A(z) = det(zI - A) = \prod(z - \lambda_i)$ and $p_A(\lambda_i) = 0$ for $\lambda_i \in \lambda(A)$
+    \item $f(A) = 0 \Longrightarrow \lambda_i \in \lambda(A)$ are the roots of the polynomial (e.g., $p_A(A) = Xp_A(\Lambda)X^{-1} = 0$
+\end{itemize}
+Our hope is that for $p_k(H_k) = 0$, $p_k(A)$ is minimally small. We show $\norm{p_K(A)q_1}{2}$ is minimized:
+\begin{align*}
+    f(x) &= x^k + f_{k-1}x^{k-1} + \dots + f_0 \textrm{, for $f$ that minimizes } \norm{f(A)q_1}{2}\\
+    f(A) &= (A^k + f_{k-1}A^{k-1} + \dots + f_0)q_1 = A^kq_1 + K_kf \textrm{, where $f$ is a vector of coefficients}\\
+    &= A^kq_1 + Q_ky \textrm{, for some $y$, since $Q_k$ forms a basis for Krylov space}\\
+    \textrm{Minimal }\norm{f(A)q_1}{2} &\Longrightarrow \textrm{minimal} \norm{A^kq_1 + Q_ky}{2} \textrm{, so we need to choose $y$ to minimize polynomial}\\
+    \textrm{minimal} \norm{A^kq_1 + Q_ky}{2} & \Longrightarrow Q_k^Tf(A)q_1 = 0\\
+    Q_k^Tf(A)q_1 &= Q_k^TQf(A)Q^Tq_1 = \begin{bmatrix} I_k & 0 \end{bmatrix} f(H)e_1 = I_kf(H_k)e_1
+\end{align*}
+This proof shows that $\norm{f(A)q_1}{2}$ is minimal $\Leftrightarrow I_kf(H_k)e_1=0$, which $p_k(H_k)$ achieves since $p_k(H_k) = 0$ 
+
+% LANCZOS PROCESS FOR SYMMETRIC MATRICES
+\subsection{Lanczos process}
+The \textbf{Lanczos process} is a parallel process to the Arnoldi process, but for symmetric matrices. Reminder: A symmetric upper Hessenberg matrix, $T$ is tri-diagonal. The process follows
+\begin{align*}
+    1. \;& \alpha_k = q_k^TAq_k \Longrightarrow \alpha_kq_k = Aq_k\\
+    2. \;& r_k = Aq_k - \beta_{k-1}q_{k-1} - \alpha_kq_k \Longrightarrow r_k = \beta_{k-1}q_{k-1} \textrm{, $r_k$ becomes the orthogonal part of $Aq_k$}\\
+    3. \;& \beta_k = \norm{r_k}{2}\\
+    4. \;& q_{k+1} = \frac{r_k}{\beta_k}
+\end{align*}
+The orthogonalization in step 2 is reduced from $O(k)$ in Arnoldi to $O(1)$ in Lanczos because of the symmetry of $A$
+
+\subsubsection{Process for revealing the max eigenvalue of $A$}
+\begin{align*}
+    \lambda(T_k) &\approx \lambda(A)\\
+    \lambda_1 \in \lambda(T_k) &= \max_{x \neq 0} \frac{y^TQ_k^TAQy}{\norm{y}{2}^2} \textrm{, by property that } \lambda_1 \in \lambda(A) = \max_{x \neq 0} \frac{x^TAx}{\norm{x}{2}^2}\\
+    &\Longrightarrow \textrm{ want max $x$ of the form } Q_ky \\
+    &\Longrightarrow \textrm{ want max $x$ in Krylov space, a subspace of } \mathbb{R}^k\\
+    &\Longrightarrow \lambda_1 \in \lambda(T_k) \leq \lambda_1 \in \lambda(A) \textrm{, since it is the max in a smaller space} \\ \\
+    \lambda_1 \in \lambda(T_k) &= \max_{x \neq 0} \frac{q_1^Tp(A)Ap(A)q_1}{q_1^Tp(A)^2q_1} \textrm{, and see textbook for step from here to next step}\\
+    &\Longrightarrow \lambda_1 \in \lambda(T_k) \leq \lambda_1 - (\lambda_1-\lambda_n)(\frac{\tan(\theta)}{T_{k-1}^{Cheb}(1+2p_1)}) \textrm{, where } p_1 = \frac{\lambda_1 - \lambda_2}{\lambda_2 - \lambda_n}
+\end{align*}\
+Observe that the $RHS$ approaches $\lambda_1$ when $\lambda_1$ is well separated from the other eigenvalues. 
+
+\end{document}
