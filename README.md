@@ -34,9 +34,7 @@ cd mit/overleaf
 mkdir 6_7900 && cp _template/hw.tex 6_7900/hw1.tex
 ```
 
-`preamble.tex` at that repo's root is shared by anything started from
-`_template/`. Compile from the repo root so `\input{preamble}` resolves the way
-it does on Overleaf:
+Each `.tex` is self-contained, preamble included. Compile with:
 
 ```bash
 cd mit/overleaf && latexmk -pdf 15_081/hw7.tex
