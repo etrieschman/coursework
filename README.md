@@ -40,6 +40,13 @@ Each `.tex` is self-contained, preamble included. Compile with:
 cd mit/overleaf && latexmk -pdf 15_081/hw7.tex
 ```
 
+Files using `minted` (e.g. `15_081/hw2.tex`) need `-shell-escape`; Overleaf
+enables it automatically:
+
+```bash
+cd mit/overleaf && latexmk -pdf -shell-escape 15_081/hw2.tex
+```
+
 Sync with `git op` (pull from Overleaf) and `git sync` (push to GitHub +
 Overleaf and bump this repo's pointer). Full details in
 `~/Library/Mobile Documents/com~apple~CloudDocs/dev_overleaf_workflow.md`.
