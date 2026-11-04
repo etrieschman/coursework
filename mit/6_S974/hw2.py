@@ -87,3 +87,24 @@ out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(df.to_pandas().to_latex(index=False, escape=True, float_format="%.4f"))
 
 # %%
+# =======================
+# Problem 4 Part (c)
+# =======================
+x = cp.Variable()
+y = cp.Variable()
+const = [
+    x >= 0,
+    x <= 1,
+    y >= 0,
+    y <= 1,
+]
+const += [x >= y / 2]
+const += [x <= 3 * y / 2 - 1 / 2]
+obj = 2 - x / 3 - y / 6
+prob = cp.Problem(cp.Maximize(obj), const)
+prob.solve()
+print("x:\t\t", np.round(x.value, 4))
+print("y:\t\t", np.round(y.value, 4))
+print("optimal payoff:\t", np.round(obj.value, 4))
+
+# %%
