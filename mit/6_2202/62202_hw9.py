@@ -4,7 +4,6 @@ import cvxpy as cp
 import polars as pl
 import matplotlib.pyplot as plt
 
-
 # %%
 # ==============================
 # Problem 5: Market Clearing
@@ -55,7 +54,6 @@ bids = pl.DataFrame(
 )
 
 
-# %%
 # ==============================
 # Part 1: Build and plot
 print("\n Part 1: Build and plot")
@@ -78,7 +76,6 @@ plt.title("Supply and demand curves")
 plt.legend()
 plt.show()
 
-# %%
 # ==============================
 # Part 2: Market price and quantity
 print("\n Part 2: Market price and quantity")
@@ -101,7 +98,6 @@ price = (offers["price"].to_numpy() * (g.value > 1e-4)).max()
 print("Market price:\t\t", price, "[$/MWh]")
 
 
-# %%
 # ==============================
 # Part 3: Revenue by genco
 print("\n Part 3: Revenue by Genco")
@@ -110,7 +106,6 @@ offers.with_columns(pl.Series("qty_cleared", np.round(g.value))).with_columns(
     (pl.col("qty_cleared") * pl.lit(price)).alias("revenue")
 ).group_by("genco").agg(pl.sum("revenue").alias("total_revenue")).show()
 
-# %%
 # ==============================
 # Part 4: Payment by lse
 print("\n Part 4: Payment by LSE")
@@ -144,7 +139,7 @@ def MC_B(P):
 
 
 print("Marginal cost at Node B:", MC_B(1000), "[$/MWh]")
-# %%
+
 # ==============================
 # Part 2: Line AB connected and uncapacitated
 print("\n Part 2: Line AB connected and uncapacitated")
@@ -165,3 +160,5 @@ print("Marginal cost of Gen B:", np.round(MC_B(pB.value), 2), "[$/MWh]")
 print(
     "Check Electricity price:", np.round(-prob.constraints[0].dual_value, 2), "[$/MWh]"
 )
+
+# %%
