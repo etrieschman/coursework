@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 # %%
 # ==============================
 # Problem 5: Market Clearing
+print("\n Problem 5: Market Clearing")
 # ==============================
 # Data
 # ------------------------------
@@ -57,6 +58,9 @@ bids = pl.DataFrame(
 # %%
 # ==============================
 # Part 1: Build and plot
+print("\n Part 1: Build and plot")
+
+
 # ------------------------------
 def curve(df):
     x = np.concatenate([[0], df["qty_mw"].cum_sum().to_numpy()])
@@ -77,6 +81,7 @@ plt.show()
 # %%
 # ==============================
 # Part 2: Market price and quantity
+print("\n Part 2: Market price and quantity")
 # ------------------------------
 d = cp.Variable(bids.shape[0])
 g = cp.Variable(offers.shape[0])
@@ -99,6 +104,7 @@ print("Market price:\t\t", price, "[$/MWh]")
 # %%
 # ==============================
 # Part 3: Revenue by genco
+print("\n Part 3: Revenue by Genco")
 # ------------------------------
 offers.with_columns(pl.Series("qty_cleared", np.round(g.value))).with_columns(
     (pl.col("qty_cleared") * pl.lit(price)).alias("revenue")
@@ -107,8 +113,55 @@ offers.with_columns(pl.Series("qty_cleared", np.round(g.value))).with_columns(
 # %%
 # ==============================
 # Part 4: Payment by lse
+print("\n Part 4: Payment by LSE")
 # ------------------------------
 bids.with_columns(pl.Series("qty_cleared", np.round(d.value))).with_columns(
     (pl.col("qty_cleared") * pl.lit(price)).alias("payment")
 ).group_by("lse").agg(pl.sum("payment").alias("total_payment")).show()
+
+
 # %%
+# ==============================
+# Problem 6: LMPs
+print("\n\n Problem 6: LMPs")
+# ==============================
+# Part 1: Line AB disconnected
+print("\n Part 1: Line AB disconnected")
+
+
+# ------------------------------
+# Generator A supplies Load A
+def MC_A(P):
+    return 20 + 0.03 * P
+
+
+print("Marginal cost at Node A:", MC_A(2000), "[$/MWh]")
+
+
+# Generator B supplies Load B
+def MC_B(P):
+    return 15 + 0.02 * P
+
+
+print("Marginal cost at Node B:", MC_B(1000), "[$/MWh]")
+# %%
+# ==============================
+# Part 2: Line AB connected and uncapacitated
+print("\n Part 2: Line AB connected and uncapacitated")
+# ------------------------------
+# Set up as optimization problem and solve
+# solution is either i) one gen produces everything or
+# ii) both gens produce at equal marginal costs
+pA = cp.Variable(nonneg=True)
+pB = cp.Variable(nonneg=True)
+const = [pA + pB == 3000]
+obj = 20 * pA + 0.03 * 1 / 2 * cp.square(pA) + 15 * pB + 0.02 * 1 / 2 * cp.square(pB)
+prob = cp.Problem(cp.Minimize(obj), const)
+prob.solve()
+print("Optimal generation at Node A:", pA.value, "[MW]")
+print("Optimal generation at Node B:", pB.value, "[MW]")
+print("Marginal cost of Gen A:", np.round(MC_A(pA.value), 2), "[$/MWh]")
+print("Marginal cost of Gen B:", np.round(MC_B(pB.value), 2), "[$/MWh]")
+print(
+    "Check Electricity price:", np.round(-prob.constraints[0].dual_value, 2), "[$/MWh]"
+)
