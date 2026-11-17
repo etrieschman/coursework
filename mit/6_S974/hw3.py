@@ -243,5 +243,56 @@ print("Smallest m such that tbT < 0.02:", small_m)
 print("P(tau <= 400) for that m:", np.round(small_m_tbT, 4))
 print("P(take L on m+1):", np.round(pL_mplus1, 4))
 
+# %%
+# ===========================
+# Part 2.d - Exploration rules
+print("Part 2.d - Exploration rules")
+# ---------------------------
+from hw3_strait import gaps, simulate, Experiment, Thompson, Optimism
+
+T = 1_000
+R = 10_000
+explorations = {
+    "Myopic": (Myopic, {"a": 1, "b": 5}),
+    "Experiment": (Experiment, {"a": 2, "b": 4, "m": 15}),
+    "Thompson": (Thompson, {"a": 1, "b": 5}),
+    "Optimism": (Optimism, {}),
+}
+rows = []
+for exploration, (cls, args) in explorations.items():
+    constructor = lambda R, rng: cls(**args, R=R, rng=rng)  # noqa: B023
+    for q in [0.05, 0.35]:
+        sim = simulate(constructor, np.ones(T) * q, R, 1)
+        gS, gL = gaps(q)  # regret gaps
+        if exploration == "Myopic":
+            __, EL = recursion(**args, q=q, T=T)
+        elif exploration == "Experiment":
+            __, __, EL, __ = experiment(**args, q=q, T=T)
+        else:
+            EL = None
+        exact = None if EL is None else EL * gL + (T - EL) * gS
+        rows.append(
+            {
+                "exploration": exploration,
+                "q": q,
+                "mean": sim["total"],
+                "se": sim["se_total"],
+                "exact": exact,
+            }
+        )
+df = pl.DataFrame(rows)
+df.to_pandas().to_latex(
+    outpath / "hw3_problem2_partd.tex",
+    index=False,
+    float_format="%.3f",
+    na_rep="--",
+)
+print(df)
+
+
+# %%
+from hw3_strait import self_check
+
+self_check()
 
 # %%

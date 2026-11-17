@@ -151,13 +151,15 @@ class Thompson:
         self.miss = np.zeros(R)
 
     def choose(self, t):
-        # TODO: draw one hit rate per run from the posterior (use
-        # self.rng.beta) and return True where the draw is below QSTAR.
-        raise NotImplementedError
+        # draw from posterior distribution
+        q = self.rng.beta(self.a + self.hits, self.b + self.miss)
+        # sail S if below decision rule
+        return q < QSTAR
 
     def update(self, sail, hit):
-        # TODO: add a hit or a miss, but only in runs where sail is True.
-        raise NotImplementedError
+        # store hits and misses
+        self.hits += sail & hit
+        self.miss += sail & ~hit
 
 
 class Optimism:
@@ -180,10 +182,13 @@ class Optimism:
         self.h = np.zeros(R)
 
     def choose(self, t):
-        # TODO: return True where n == 0. In the other runs, compute the
-        # bound max(0, h/n - sqrt(2 ln t / n)) and return True where it is
-        # below QSTAR. (Avoid dividing by zero in the runs with n == 0.)
-        raise NotImplementedError
+        # Always sail on n=1
+        first = self.n == 0
+        # compute bound max(0, h/n - sqrt(2 ln t / n)) and return
+        # True where it is below QSTAR
+        safe_n = np.where(first, 1e-6, self.n)  # avoid division by zero
+        bound = np.maximum(0, self.h / safe_n - np.sqrt(2 * np.log(t) / safe_n))
+        return first | (bound < QSTAR)
 
     def update(self, sail, hit):
         self.n += sail
