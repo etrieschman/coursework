@@ -236,7 +236,12 @@ for m in range(40):
         break
 
 df = pl.DataFrame(rows)
-df
+small_m = df.filter(pl.col("tbT") < 0.02).select(pl.col("m")).min().to_numpy()[0][0]
+small_m_tbT = df.filter(pl.col("m") == small_m).select(pl.col("tbT")).to_numpy()[0][0]
+pL_mplus1 = df.filter(pl.col("m") == small_m).select(pl.col("p_Lnext")).to_numpy()[0][0]
+print("Smallest m such that tbT < 0.02:", small_m)
+print("P(tau <= 400) for that m:", np.round(small_m_tbT, 4))
+print("P(take L on m+1):", np.round(pL_mplus1, 4))
 
 
 # %%
