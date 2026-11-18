@@ -246,11 +246,10 @@ print("P(take L on m+1):", np.round(pL_mplus1, 4))
 # %%
 # ===========================
 # Part 2.d - Exploration rules
-print("Part 2.d - Exploration rules")
+print("Part 2.d.ii - Exploration rules")
 # ---------------------------
 from hw3_strait import gaps, simulate, Experiment, Thompson, Optimism
 
-# part ii
 T = 1_000
 R = 10_000
 explorations = {
@@ -291,7 +290,10 @@ df.to_pandas().to_latex(
 print(df)
 
 # %%
-# part iii
+# ---------------------------
+# Part 2.d.iii - Exploration rules
+print("Part 2.d.iii - Exploration rules")
+# ---------------------------
 T = 20_000
 rows = []
 for exploration, (cls, args) in explorations.items():
@@ -305,7 +307,6 @@ for exploration, (cls, args) in explorations.items():
                 "cum_regret": sim["cum_regret"],
             }
         )
-# %%
 df = pl.DataFrame(rows)
 for q in [0.05, 0.35]:
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -329,6 +330,32 @@ for q in [0.05, 0.35]:
     ax.legend(frameon=False, fontsize=8, loc="upper left")
     fig.tight_layout()
     fig.savefig(outpath / f"hw3_problem2_partd_q{int(q * 100)}.png", dpi=300)
+
+
+# %%
+# ===========================
+# Part 2.e - The hit rate falls
+print("Part 2.e - The hit rate falls")
+# ---------------------------
+from hw3_strait import plot_share
+
+T = 1_500
+R = 10_000
+explorations = {
+    "Myopic": (Myopic, {"a": 1, "b": 5}),
+    "Thompson": (Thompson, {"a": 1, "b": 5}),
+    "Optimism": (Optimism, {}),
+}
+qT = np.ones(T)
+qT[:300] *= 0.5
+qT[300:] *= 0.05
+shares = {}
+for exploration, (cls, args) in explorations.items():
+    constructor = lambda R, rng: cls(**args, R=R, rng=rng)  # noqa: B023
+    sim = simulate(constructor, qT, R, 1)
+    shares[exploration] = sim["share_S"]
+
+plot_share(shares, outpath / "hw3_problem2_parte.png")
 
 # %%
 from hw3_strait import self_check
