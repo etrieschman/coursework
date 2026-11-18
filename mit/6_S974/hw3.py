@@ -250,6 +250,7 @@ print("Part 2.d - Exploration rules")
 # ---------------------------
 from hw3_strait import gaps, simulate, Experiment, Thompson, Optimism
 
+# part ii
 T = 1_000
 R = 10_000
 explorations = {
@@ -289,6 +290,45 @@ df.to_pandas().to_latex(
 )
 print(df)
 
+# %%
+# part iii
+T = 20_000
+rows = []
+for exploration, (cls, args) in explorations.items():
+    constructor = lambda R, rng: cls(**args, R=R, rng=rng)  # noqa: B023
+    for q in [0.05, 0.35]:
+        sim = simulate(constructor, np.ones(T) * q, R, 1)
+        rows.append(
+            {
+                "exploration": exploration,
+                "q": q,
+                "cum_regret": sim["cum_regret"],
+            }
+        )
+# %%
+df = pl.DataFrame(rows)
+for q in [0.05, 0.35]:
+    fig, ax = plt.subplots(figsize=(6, 4))
+    for exploration in explorations:
+        cum_regret = (
+            df.filter((pl.col("q") == q) & (pl.col("exploration") == exploration))
+            .select(pl.col("cum_regret"))
+            .to_numpy()[0][0]
+        )
+        ax.plot(
+            np.arange(1, len(cum_regret) + 1),
+            cum_regret,
+            alpha=0.6,
+            linewidth=1.5,
+            label=f"{exploration} ({cum_regret[-1]:.1f})",
+        )
+    ax.set_xscale("log")
+    ax.set_xlabel("trip $T$ (log scale)")
+    ax.set_ylabel("cumulative regret $R_T$")
+    ax.set_title(f"Cumulative regret for $q = {q}$")
+    ax.legend(frameon=False, fontsize=8, loc="upper left")
+    fig.tight_layout()
+    fig.savefig(outpath / f"hw3_problem2_partd_q{int(q * 100)}.png", dpi=300)
 
 # %%
 from hw3_strait import self_check
