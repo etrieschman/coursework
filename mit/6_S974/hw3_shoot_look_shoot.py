@@ -23,12 +23,13 @@ You complete three functions marked TODO: place and value_tables for part (c),
 and rollout_from_tables for part (d). Run self_check() after each one; it uses
 a small test raid that is not in the problem set.
 """
+
 import itertools
 import numpy as np
 
 # ---------------------------------------------------------------- 1. The model
 TYPES = ("H", "M", "L")
-VALUE = {"H": 10, "M": 3, "L": 1}       # value of the asset each missile threatens
+VALUE = {"H": 10, "M": 3, "L": 1}  # value of the asset each missile threatens
 KILL = {"H": 0.5, "M": 0.7, "L": 0.85}  # one interceptor kills the missile w.p. KILL
 
 LARGE = {"missiles": (5, 10, 15), "interceptors": 36, "salvos": 3}
@@ -46,6 +47,7 @@ def cost(live):
 
 # ---------------------------------------------------------- 2. The placement rule
 
+
 def place(live, fire, spread):
     """Assign `fire` shots one at a time. Each goes to the missile where a shot
     saves the most: value x kill probability x chance the missile survives the
@@ -62,6 +64,7 @@ def place(live, fire, spread):
     raise NotImplementedError
     return shots
 
+
 def split(n, x):
     """x shots spread evenly over n missiles: how many get r+1 shots, how many get r."""
     if n == 0:
@@ -74,17 +77,22 @@ def split(n, x):
 # A doctrine is a fixed rule for choosing a salvo plan. In the last salvo every
 # doctrine fires everything it has left.
 
+
 def fire_everything_now(live, s, k):
     return (s, False)
+
 
 def one_per_missile(live, s, k):
     return (s, False) if k == 1 else (min(s, sum(live)), True)
 
+
 def equal_share_concentrated(live, s, k):
     return (s, False) if k == 1 else (s // k, False)
 
+
 def equal_share_spread(live, s, k):
     return (s, False) if k == 1 else (s // k, True)
+
 
 DOCTRINES = {
     "fire everything now": fire_everything_now,
@@ -96,6 +104,7 @@ DOCTRINES = {
 
 # ------------------------------------------------------------- 4. Salvo plans
 
+
 def salvo_plans(s, k):
     """The candidates: every salvo plan. In the last salvo, fire everything."""
     if k == 1:
@@ -104,6 +113,7 @@ def salvo_plans(s, k):
 
 
 # ------------------------------------------------------------- 5. Exact values
+
 
 def survivor_distribution(n, x, t):
     """Probability that j of n missiles of type t survive x shots, for j = 0..n."""
@@ -119,8 +129,10 @@ def expected_cost(V_next, live, s, plan):
     """Expected value of V_next at the state reached by firing `plan` from (live, s).
     V_next[h, m, l, s'] is the cost-to-go with one salvo fewer."""
     shots = place(live, *plan)
-    dH, dM, dL = (survivor_distribution(live[i], shots[i], t) for i, t in enumerate(TYPES))
-    after = V_next[:live[0] + 1, :live[1] + 1, :live[2] + 1, s - sum(shots)]
+    dH, dM, dL = (
+        survivor_distribution(live[i], shots[i], t) for i, t in enumerate(TYPES)
+    )
+    after = V_next[: live[0] + 1, : live[1] + 1, : live[2] + 1, s - sum(shots)]
     return float(np.einsum("i,j,k,ijk->", dH, dM, dL, after))
 
 
@@ -132,7 +144,7 @@ def value_tables(raid, policy=None):
     N, S, K = raid["missiles"], raid["interceptors"], raid["salvos"]
     V = np.zeros(tuple(n + 1 for n in N) + (S + 1,))
     for live in itertools.product(*(range(n + 1) for n in N)):
-        V[live] = cost(live)                     # k = 0: the raid is over
+        V[live] = cost(live)  # k = 0: the raid is over
     tables = [V]
     for k in range(1, K + 1):
         V = np.full(V.shape, np.nan)
@@ -143,6 +155,7 @@ def value_tables(raid, policy=None):
         raise NotImplementedError
         tables.append(V)
     return tables
+
 
 def benchmark(raid, policy=None):
     """Exact cost from the start: of the best policy over salvo plans (policy None),
@@ -155,10 +168,12 @@ def rollout_from_tables(tables):
     """Rollout with exact scores. `tables` is value_tables(raid, base) for a base
     doctrine. Returns a policy: a function (live, s, k) -> salvo plan that fires
     the plan with the lowest expected cost when the base is followed afterwards."""
+
     def policy(live, s, k):
         # TODO (part d): score every plan in salvo_plans(s, k) with expected_cost
         # and tables[k - 1], and return the plan with the lowest score.
         raise NotImplementedError
+
     return policy
 
 
@@ -169,6 +184,7 @@ TEST = {"missiles": (1, 1, 2), "interceptors": 4, "salvos": 2}
 
 def self_check():
     """Tests place, value_tables and rollout_from_tables."""
+
     def check(name, test):
         try:
             test()
@@ -179,24 +195,36 @@ def self_check():
             print(f"{name}: WRONG {err}")
 
     def test_place():
-        for args, want in [(((2, 3, 4), 5, True), [2, 3, 0]), (((2, 3, 4), 5, False), [4, 1, 0]),
-                           (((2, 1, 0), 6, True), [2, 1, 0]), (((0, 3, 4), 9, False), [0, 5, 4])]:
+        for args, want in [
+            (((2, 3, 4), 5, True), [2, 3, 0]),
+            (((2, 3, 4), 5, False), [4, 1, 0]),
+            (((2, 1, 0), 6, True), [2, 1, 0]),
+            (((0, 3, 4), 9, False), [0, 5, 4]),
+        ]:
             got = place(*args)
             assert got == want, f"place{args} gave {got}, expected {want}"
 
     def test_values():
-        expected = {"fire everything now": 4.15, "one per missile per salvo": 6.2,
-                    "equal share, concentrated": 3.4125, "equal share, spread": 3.1125}
+        expected = {
+            "fire everything now": 4.15,
+            "one per missile per salvo": 6.2,
+            "equal share, concentrated": 3.4125,
+            "equal share, spread": 3.1125,
+        }
         for name, doctrine in DOCTRINES.items():
             got = benchmark(TEST, doctrine)
-            assert abs(got - expected[name]) < 1e-6, f"{name}: got {got:.4f}, expected {expected[name]}"
+            assert abs(got - expected[name]) < 1e-6, (
+                f"{name}: got {got:.4f}, expected {expected[name]}"
+            )
         got = benchmark(TEST)
         assert abs(got - 3.1125) < 1e-6, f"best policy: got {got:.4f}, expected 3.1125"
 
     def test_rollout():
         policy = rollout_from_tables(value_tables(TEST, fire_everything_now))
         got = benchmark(TEST, policy)
-        assert abs(got - 3.1125) < 1e-6, f"rollout of fire everything now: got {got:.4f}, expected 3.1125"
+        assert abs(got - 3.1125) < 1e-6, (
+            f"rollout of fire everything now: got {got:.4f}, expected 3.1125"
+        )
 
     check("place", test_place)
     check("value_tables and benchmark", test_values)

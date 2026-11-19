@@ -358,8 +358,19 @@ for exploration, (cls, args) in explorations.items():
 plot_share(shares, outpath / "hw3_problem2_parte.png")
 
 # %%
+# ===========================
+# Part 2 - Run self_check
+print("Part 2 - Run self_check")
+# ---------------------------
 from hw3_strait import self_check
 
 self_check()
 
 # %%
+# ===========================
+# Problem 3 - Planning with a model
+print("Problem 3 - Planning with a model")
+# ===========================
+# Part 3.b.iii - Probability of switching
+print("Part 3....")
+# ---------------------------
