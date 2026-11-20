@@ -56,12 +56,26 @@ def place(live, fire, spread):
     least-shot missile, so they spread evenly. Ties go to the earlier type
     (H, then M, then L). Returns the number of shots on each type."""
     shots = [0, 0, 0]
-    # TODO: add `fire` shots one at a time. For each type with live missiles,
+    # Add `fire` shots one at a time. For each type with live missiles,
     # the least-shot missile has shots[i] // live[i] shots. Skip the type if
     # spread is True and that number is already 1. Give the shot to the type
     # with the largest gain (use a strict >, so ties go to the earlier type).
     # Stop early if no type can take a shot.
-    raise NotImplementedError
+    for __ in range(fire):
+        best_gain = -1
+        best_i = -1
+        for i, t in enumerate(TYPES):
+            if live[i] == 0:
+                continue
+            if spread and shots[i] // live[i] >= 1:
+                continue
+            gain = VALUE[t] * KILL[t] * (1 - KILL[t]) ** (shots[i] // live[i])
+            if gain > best_gain:
+                best_gain = gain
+                best_i = i
+        if best_i == -1:
+            break
+        shots[best_i] += 1
     return shots
 
 
@@ -148,11 +162,25 @@ def value_tables(raid, policy=None):
     tables = [V]
     for k in range(1, K + 1):
         V = np.full(V.shape, np.nan)
-        # TODO: for every count vector `live` and every s in 0..S (only the start
+        # For every count vector `live` and every s in 0..S (only the start
         # state N, S when k == K), set V[live + (s,)] using expected_cost and
         # tables[k - 1]: the minimum over salvo_plans(s, k) when policy is None,
         # and the value of the plan policy(live, s, k) otherwise.
-        raise NotImplementedError
+        for live in itertools.product(*(range(n + 1) for n in N)):
+            for s in range(S + 1):
+                if (k == K) and not ((live == N) and (s == S)):
+                    continue
+                if policy is None:
+                    V[live + (s,)] = min(
+                        [
+                            expected_cost(tables[k - 1], live, s, plan)
+                            for plan in salvo_plans(s, k)
+                        ]
+                    )
+                else:
+                    V[live + (s,)] = expected_cost(
+                        tables[k - 1], live, s, policy(live, s, k)
+                    )
         tables.append(V)
     return tables
 

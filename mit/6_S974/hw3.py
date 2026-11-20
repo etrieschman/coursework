@@ -371,6 +371,42 @@ self_check()
 # Problem 3 - Planning with a model
 print("Problem 3 - Planning with a model")
 # ===========================
-# Part 3.b.iii - Probability of switching
-print("Part 3....")
+print("Part 3.c.ii - Exact values expected costs")
 # ---------------------------
+from hw3_shoot_look_shoot import SMALL, LARGE, DOCTRINES, value_tables, start
+
+DOCTRINES["minimum"] = None
+rows = []
+for r, raid in {"small": SMALL, "large": LARGE}.items():
+    N, S, K = start(raid)
+    for doctrine, policy in DOCTRINES.items():
+        tables = value_tables(raid, policy)
+        V_K = tables[K]
+        expected_cost = V_K[N + (S,)]
+        rows.append(
+            {
+                "raid": r,
+                "doctrine": doctrine,
+                "expected cost": expected_cost,
+            }
+        )
+df = pl.DataFrame(rows).sort(by="expected cost", descending=False)
+df.to_pandas().to_latex(
+    outpath / "hw3_problem3_partc_subpartii.tex",
+    index=False,
+    float_format="%.3f",
+    na_rep="--",
+)
+print(df)
+
+
+# %%
+# ===========================
+# Part 3 - Run self_check
+print("Part 3 - Run self_check")
+# ---------------------------
+from hw3_shoot_look_shoot import self_check
+
+self_check()
+
+# %%
