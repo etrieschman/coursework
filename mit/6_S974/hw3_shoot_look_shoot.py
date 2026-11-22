@@ -198,9 +198,12 @@ def rollout_from_tables(tables):
     the plan with the lowest expected cost when the base is followed afterwards."""
 
     def policy(live, s, k):
-        # TODO (part d): score every plan in salvo_plans(s, k) with expected_cost
+        # Score every plan in salvo_plans(s, k) with expected_cost
         # and tables[k - 1], and return the plan with the lowest score.
-        raise NotImplementedError
+        plans = salvo_plans(s, k)
+        expected_costs = [expected_cost(tables[k - 1], live, s, plan) for plan in plans]
+        best_plan = np.argmin(expected_costs)
+        return plans[best_plan]
 
     return policy
 

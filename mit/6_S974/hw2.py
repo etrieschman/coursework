@@ -81,6 +81,7 @@ out = (
     Path(__file__).resolve().parent.parent
     / "overleaf"
     / "6_S974"
+    / "tabs_and_figs"
     / "hw2_problem3_partf.tex"
 )
 out.parent.mkdir(parents=True, exist_ok=True)

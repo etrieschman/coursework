@@ -5,20 +5,21 @@ import polars as pl
 import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
+from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 pl.Config.set_tbl_cols(-1)
 
-outpath = Path(__file__).resolve().parent.parent / "overleaf" / "6_S974"
+outpath = (
+    Path(__file__).resolve().parent.parent / "overleaf" / "6_S974" / "tabs_and_figs"
+)
 outpath.parent.mkdir(parents=True, exist_ok=True)
 
 
 # %%
 # ===========================
-# Problem 1 - Fictitious play
 print("Problem 1 - Fictitious play")
 # ===========================
-# Part 1.a - Zero-sum NE
 print("Part 1.a - Zero-sum NE")
 # ---------------------------
 # constants
@@ -54,7 +55,6 @@ for comm in [0, 1]:
 
 # %%
 # ===========================
-# Part 1.c - Fictitious play
 print("Part 1.c - Fictitious play")
 # ---------------------------
 T = 10_000
@@ -114,7 +114,6 @@ def plot_proportions(sigma1, sigma2, title, subtitle):
 
 
 # ------------------
-# Experiment I
 print("Experiment I")
 # ------------------
 sigma1, sigma2 = play(
@@ -128,7 +127,6 @@ plot_proportions(
 plt.show()
 
 # ------------------
-# Experiment II
 print("Experiment II")
 # ------------------
 sigma1, sigma2 = play(
@@ -142,7 +140,6 @@ plot_proportions(
 plt.show()
 
 # ------------------
-# Experiment III
 print("Experiment III")
 # ------------------
 sigma1, sigma2 = play(
@@ -157,10 +154,8 @@ plt.show()
 
 # %%
 # ===========================
-# Problem 2 - Beliefs and failures
 print("Problem 2 - Beliefs and failures")
 # ===========================
-# Part 2.b.iii - Probability of switching
 print("Part 2.b.iii - Probability of switching")
 # ---------------------------
 from hw3_strait import recursion, Myopic, trapped_by
@@ -215,7 +210,6 @@ plt.show()
 
 # %%
 # ===========================
-# Part 2.c - A committed experiment
 print("Part 2.c - A committed experiment")
 # ---------------------------
 from hw3_strait import experiment
@@ -245,7 +239,6 @@ print("P(take L on m+1):", np.round(pL_mplus1, 4))
 
 # %%
 # ===========================
-# Part 2.d - Exploration rules
 print("Part 2.d.ii - Exploration rules")
 # ---------------------------
 from hw3_strait import gaps, simulate, Experiment, Thompson, Optimism
@@ -291,7 +284,6 @@ print(df)
 
 # %%
 # ---------------------------
-# Part 2.d.iii - Exploration rules
 print("Part 2.d.iii - Exploration rules")
 # ---------------------------
 T = 20_000
@@ -334,7 +326,6 @@ for q in [0.05, 0.35]:
 
 # %%
 # ===========================
-# Part 2.e - The hit rate falls
 print("Part 2.e - The hit rate falls")
 # ---------------------------
 from hw3_strait import plot_share
@@ -368,31 +359,81 @@ self_check()
 
 # %%
 # ===========================
-# Problem 3 - Planning with a model
 print("Problem 3 - Planning with a model")
 # ===========================
 print("Part 3.c.ii - Exact values expected costs")
 # ---------------------------
-from hw3_shoot_look_shoot import SMALL, LARGE, DOCTRINES, value_tables, start
+print("Part 3.d.i - Rollout exact costs")
+# ---------------------------
+from hw3_shoot_look_shoot import (
+    SMALL,
+    LARGE,
+    DOCTRINES,
+    value_tables,
+    start,
+    rollout_from_tables,
+)
 
-DOCTRINES["minimum"] = None
+doctrines_plus = {**DOCTRINES.copy(), "minimum": None}
 rows = []
 for r, raid in {"small": SMALL, "large": LARGE}.items():
     N, S, K = start(raid)
-    for doctrine, policy in DOCTRINES.items():
+    for doctrine, policy in doctrines_plus.items():
         tables = value_tables(raid, policy)
-        V_K = tables[K]
-        expected_cost = V_K[N + (S,)]
+        rollout_policy = rollout_from_tables(tables)
+        rollout_tables = value_tables(raid, rollout_policy)
+        ec = tables[K][N + (S,)]
+        rollout_ec = rollout_tables[K][N + (S,)]
         rows.append(
             {
                 "raid": r,
                 "doctrine": doctrine,
-                "expected cost": expected_cost,
+                "expected cost": ec,
+                "from rollout": rollout_ec,
             }
         )
-df = pl.DataFrame(rows).sort(by="expected cost", descending=False)
+
+df = pl.DataFrame(rows).drop("from rollout").sort(by="expected cost", descending=False)
 df.to_pandas().to_latex(
     outpath / "hw3_problem3_partc_subpartii.tex",
+    index=False,
+    float_format="%.3f",
+    na_rep="--",
+)
+print(df)
+
+df = pl.DataFrame(rows).sort(by="expected cost", descending=False)
+df.to_pandas().to_latex(
+    outpath / "hw3_problem3_partd_subparti.tex",
+    index=False,
+    float_format="%.3f",
+    na_rep="--",
+)
+print(df)
+
+# %%
+# ===========================
+print("Part 3.d.ii - Iterated fire-everything rollout")
+# ---------------------------
+eps = 1e-9
+n_rounds = 10
+
+rows = []
+for r, raid in {"small": SMALL, "large": LARGE}.items():
+    N, S, K = start(raid)
+    policy = DOCTRINES["fire everything now"]
+    raid_rows = []
+    for rnd in tqdm(range(n_rounds + 1)):
+        tables = value_tables(raid, policy)
+        ec = tables[K][N + (S,)]
+        if raid_rows and np.abs(ec - raid_rows[-1]["expected cost"]) < eps:
+            break
+        raid_rows.append({"raid": r, "round": rnd, "expected cost": ec})
+        policy = rollout_from_tables(tables)
+    rows.extend(raid_rows)
+df = pl.DataFrame(rows)
+df.to_pandas().to_latex(
+    outpath / "hw3_problem3_partd_subpartii.tex",
     index=False,
     float_format="%.3f",
     na_rep="--",
@@ -402,7 +443,6 @@ print(df)
 
 # %%
 # ===========================
-# Part 3 - Run self_check
 print("Part 3 - Run self_check")
 # ---------------------------
 from hw3_shoot_look_shoot import self_check
