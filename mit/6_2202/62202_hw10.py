@@ -244,4 +244,304 @@ print(df)
 #    also grows, but not as dramatically
 # 3. Cost difference also seems to grow with case size, both
 #    in absolute and relative values
+
+
+# %%
+# ========================
+# Problem 3
+# ------------------------
+# For each solution, check the following:
+# - Unit {A,B,C,D} limits, uptime, downtime
+# - Load balance
+# - Reserve
+#
+# Solution 1: Feasible
+# - Unit A: uptime, downtime, limits okay
+# - Unit B: off the whole time so no violations
+# - Unit C: uptime, downtime, limits okay
+# - Unid D: uptime, downtime, limits okay
+# - Load: balanced every hour
+# - Reserve: every hour, from C in 1-3, from A in 4
+
+# Solution 2: Ineasible
+# - Unit A: uptime, downtime, limits okay
+# - Unit B: off the whole time so no violations
+# - Unit C: violation of uptime and downtime constraints
+# - Unid D: violation of upper limit in hour 4
+# - Load: balanced every hour
+# - Reserve: sufficient every hour (ignoring Unit D limit violation)
+
+# Solution 3: Ineasible
+# - Unit A: uptime, downtime, limits okay
+# - Unit B: violation of downtime and uptime constraints
+# - Unit C: violation of lower limit in hour 1
+# - Unid D: violation of upper limit in hour 4
+# - Load: load imbalance (more generation) in hour 3
+# - Reserve: insufficient reserves in hour 4
+
+# %%
+# ========================
+# Problem 3
+# ------------------------
+# constants
+A, B, C = 0, 1, 2
+c = 0
+load = [80, 110, 120, 80, 70]
+pmin = [60, 25, 10]
+pmax = [100, 50, 40]
+cost_margin = np.array([20, 25, 50])
+cost_startup = [0, 0, c]
+Tmin_up = [1, 3, 3]
+Tmin_down = [3, 1, 1]
+u0 = [1, 0, 0]
+d0 = [0, 1, 1]
+M = 1000  # stands in for an unconstrained pmax
+
+n_p = len(pmin)
+T = len(load)
+
+# variables
+p = cp.Variable((T, n_p))
+u = cp.Variable((T, n_p), boolean=True)
+
+
+def build_constraints(pmin_units, pmax_units, up_units, down_units):
+    # constraints
+    const = [cp.sum(p, axis=1) == load]
+    const += [p >= 0]
+    const += [p[:, g] >= pmin[g] * u[:, g] for g in pmin_units]
+    const += [
+        p[:, g] <= (pmax[g] if g in pmax_units else M) * u[:, g] for g in [A, B, C]
+    ]
+    for g in up_units:
+        # minimum uptime: a startup at s forces on through s + Tmin_up - 1
+        # handle history first
+        const += [u[0, g] - u0[g] <= u[tau, g] for tau in range(1, min(Tmin_up[g], T))]
+        const += [
+            u[s, g] - u[s - 1, g] <= u[tau, g]
+            for s in range(1, T)
+            for tau in range(s + 1, min(s + Tmin_up[g], T))
+        ]
+    for g in down_units:
+        # minimum downtime: a shutdown at s forces off through s + Tmin_down - 1
+        # handle history first
+        const += [
+            u0[g] - u[0, g] <= 1 - u[tau, g] for tau in range(1, min(Tmin_down[g], T))
+        ]
+        const += [
+            u[s - 1, g] - u[s, g] <= 1 - u[tau, g]
+            for s in range(1, T)
+            for tau in range(s + 1, min(s + Tmin_down[g], T))
+        ]
+    return const
+
+
+# objective
+cost_energy = cp.sum(p @ cost_margin)
+cost_start = sum(
+    cost_startup[g] * (cp.pos(u[0, g] - u0[g]) + cp.sum(cp.pos(u[1:, g] - u[:-1, g])))
+    for g in [A, B, C]
+)
+obj = cost_energy + cost_start
+
+# %%
+# -----------------------
+# case (a)
+# -----------------------
+const_a = build_constraints(
+    pmin_units=[A, C],
+    pmax_units=[],
+    up_units=[],
+    down_units=[],
+)
+
+# problem
+prob = cp.Problem(cp.Minimize(obj), const_a)
+prob.solve()
+gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
+print("Total operating cost:", prob.value)
+print("Generation schedule:\n", gen_sched)
+
+# Total operating cost: 9200.0
+# Generation schedule:
+# ┌───────┬─────┬─────┐
+# │ A     ┆ B   ┆ C   │
+# │ ---   ┆ --- ┆ --- │
+# │ f64   ┆ f64 ┆ f64 │
+# ╞═══════╪═════╪═════╡
+# │ 80.0  ┆ 0.0 ┆ 0.0 │
+# │ 110.0 ┆ 0.0 ┆ 0.0 │
+# │ 120.0 ┆ 0.0 ┆ 0.0 │
+# │ 80.0  ┆ 0.0 ┆ 0.0 │
+# │ 70.0  ┆ 0.0 ┆ 0.0 │
+# └───────┴─────┴─────┘
+
+
+# %%
+# -----------------------
+# case (b)
+# -----------------------
+const_b = build_constraints(
+    pmin_units=[A, C],
+    pmax_units=[A],
+    up_units=[],
+    down_units=[],
+)
+
+# problem
+prob = cp.Problem(cp.Minimize(obj), const_b)
+prob.solve()
+gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
+print("Total operating cost:", prob.value)
+print("Generation schedule:\n", gen_sched)
+
+# Total operating cost: 9350.0
+# Generation schedule:
+# ┌───────┬──────┬─────┐
+# │ A     ┆ B    ┆ C   │
+# │ ---   ┆ ---  ┆ --- │
+# │ f64   ┆ f64  ┆ f64 │
+# ╞═══════╪══════╪═════╡
+# │ 80.0  ┆ 0.0  ┆ 0.0 │
+# │ 100.0 ┆ 10.0 ┆ 0.0 │
+# │ 100.0 ┆ 20.0 ┆ 0.0 │
+# │ 80.0  ┆ 0.0  ┆ 0.0 │
+# │ 70.0  ┆ 0.0  ┆ 0.0 │
+# └───────┴──────┴─────┘
+
+
+# %%
+# -----------------------
+# case (c)
+# -----------------------
+const_c = build_constraints(
+    pmin_units=[A, B, C],
+    pmax_units=[A],
+    up_units=[],
+    down_units=[],
+)
+
+# problem
+prob = cp.Problem(cp.Minimize(obj), const_c)
+prob.solve()
+gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
+print("Total operating cost:", prob.value)
+print("Generation schedule:\n", gen_sched)
+
+# Total operating cost: 9450.0
+# Generation schedule:
+# ┌──────┬──────┬─────┐
+# │ A    ┆ B    ┆ C   │
+# │ ---  ┆ ---  ┆ --- │
+# │ f64  ┆ f64  ┆ f64 │
+# ╞══════╪══════╪═════╡
+# │ 80.0 ┆ 0.0  ┆ 0.0 │
+# │ 85.0 ┆ 25.0 ┆ 0.0 │
+# │ 95.0 ┆ 25.0 ┆ 0.0 │
+# │ 80.0 ┆ 0.0  ┆ 0.0 │
+# │ 70.0 ┆ 0.0  ┆ 0.0 │
+# └──────┴──────┴─────┘
+
+
+# %%
+# -----------------------
+# case (d)
+# -----------------------
+const_d = build_constraints(
+    pmin_units=[A, B, C],
+    pmax_units=[A],
+    up_units=[B],
+    down_units=[B],
+)
+
+# problem
+prob = cp.Problem(cp.Minimize(obj), const_d)
+prob.solve()
+gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
+print("Total operating cost:", prob.value)
+print("Generation schedule:\n", gen_sched)
+
+# Total operating cost: 9850.0
+# Generation schedule:
+# ┌──────┬──────┬─────┐
+# │ A    ┆ B    ┆ C   │
+# │ ---  ┆ ---  ┆ --- │
+# │ f64  ┆ f64  ┆ f64 │
+# ╞══════╪══════╪═════╡
+# │ 80.0 ┆ 0.0  ┆ 0.0 │
+# │ 85.0 ┆ 25.0 ┆ 0.0 │
+# │ 95.0 ┆ 25.0 ┆ 0.0 │
+# │ 0.0  ┆ 80.0 ┆ 0.0 │
+# │ 70.0 ┆ 0.0  ┆ 0.0 │
+# └──────┴──────┴─────┘
+
+# %%
+# -----------------------
+# case (e)
+# -----------------------
+const_e = build_constraints(
+    pmin_units=[A, B, C],
+    pmax_units=[A],
+    up_units=[B],
+    down_units=[A, B],
+)
+
+# problem
+prob = cp.Problem(cp.Minimize(obj), const_e)
+prob.solve()
+gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
+print("Total operating cost:", prob.value)
+print("Generation schedule:\n", gen_sched)
+
+# Total operating cost: 10100.0
+# Generation schedule:
+# ┌───────┬─────┬──────┐
+# │ A     ┆ B   ┆ C    │
+# │ ---   ┆ --- ┆ ---  │
+# │ f64   ┆ f64 ┆ f64  │
+# ╞═══════╪═════╪══════╡
+# │ 80.0  ┆ 0.0 ┆ 0.0  │
+# │ 100.0 ┆ 0.0 ┆ 10.0 │
+# │ 100.0 ┆ 0.0 ┆ 20.0 │
+# │ 80.0  ┆ 0.0 ┆ 0.0  │
+# │ 70.0  ┆ 0.0 ┆ 0.0  │
+# └───────┴─────┴──────┘
+
+# %%
+# -----------------------
+# Problem 4.2
+# -----------------------
+gen_sched_pt1 = gen_sched.clone()
+cost_energy = cp.sum(p @ cost_margin)
+for c in np.arange(100, 150, 1):
+    cost_startup[C] = c
+    cost_start = sum(
+        cost_startup[g]
+        * (cp.pos(u[0, g] - u0[g]) + cp.sum(cp.pos(u[1:, g] - u[:-1, g])))
+        for g in [A, B, C]
+    )
+    obj = cost_energy + cost_start
+    prob = cp.Problem(cp.Minimize(obj), const_e)
+    prob.solve()
+    gen_sched = pl.from_numpy(np.maximum(0, p.value).round(3), schema=["A", "B", "C"])
+    if not gen_sched_pt1.equals(gen_sched):
+        print("schedule changes at c =", c)
+        break
+else:
+    print("no change up to c =", c)
+print(gen_sched)
+
+# schedule changes at c = 100
+# ┌───────┬─────┬──────┐
+# │ A     ┆ B   ┆ C    │
+# │ ---   ┆ --- ┆ ---  │
+# │ f64   ┆ f64 ┆ f64  │
+# ╞═══════╪═════╪══════╡
+# │ 80.0  ┆ 0.0 ┆ 0.0  │
+# │ 100.0 ┆ 0.0 ┆ 10.0 │
+# │ 100.0 ┆ 0.0 ┆ 20.0 │
+# │ 80.0  ┆ 0.0 ┆ 0.0  │
+# │ 70.0  ┆ 0.0 ┆ 0.0  │
+# └───────┴─────┴──────┘
+
 # %%
