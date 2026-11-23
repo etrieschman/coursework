@@ -281,7 +281,7 @@ print(df)
 
 # %%
 # ========================
-# Problem 3
+# Problem 4 -- setup
 # ------------------------
 # constants
 A, B, C = 0, 1, 2
@@ -324,7 +324,10 @@ def build_constraints(pmin_units, pmax_units, up_units, down_units):
         ]
     for g in down_units:
         # minimum downtime: a shutdown at s forces off through s + Tmin_down - 1
-        # handle history first
+        # history: already off, finish the remaining downtime
+        if u0[g] == 0:
+            const += [u[t, g] == 0 for t in range(min(Tmin_down[g] - d0[g], T))]
+        # history: shutdown in hour 1
         const += [
             u0[g] - u[0, g] <= 1 - u[tau, g] for tau in range(1, min(Tmin_down[g], T))
         ]
@@ -513,7 +516,7 @@ print("Generation schedule:\n", gen_sched)
 # -----------------------
 gen_sched_pt1 = gen_sched.clone()
 cost_energy = cp.sum(p @ cost_margin)
-for c in np.arange(100, 150, 1):
+for c in np.arange(80, 150, 1):
     cost_startup[C] = c
     cost_start = sum(
         cost_startup[g]
@@ -531,17 +534,17 @@ else:
     print("no change up to c =", c)
 print(gen_sched)
 
-# schedule changes at c = 100
-# ┌───────┬─────┬──────┐
-# │ A     ┆ B   ┆ C    │
-# │ ---   ┆ --- ┆ ---  │
-# │ f64   ┆ f64 ┆ f64  │
-# ╞═══════╪═════╪══════╡
-# │ 80.0  ┆ 0.0 ┆ 0.0  │
-# │ 100.0 ┆ 0.0 ┆ 10.0 │
-# │ 100.0 ┆ 0.0 ┆ 20.0 │
-# │ 80.0  ┆ 0.0 ┆ 0.0  │
-# │ 70.0  ┆ 0.0 ┆ 0.0  │
-# └───────┴─────┴──────┘
+# schedule changes at c = 102
+# ┌──────┬──────┬─────┐
+# │ A    ┆ B    ┆ C   │
+# │ ---  ┆ ---  ┆ --- │
+# │ f64  ┆ f64  ┆ f64 │
+# ╞══════╪══════╪═════╡
+# │ 80.0 ┆ 0.0  ┆ 0.0 │
+# │ 85.0 ┆ 25.0 ┆ 0.0 │
+# │ 95.0 ┆ 25.0 ┆ 0.0 │
+# │ 0.0  ┆ 80.0 ┆ 0.0 │
+# │ 0.0  ┆ 70.0 ┆ 0.0 │
+# └──────┴──────┴─────┘
 
 # %%
