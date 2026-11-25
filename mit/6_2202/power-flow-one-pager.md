@@ -94,7 +94,39 @@ A shortfall at one bus lowers frequency at every bus, and every governor sees it
 Active power balance is grid-wide and its signal is frequency.
 Reactive power balance is local and its signal is $V_k$.
 
-## 7. Line limits
+## 7. Primary and secondary control
+
+A governor sets turbine power $P_{m,k}$ from measured frequency $f$ along a straight line, the droop line.
+
+$$P_{m,k} = P_{\mathrm{ref},k} - \frac{P_{\max,k}}{\rho_k}\,\frac{f - f_{\mathrm{nom}}}{f_{\mathrm{nom}}}$$
+
+$f_{\mathrm{nom}}$ is nominal frequency, 60 Hz.
+$\rho_k$ is the droop coefficient: the fractional drop in $f$ over which generator $k$ goes from zero output to $P_{\max,k}$.
+The plant sets $\rho_k$ once, typically 5% in North America.
+$P_{\mathrm{ref},k}$ is the power set point: the turbine power of generator $k$ at $f_{\mathrm{nom}}$.
+Primary control is the governor moving along its droop line, within seconds.
+Secondary control is AGC changing $P_{\mathrm{ref},k}$, over tens of seconds to minutes.
+In steady state, generators with equal $\rho_k$ and equal $P_{\mathrm{ref},k}/P_{\max,k}$ share a load change in proportion to $P_{\max,k}$.
+
+**A load increase.**
+
+1. The load draws more current, and electrical power out of every generator rises at once (section 6).
+2. Electrical power exceeds turbine power at every generator, so every rotor slows and $f$ falls.
+3. Every governor opens its valve along its droop line. This is primary control.
+4. $f$ stops falling when total turbine power equals load, and $f$ settles below $f_{\mathrm{nom}}$.
+5. AGC raises $P_{\mathrm{ref},k}$, turbine power rises further, and $f$ returns to $f_{\mathrm{nom}}$. This is secondary control.
+
+A load decrease runs the same five steps with every sign reversed, and $f$ settles above $f_{\mathrm{nom}}$ until AGC lowers $P_{\mathrm{ref},k}$.
+
+**A set point increase at generator $k$ on a large grid.**
+
+1. AGC raises $P_{\mathrm{ref},k}$, the valve opens, and turbine power exceeds electrical power out at generator $k$.
+2. Rotor $k$ turns slightly faster than the grid for a moment, and $f$ rises by an amount too small to measure.
+3. Rotor $k$ moves ahead in angle, and by section 3 electrical power out of generator $k$ rises until it equals turbine power.
+4. Rotor $k$ returns to grid speed with a larger angle.
+5. Load has not changed, so the other governors close their valves along their droop lines by the same total amount.
+
+## 8. Line limits
 
 The physical limit of a line is current, because heating is $r_{km} I_{km}^2$.
 $I_{km} = \sqrt{P_{km}^2 + Q_{km}^2}\,/\,V_k$, so the limit covers active and reactive power together.
@@ -102,4 +134,4 @@ The rating is stated in MVA at nominal voltage.
 
 ## What this page leaves out
 
-Line charging and shunt elements, transformers and their taps, loads whose $P_k$ and $Q_k$ depend on $V_k$, and the DC approximation.
+Line charging and shunt elements, transformers and their taps, loads whose $P_k$ and $Q_k$ depend on $V_k$, tertiary control, and the DC approximation.

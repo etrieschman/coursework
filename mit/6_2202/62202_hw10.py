@@ -1,10 +1,14 @@
 # %%
 import timeit
+import logging
 import cvxpy as cp
 import numpy as np
 import polars as pl
+import matplotlib.pyplot as plt
 import pandapower as pp
 import pandapower.networks as pn
+
+logging.getLogger("pandapower").setLevel(logging.ERROR)
 
 
 # %%
@@ -59,11 +63,6 @@ print("system marginal cost:\t", np.round(x[-1], 3))
 print("gen marginal cost:\t", np.round(marginal_cost(x[:3]), 3))
 print("total cost:\t\t", np.round(total_cost(x[:3]).value, 3))
 
-# (P1, P2, P3):		     [221.717 268.813 409.47 ]
-# system marginal cost:	 72.515
-# gen marginal cost:	 [72.515 72.515 72.515]
-# total cost:		     50805.366
-
 
 # %%
 # ------------------------
@@ -89,11 +88,6 @@ print("system marginal cost:\t", -np.round(const[-1].dual_value, 3))
 print("gen marginal cost:\t", np.round(marginal_cost(p.value), 3))
 print("total cost:\t\t", np.round(total_cost(p).value, 3))
 
-# (P1, P2, P3):		     [248.148 301.852 350.   ]
-# system marginal cost:	 80.444
-# gen marginal cost:	 [80.444 80.444 63.   ]
-# total cost:		     51324.074
-
 
 # %%
 # ------------------------
@@ -113,9 +107,6 @@ p_pt3 = np.append(x_pt3, pmax[P3])
 print("(P1, P2, P3):\t", np.round(p_pt3, 3))
 print("load:\t\t", np.round(p_pt3.sum(), 3))
 
-# (P1, P2, P3):	 [263.333 320.833 350.   ]
-# load:		     934.167
-
 
 # %%
 # ------------------------
@@ -131,11 +122,6 @@ print("system marginal cost:\t", -np.round(const[-1].dual_value, 3))
 print("gen marginal cost:\t", np.round(marginal_cost(p.value), 3))
 print("total cost:\t\t", np.round(total_cost(p).value, 3))
 
-# (P1, P2, P3):		     [141.409 200.    258.891]
-# system marginal cost:	 48.423
-# gen marginal cost:	 [48.423 56.    48.423]
-# total cost:		     32422.131
-
 
 # %%
 # ========================
@@ -150,6 +136,7 @@ print("total cost:\t\t", np.round(total_cost(p).value, 3))
 # for with DCOPF.
 
 
+# %%
 # ------------------------
 # Part 2 - Complete the table
 # ------------------------
@@ -223,18 +210,8 @@ for case_fn in cases:
 
 df = pl.DataFrame(rows).with_columns(pl.selectors.numeric().round(3))
 print(df)
-# shape: (4, 7)
-# ┌─────────┬────────────┬────────────┬────────────┬───────────────┬───────────────┬────────────┐
-# │ case    ┆ cost_ac    ┆ cost_dc    ┆ cost_pdiff ┆ time_ac       ┆ time_dc       ┆ time_pdiff │
-# │ ---     ┆ ---        ┆ ---        ┆ ---        ┆ ---           ┆ ---           ┆ ---        │
-# │ str     ┆ f64        ┆ f64        ┆ f64        ┆ str           ┆ str           ┆ f64        │
-# ╞═════════╪════════════╪════════════╪════════════╪═══════════════╪═══════════════╪════════════╡
-# │ case9   ┆ 5311.912   ┆ 5316.048   ┆ 0.001      ┆ 0.667 ± 0.003 ┆ 0.180 ± 0.002 ┆ -0.73      │
-# │ case14  ┆ 8081.526   ┆ 8177.252   ┆ 0.012      ┆ 0.868 ± 0.022 ┆ 0.260 ± 0.008 ┆ -0.701     │
-# │ case39  ┆ 41872.301  ┆ 41890.459  ┆ 0.0        ┆ 1.349 ± 0.019 ┆ 0.275 ± 0.017 ┆ -0.796     │
-# │ case118 ┆ 129704.738 ┆ 131622.524 ┆ 0.015      ┆ 2.164 ± 0.048 ┆ 0.329 ± 0.001 ┆ -0.848     │
-# └─────────┴────────────┴────────────┴────────────┴───────────────┴───────────────┴────────────┘
 
+# %%
 # ------------------------
 # Part 3 - Briefly comment
 # ------------------------
@@ -365,20 +342,6 @@ gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
 print("Total operating cost:", prob.value)
 print("Generation schedule:\n", gen_sched)
 
-# Total operating cost: 9200.0
-# Generation schedule:
-# ┌───────┬─────┬─────┐
-# │ A     ┆ B   ┆ C   │
-# │ ---   ┆ --- ┆ --- │
-# │ f64   ┆ f64 ┆ f64 │
-# ╞═══════╪═════╪═════╡
-# │ 80.0  ┆ 0.0 ┆ 0.0 │
-# │ 110.0 ┆ 0.0 ┆ 0.0 │
-# │ 120.0 ┆ 0.0 ┆ 0.0 │
-# │ 80.0  ┆ 0.0 ┆ 0.0 │
-# │ 70.0  ┆ 0.0 ┆ 0.0 │
-# └───────┴─────┴─────┘
-
 
 # %%
 # -----------------------
@@ -397,20 +360,6 @@ prob.solve()
 gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
 print("Total operating cost:", prob.value)
 print("Generation schedule:\n", gen_sched)
-
-# Total operating cost: 9350.0
-# Generation schedule:
-# ┌───────┬──────┬─────┐
-# │ A     ┆ B    ┆ C   │
-# │ ---   ┆ ---  ┆ --- │
-# │ f64   ┆ f64  ┆ f64 │
-# ╞═══════╪══════╪═════╡
-# │ 80.0  ┆ 0.0  ┆ 0.0 │
-# │ 100.0 ┆ 10.0 ┆ 0.0 │
-# │ 100.0 ┆ 20.0 ┆ 0.0 │
-# │ 80.0  ┆ 0.0  ┆ 0.0 │
-# │ 70.0  ┆ 0.0  ┆ 0.0 │
-# └───────┴──────┴─────┘
 
 
 # %%
@@ -431,20 +380,6 @@ gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
 print("Total operating cost:", prob.value)
 print("Generation schedule:\n", gen_sched)
 
-# Total operating cost: 9450.0
-# Generation schedule:
-# ┌──────┬──────┬─────┐
-# │ A    ┆ B    ┆ C   │
-# │ ---  ┆ ---  ┆ --- │
-# │ f64  ┆ f64  ┆ f64 │
-# ╞══════╪══════╪═════╡
-# │ 80.0 ┆ 0.0  ┆ 0.0 │
-# │ 85.0 ┆ 25.0 ┆ 0.0 │
-# │ 95.0 ┆ 25.0 ┆ 0.0 │
-# │ 80.0 ┆ 0.0  ┆ 0.0 │
-# │ 70.0 ┆ 0.0  ┆ 0.0 │
-# └──────┴──────┴─────┘
-
 
 # %%
 # -----------------------
@@ -464,19 +399,6 @@ gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
 print("Total operating cost:", prob.value)
 print("Generation schedule:\n", gen_sched)
 
-# Total operating cost: 9850.0
-# Generation schedule:
-# ┌──────┬──────┬─────┐
-# │ A    ┆ B    ┆ C   │
-# │ ---  ┆ ---  ┆ --- │
-# │ f64  ┆ f64  ┆ f64 │
-# ╞══════╪══════╪═════╡
-# │ 80.0 ┆ 0.0  ┆ 0.0 │
-# │ 85.0 ┆ 25.0 ┆ 0.0 │
-# │ 95.0 ┆ 25.0 ┆ 0.0 │
-# │ 0.0  ┆ 80.0 ┆ 0.0 │
-# │ 70.0 ┆ 0.0  ┆ 0.0 │
-# └──────┴──────┴─────┘
 
 # %%
 # -----------------------
@@ -496,19 +418,6 @@ gen_sched = pl.from_numpy(np.maximum(0, p.value), schema=["A", "B", "C"])
 print("Total operating cost:", prob.value)
 print("Generation schedule:\n", gen_sched)
 
-# Total operating cost: 10100.0
-# Generation schedule:
-# ┌───────┬─────┬──────┐
-# │ A     ┆ B   ┆ C    │
-# │ ---   ┆ --- ┆ ---  │
-# │ f64   ┆ f64 ┆ f64  │
-# ╞═══════╪═════╪══════╡
-# │ 80.0  ┆ 0.0 ┆ 0.0  │
-# │ 100.0 ┆ 0.0 ┆ 10.0 │
-# │ 100.0 ┆ 0.0 ┆ 20.0 │
-# │ 80.0  ┆ 0.0 ┆ 0.0  │
-# │ 70.0  ┆ 0.0 ┆ 0.0  │
-# └───────┴─────┴──────┘
 
 # %%
 # -----------------------
@@ -534,17 +443,173 @@ else:
     print("no change up to c =", c)
 print(gen_sched)
 
-# schedule changes at c = 102
-# ┌──────┬──────┬─────┐
-# │ A    ┆ B    ┆ C   │
-# │ ---  ┆ ---  ┆ --- │
-# │ f64  ┆ f64  ┆ f64 │
-# ╞══════╪══════╪═════╡
-# │ 80.0 ┆ 0.0  ┆ 0.0 │
-# │ 85.0 ┆ 25.0 ┆ 0.0 │
-# │ 95.0 ┆ 25.0 ┆ 0.0 │
-# │ 0.0  ┆ 80.0 ┆ 0.0 │
-# │ 0.0  ┆ 70.0 ┆ 0.0 │
-# └──────┴──────┴─────┘
+
+# %%
+# ========================
+# Problem 6 - Value-based transmission
+# ========================
+# Part 1 - Max price
+# ------------------------
+savings_perMW = 25 - 17
+print("Max transmission price:", savings_perMW, "[$/MWh]")
+
+
+# %%
+# ========================
+# Part 2 - Updated marginal costs
+# ------------------------
+# value of transmission: price difference
+A, B = 0, 1
+demand = [2000, 1000]
+
+# ------------------------
+# Part 2.a - plot transmission value
+# ------------------------
+rows = []
+for limit in np.arange(0, 1600, 100):
+    # step 1 - solve for flow (B->A)
+    # 20 + 0.03 * (2000 - f) = 15 + 0.02 * (1000 + f)
+    f = 45 / 0.05
+    # step 2 - clip to limit
+    f_clip = np.clip(f, -limit, limit)
+    # step 3 - get marginal costs
+    mc_a = 20 + 0.03 * (demand[A] - f_clip)
+    mc_b = 15 + 0.02 * (demand[B] + f_clip)
+    # step 4 transmission value
+    rows.append({"limit": limit, "flow": f_clip, "value": np.abs(mc_a - mc_b)})
+df = pl.DataFrame(rows)
+fig, ax = plt.subplots(figsize=(7, 4.5))
+ax.plot(df["limit"], df["value"], marker="o", markersize=4)
+ax.set_xlabel("Transmission capacity (MW)")
+ax.set_ylabel("Marginal value of transmission ($/MWh)")
+ax.set_title("Marginal value of transmission vs. line capacity")
+ax.set_xlim(0, 1500)
+ax.set_ylim(-10, 50)
+ax.grid(True, alpha=0.3)
+fig.tight_layout()
+plt.show()
+
+# %%
+# ------------------------
+# Part 2.b - transmission demand function
+# ------------------------
+# define flow f (B->A)
+# pi(f) = (20 + 0.03 * (2000 - f)) - (15 + 0.02 * (1000 + f))
+#       = 45 - 0.05 * f
+
+
+# %%
+# ------------------------
+# Part 2.c - transmission supply function
+# ------------------------
+length = 500
+mc = 210
+ann_mc = mc * length
+hourly_mc = ann_mc / 8760
+print("Annuitized marginal cost of capacity:", np.round(ann_mc, 2), "[$/(MW*km*yr)]")
+print("Hourly long run marginal cost:", np.round(hourly_mc, 2), "[$/MWh]")
+
+
+# %%
+# ------------------------
+# Part 2.d - Optimal capacity
+# ------------------------
+# marginal profit = (demand - supply)
+# mp(f) = pi(f) - hourly_mc
+#       = 45 - 0.05 * f - 12
+#       = 33 - 0.05 * f
+#     0 = 33 - 0.05 * f (optimal)
+f_opt = 33 / 0.05
+print("Optimal capacity:", np.round(f_opt, 2), "[MW]")
+
+rows = [
+    {
+        "capacity": f,
+        "marginal_profit": 33 - 0.05 * f,
+        "profit": (33 - 0.05 * f) * f,
+    }
+    for f in np.arange(0, 800, 20)
+]
+df = pl.DataFrame(rows)
+fig, ax1 = plt.subplots(figsize=(7, 4.5))
+ax2 = ax1.twinx()
+
+l1 = ax1.plot(df["capacity"], df["profit"], color="C0", label="profit")
+l2 = ax2.plot(
+    df["capacity"], df["marginal_profit"], color="C1", label="marginal profit"
+)
+ax1.axvline(x=f_opt, color="gray", lw=0.8, linestyle="--")
+ax1.set_xlabel("Transmission capacity (MW)")
+ax1.set_ylabel("Profit ($/h)", color="C0")
+ax2.set_ylabel("Marginal profit ($/MWh)", color="C1")
+ax1.tick_params(axis="y", colors="C0")
+ax2.tick_params(axis="y", colors="C1")
+ax1.set_xlim(0, 800)
+ax2.set_ylim(-20, 60)
+ax1.set_ylim(-2000, 6000)
+ax1.axhline(0, color="gray", lw=0.8)
+ax1.grid(True, alpha=0.3)
+lines = l1 + l2
+ax1.legend(lines, [l.get_label() for l in lines], loc="best")
+fig.tight_layout()
+plt.show()
+
+
+# %%
+# ========================
+# Problem 7 - System frequency response
+# ========================
+# Part 1 - Load jump
+# ------------------------
+# Rate of change of system frequency:
+# Pm - Pe = -1_000
+# domega/dt = -1_000 [MW] / 20_000 [MW/Hz^2] = -0.05 [Hz^2 = Hz/sec]
+
+# Time to 1.5Hz drop if no control:
+# -1.5 [Hz] = -0.05 [Hz/sec] * x [sec]
+# x = 30 [sec]
+
+# %%
+# ========================
+# Part 2 - Load jump on isolated system
+# ------------------------
+# Rate of change of system frequency:
+# Pm - Pe = -1_000
+# domega/dt = -1_000 [MW] / 3_000 [MW/Hz^2] = -1/3 [Hz^2 = Hz/sec]
+
+# Time to 1.5Hz drop if no control:
+# -1.5 [Hz] = -1/3 [Hz/sec] * x [sec]
+# x = 4.5 [sec]
+
+
+# %%
+# ========================
+# Problem 8 - Frequency control
+# ========================
+# Part 1 - Operating frequency
+# ------------------------
+# f = fnom * (1 - rho * p/pmax)
+f = 60 * (1 - 0.04 * 30 / 40)
+print(f"Operating frequency: {f:0.3f} [Hz]")
+
+
+# %%
+# ========================
+# Part 2 - New operating frequency
+# ------------------------
+# f = fnom * (1 - rho * p/(p1max + p2max))
+f = 60 * (1 - 0.04 * 30 / (40 + 30))
+print(f"Operating frequency: {f:0.3f} [Hz]")
+
+
+# %%
+# ========================
+# Part 3 - Power generation
+# ------------------------
+# pi = pimax / (p1max + p2max) * p
+pmax = np.array([40, 30])
+p = 30
+pgen = pmax / np.sum(pmax) * p
+print(f"Power generation (gen1, gen2):", np.round(pgen, 3), "[kW]")
 
 # %%
